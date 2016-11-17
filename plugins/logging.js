@@ -1,16 +1,18 @@
 const log = require("../utils/logger");
 const fs = require('fs');
+const config = require("../config.json");
 
 function addHandlers(server) {
-    log.debug("Adding handler for logging post request");
     server.post("/api/logging/:name", (req, res, next) => {
         if (req.params.name && req.body) {
             var folder = req.params.name;
             var payload = req.body;
+            // Dont need to wait on the write, respond quickly
             res.send(200);
-            var logfilepath = logpath + "" + folder + "log.txt";
-
+            var logfilepath = config.logpath + folder + "log.txt";
+            // Creat the file if it does not exist
             fs.closeSync(fs.openSync(logfilepath, 'w'));
+            // Append the log message to the file
             fs.appendFile(logfilepath, req.body.msg + "\n", function (err) {
                 console.log("Error writing to file " + logfilepath + JSON.stringify(err));
             });
@@ -19,14 +21,17 @@ function addHandlers(server) {
         }
     });
 
-    log.debug("Adding handler for logging get request");
     server.get("/api/logging/:name/clear", (req, res, next) => {
         if (req.params.name) {
             var folder = req.params.name;
-            res.send(200);
-            var logfilepath = logpath + "/" + folder + "/log.txt";
+            var logfilepath = config.logpath + folder + "/log.txt";
             fs.unlink(logfilepath, function (err) {
-                console.log("Deleted log file " + logfilepath);
+                if (err) {
+                    res.send(500);
+                } else {
+                    console.log("Deleted log file " + logfilepath);
+                    res.send(200);
+                }
             });
         } else {
             res.send(400);
