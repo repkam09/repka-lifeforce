@@ -1,0 +1,17 @@
+{
+  "name": "repka-lifeforce",
+  "version": "1.0.0",
+  "description": "A set of REST apis that will control and monitor various webapps, websites, and services",
+  "main": "lifeforce.js",
+  "author": "Mark Repka",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^0.9.0",
+    "path": "^0.12.7",
+    "request": "^2.78.0",
+    "restify": "^4.3.0",
+    "thepiratebay": "^1.3.2",
+    "transmission": "^0.4.5",
+    "youtube-dl": "^1.11.1"
+  }
+}
