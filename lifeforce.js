@@ -38,8 +38,6 @@ server.use(restify.bodyParser({
     hash: 'md5'
 }));
 
-var plugins = [];
-
 // Go out and check the plugins list for endpoints to listen on
 fs.readdir(pluginpath, (err, files) => {
     files.forEach(file => {
@@ -56,6 +54,8 @@ fs.readdir(pluginpath, (err, files) => {
                         if (plugin.enabled) {
                             // If this plugin is enabled, start it!
                             log.info("Starting up " + plugin.name + " plugin");
+
+                            // Call the plugins start method to attach the various get/post/etc
                             plugin.start(server);
                         } else {
                             log.debug("Skipping " + plugin.name + " plugin because it is disabled");
