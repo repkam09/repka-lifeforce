@@ -1,4 +1,5 @@
 const log = require("../utils/logger");
+const config = require("../config.json");
 
 function addHandlers(server) {
     server.get("/api/github", (req, res, next) => {
@@ -17,7 +18,7 @@ function addHandlers(server) {
  * You must have an enabled, name, and start property defined
  */
 module.exports = {
-    enabled: true,
+    enabled: false,
     name: "github webhook",
     start: (server) => {
         addHandlers(server);

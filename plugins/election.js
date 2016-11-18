@@ -15,7 +15,7 @@ function addHandlers(server) {
  * You must have an enabled, name, and start property defined
  */
 module.exports = {
-    enabled: true,
+    enabled: false,
     name: "election",
     start: (server) => {
         addHandlers(server);

@@ -12,7 +12,6 @@ const path = require('path')
 const log = require("./utils/logger.js");
 
 // Set the app name and some other helpful variables
-const appname = "RepApi";
 const tempdir = os.tmpdir();
 const pluginpath = "./plugins/";
 
@@ -28,6 +27,7 @@ const server = restify.createServer({
 
 server.use(restify.fullResponse());
 server.use(restify.CORS());
+server.use(restify.authorizationParser());
 server.use(restify.bodyParser({
     mapParams: true,
     mapFiles: true,
@@ -37,6 +37,24 @@ server.use(restify.bodyParser({
     multiples: true,
     hash: 'md5'
 }));
+
+
+/**
+ * Quick function to log incoming requests
+ */
+server.use(function logging(req, res, next) {
+    var clientip = "unknown";
+    if (req.headers['x-forwarded-for']) {
+        clientip = req.headers['x-forwarded-for'];
+    } else if (req.connection.remoteAddress) {
+        clientip = req.connection.remoteAddress;
+    }
+
+    var user = { method: req.method, endpoint: req.url, ip: clientip };
+    log.info(">>> " + JSON.stringify(user) + " <<<");
+    return next();
+});
+
 
 // Go out and check the plugins list for endpoints to listen on
 fs.readdir(pluginpath, (err, files) => {

@@ -1,3 +1,5 @@
+const debugmode = false;
+
 module.exports = {
     level: 1,
     info: (message) => {
@@ -5,10 +7,18 @@ module.exports = {
     },
 
     debug: (message) => {
-        console.log("[D] " + message);
+        if (debugmode) {
+            console.log("[D] " + message);
+        }
     },
 
     error: (message) => {
         console.error("[ERR] " + message);
+    },
+
+    verbose: (message) => {
+        if (debugmode) {
+            console.error("[V] " + message);
+        }
     }
 }
