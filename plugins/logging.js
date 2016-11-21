@@ -10,7 +10,7 @@ function addHandlers(server) {
             // Dont need to wait on the write, respond quickly
             res.send(200);
             var logfilepath = config.logpath + folder + "log.txt";
-            // Creat the file if it does not exist
+            // Create the file if it does not exist
             fs.closeSync(fs.openSync(logfilepath, 'w'));
             // Append the log message to the file
             fs.appendFile(logfilepath, req.body.msg + "\n", function (err) {
