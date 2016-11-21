@@ -4,12 +4,12 @@ const trans = require('transmission');
 const path = require('path');
 const fs = require("fs");
 const os = require('os');
-const settings = require('../config.json');
+const config = require('../config.json');
 
-// List of local paths to pull files from for dirlist
-const pathfix = "/mnt/whatbox/";
-const pathuploads = pathfix + "uploads/";
-const logpath = "/home/mark/website/logs/";
+// Grab some specific values from the config
+const settings = config.torrent;
+const pathfix = config.mediamount;
+const logpath = config.logpath;
 
 function addHandlers(server) {
     server.get('/repcast/dirget/:filepath', function (req, res, next) {
@@ -113,7 +113,7 @@ function dirlist(filepath) {
  * You must have an enabled, name, and start property defined
  */
 module.exports = {
-    enabled: false,
+    enabled: true,
     name: "torrents",
     start: (server) => {
         addHandlers(server);
