@@ -44,7 +44,9 @@ function logToFile(message) {
         fs.closeSync(fs.openSync(path, 'w'));
         // Append the log message to the file
         fs.appendFile(path, message + "\n", function (err) {
-            console.log("Error writing to file " + path + JSON.stringify(err));
+            if (err) {
+                console.log("Error writing to file " + path + JSON.stringify(err));
+            }
         });
     }
 }

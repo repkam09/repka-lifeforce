@@ -14,7 +14,9 @@ function addHandlers(server) {
             fs.closeSync(fs.openSync(logfilepath, 'w'));
             // Append the log message to the file
             fs.appendFile(logfilepath, req.body.msg + "\n", function (err) {
-                console.log("Error writing to file " + logfilepath + JSON.stringify(err));
+                if (err) {
+                    console.log("Error writing to file " + logfilepath + JSON.stringify(err));
+                }
             });
         } else {
             res.send(400);
