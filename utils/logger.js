@@ -40,8 +40,6 @@ function printererror(message) {
 function logToFile(message) {
     if (writetofile) {
         var path = config.logpathhidden + "lifeforcelog.txt";
-        // Create the file if it does not exist
-        fs.closeSync(fs.openSync(path, 'w'));
         // Append the log message to the file
         fs.appendFile(path, message + "\n", function (err) {
             if (err) {
