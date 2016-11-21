@@ -1,4 +1,5 @@
 const log = require("../utils/logger");
+const request = require("request");
 
 function addHandlers(server) {
     server.get("/api/runescape/rs3/current/:username", (req, res, next) => {
