@@ -5,13 +5,11 @@ function addHandlers(server) {
     server.post("/api/github", (req, res, next) => {
         if (req.body) {
             var webhook = req.body;
-            log.verbose("RAW Webhook: " + JSON.stringify(webhook));
+            if (webhook.repository && webhook.commits && webhook.head_commit) {
+                var repository = webhook.repository;
+                var head = req.body.head_commit;
 
-            var hookid = webhook.hook_id;
-            if (webhook.hook_id) {
-                log.debug(hookid + ": " + webhook.zen);
-                log.debug(hookid + ": " + webhook.repository.name);
-                log.debug(hookid + ": " + webhook.sender.login);
+                log.info("Repository " + repository.name + " has been updated by " + head.author.name + " with message: " + head.message);
             }
             res.send(200);
         } else {
