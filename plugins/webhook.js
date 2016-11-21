@@ -2,6 +2,16 @@ const log = require("../utils/logger");
 const config = require("../config.json");
 
 function addHandlers(server) {
+    server.post("/api/github", (req, res, next) => {
+        if (req.body) {
+            var webhook = req.body;
+            log.debug("Github Webhook: " + JSON.stringify(webhook));
+            res.send(200);
+        } else {
+            res.send(400);
+        }
+    });
+
     server.get("/api/github", (req, res, next) => {
         if (req.body) {
             var webhook = req.body;
