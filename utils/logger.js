@@ -1,8 +1,9 @@
 const config = require('../config.json');
 const fs = require('fs');
 
-const debugmode = true;
-const writetofile = true;
+const debugmode = config.logging.debugmode;
+const writetofile = config.logging.logfile;
+const timestamp = config.logging.timestamp;
 
 module.exports = {
     level: 1,
@@ -38,6 +39,11 @@ function printererror(message) {
 }
 
 function logToFile(message) {
+    if (timestamp) {
+        let datetime = new Date().toLocaleString();
+        message = datetime + " " + message;
+    }
+
     if (writetofile) {
         var path = config.logpathhidden + "lifeforcelog.txt";
         // Append the log message to the file
