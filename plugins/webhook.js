@@ -5,17 +5,14 @@ function addHandlers(server) {
     server.post("/api/github", (req, res, next) => {
         if (req.body) {
             var webhook = req.body;
-            log.debug("Github Webhook: " + JSON.stringify(webhook));
-            res.send(200);
-        } else {
-            res.send(400);
-        }
-    });
+            log.verbose("RAW Webhook: " + JSON.stringify(webhook));
 
-    server.get("/api/github", (req, res, next) => {
-        if (req.body) {
-            var webhook = req.body;
-            log.debug("Github Webhook: " + JSON.stringify(webhook));
+            var hookid = webhook.hook_id;
+            if (webhook.hook_id) {
+                log.debug(hookid + ": " + webhook.zen);
+                log.debug(hookid + ": " + webhook.repository.name);
+                log.debug(hookid + ": " + webhook.sender.login);
+            }
             res.send(200);
         } else {
             res.send(400);
