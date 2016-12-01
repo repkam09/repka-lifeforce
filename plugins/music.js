@@ -20,6 +20,15 @@ function addHandlers(server) {
             res.send(400);
         }
     });
+
+server.get("/api/music/submit", (req, res, next) => {
+        if (req.body) {
+	    log.info("Music Submit: " + JSON.stringify(req.body));
+	    res.send(200, "OK");
+        } else {
+            res.send(400);
+        }
+    });
 }
 
 /**
