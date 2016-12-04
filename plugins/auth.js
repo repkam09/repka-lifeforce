@@ -8,7 +8,6 @@ var authlist = [
 function addHandlers(server) {
     server.use(function authenticate(req, res, next) {
         if (authlist.indexOf(req._currentRoute) != -1) {
-            log.verbose("Authentication Required: " + req.url);
             // Get the username and password that were passed in with the auth request
 
             let authinfo = req.authorization;
@@ -38,8 +37,6 @@ function addHandlers(server) {
                 // The wrong auth scheme was supplied
                 return next(new restify.NotAuthorizedError());
             }
-        } else {
-            log.verbose("No authentication required for " + req.url);
         }
         return next();
     });
