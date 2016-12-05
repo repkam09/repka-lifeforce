@@ -15,6 +15,18 @@ function addHandlers(server) {
         }
     });
 
+    // Set up the lifeforce heartbeat listener
+    server.get("/api/lifeforce/analytics/:appname", (req, res, next) => {
+        if (req.params.appname) {
+            var timestamp = new Date().getTime();
+            log.debug("Page view analytics from " + req.params.appname + " at " + Date(timestamp.toLocaleString()));
+            res.send(200, "OK");
+            applist[req.params.appname] = timestamp;
+        } else {
+            res.send(400, "Please supply an application name");
+        }
+    });
+
     server.get("/api/lifeforce/heartbeat/:appname/last", (req, res, next) => {
         if (req.params.appname) {
             if (applist.hasOwnProperty(req.params.appname)) {
