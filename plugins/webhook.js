@@ -1,5 +1,9 @@
 const log = require("../utils/logger");
 const config = require("../config.json");
+const exec = require('child_process').exec;
+
+// Grab the webhook settings from the config json
+const updaters = config.webhooks;
 
 function addHandlers(server) {
     server.post("/api/github", (req, res, next) => {
@@ -10,6 +14,23 @@ function addHandlers(server) {
                 var head = req.body.head_commit;
 
                 log.info("Repository " + repository.name + " has been updated by " + head.author.name + " with message: " + head.message);
+                if (updaters[repository.name]) {
+                    var settings = updaters[repository.name];
+                    log.info("Triggering redeploy for " + repository.name + " located at " + settings.path + " with script " + settings.script);
+                    try {
+                        exec(settings.script, { cwd: null }, (error, stdout, stderr) => {
+                            if (error) {
+                                console.error(`exec error: ${error}`);
+                                return;
+                            }
+                            // Log these to the console only, not to log files
+                            console.log(`stdout: ${stdout}`);
+                            console.log(`stderr: ${stderr}`);
+                        });
+                    } catch (error) {
+                        log.error("An error occurred while running redeploy script for " + repository.name);
+                    }
+                }
             }
             res.send(200);
         } else {
