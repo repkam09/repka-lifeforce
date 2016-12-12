@@ -20,12 +20,12 @@ function addHandlers(server) {
                     try {
                         exec(settings.path + "/" + settings.script, { cwd: settings.path }, (error, stdout, stderr) => {
                             if (error) {
-                                console.error(`exec error: ${error}`);
+                                log.error("exec error: " + error);
                                 return;
                             }
                             // Log these to the console only, not to log files
-                            console.log(`stdout: ${stdout}`);
-                            console.log(`stderr: ${stderr}`);
+                            log.info("stdout: " + stdout);
+                            log.error("stderr: " + stderr);
                         });
                     } catch (error) {
                         log.error("An error occurred while running redeploy script for " + repository.name);
