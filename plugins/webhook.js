@@ -18,7 +18,7 @@ function addHandlers(server) {
                     var settings = updaters[repository.name];
                     log.info("Triggering redeploy for " + repository.name + " located at " + settings.path + " with script " + settings.script);
                     try {
-                        exec(settings.script, { cwd: null }, (error, stdout, stderr) => {
+                        exec(settings.path + "/" + settings.script, { cwd: settings.path }, (error, stdout, stderr) => {
                             if (error) {
                                 console.error(`exec error: ${error}`);
                                 return;
