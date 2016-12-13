@@ -1,5 +1,6 @@
 const log = require("../utils/logger");
 const request = require('request');
+const exec = require('child_process').exec;
 const fs = require('fs');
 
 
@@ -17,24 +18,24 @@ function addHandlers(server) {
 
 
     server.get("/api/imgur/:url", (req, res, next) => {
-	// Download and cache the image for future loads
+        // Download and cache the image for future loads
         if (req.params.url) {
-	    var url = "http://i.imgur.com/" + req.params.url + ".jpg";
-	    var encodedName = new Buffer(url).toString('base64');
-	    var path = config.logpathhidden + "uploads/" + encodedName;
+            var url = "http://i.imgur.com/" + req.params.url + ".jpg";
+            var encodedName = new Buffer(url).toString('base64');
+            var path = config.logpathhidden + "uploads/" + encodedName;
 
-	    new Promise((resolve, reject) => {
-		try {
-		    fs.accessSync(path);
-		    resolve();
-		} catch (e) {
-		        request.get(url).pipe(fs.createWriteStream(path)).on('close', () => {
+            new Promise((resolve, reject) => {
+                try {
+                    fs.accessSync(path);
+                    resolve();
+                } catch (e) {
+                    request.get(url).pipe(fs.createWriteStream(path)).on('close', () => {
                         resolve();
                     });
-		}
-	    }).then(() => {
-		fs.createReadStream(path).pipe(res);	
-	    });
+                }
+            }).then(() => {
+                fs.createReadStream(path).pipe(res);
+            });
             //request.get("http://i.imgur.com/" + req.params.url + ".jpg").pipe(res);
         }
     });
@@ -58,7 +59,20 @@ function addHandlers(server) {
     });
 
     server.get("/api/lifeforce/restart", (req, res, next) => {
-	res.send(200);
+        res.send(200);
+        try {
+            exec("pm2 restart lifeforce", (error, stdout, stderr) => {
+                if (error) {
+                    log.error("exec error: " + error);
+                    return;
+                }
+                // Log these to the console only, not to log files
+                log.info("stdout: " + stdout);
+                log.error("stderr: " + stderr);
+            });
+        } catch (error) {
+            log.error("An error occurred while running lifeforce restart");
+        }
     });
 
 }
