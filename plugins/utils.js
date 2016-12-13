@@ -1,5 +1,7 @@
 const log = require("../utils/logger");
 const request = require('request');
+const fs = require('fs');
+
 
 function addHandlers(server) {
     server.get("/api/about", (req, res, next) => {
@@ -15,8 +17,25 @@ function addHandlers(server) {
 
 
     server.get("/api/imgur/:url", (req, res, next) => {
+	// Download and cache the image for future loads
         if (req.params.url) {
-            request.get("http://i.imgur.com/" + req.params.url + ".jpg").pipe(res);
+	    var url = "http://i.imgur.com/" + req.params.url + ".jpg";
+	    var encodedName = new Buffer(url).toString('base64');
+	    var path = config.logpathhidden + "uploads/" + encodedName;
+
+	    new Promise((resolve, reject) => {
+		try {
+		    fs.accessSync(path);
+		    resolve();
+		} catch (e) {
+		        request.get(url).pipe(fs.createWriteStream(path)).on('close', () => {
+                        resolve();
+                    });
+		}
+	    }).then(() => {
+		fs.createReadStream(path).pipe(res);	
+	    });
+            //request.get("http://i.imgur.com/" + req.params.url + ".jpg").pipe(res);
         }
     });
 
@@ -36,6 +55,10 @@ function addHandlers(server) {
         } else {
             res.send(400, "Bad Request");
         }
+    });
+
+    server.get("/api/lifeforce/restart", (req, res, next) => {
+	res.send(200);
     });
 
 }
