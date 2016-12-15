@@ -3,6 +3,7 @@ const request = require('request');
 const exec = require('child_process').exec;
 const fs = require('fs');
 const config = require("../config.json");
+const urlcache = require("../utils/urlcache");
 
 
 function addHandlers(server) {
@@ -22,19 +23,7 @@ function addHandlers(server) {
         // Download and cache the image for future loads
         if (req.params.url) {
             var url = "http://i.imgur.com/" + req.params.url + ".jpg";
-            var encodedName = new Buffer(url).toString('base64');
-            var path = config.logpathhidden + "uploads/imgur_" + encodedName;
-
-            new Promise((resolve, reject) => {
-                try {
-                    fs.accessSync(path);
-                    resolve();
-                } catch (e) {
-                    request.get(url).pipe(fs.createWriteStream(path)).on('close', () => {
-                        resolve();
-                    });
-                }
-            }).then(() => {
+            urlcache(url, "imgur", config.logpathhidden).then((path) => {
                 fs.createReadStream(path).pipe(res);
             });
         }
