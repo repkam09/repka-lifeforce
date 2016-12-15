@@ -26,13 +26,14 @@ function addHandlers(server) {
                     let response = {
                         player: {
                             name: req.params.username, avatar: "/api/runescape/avatar/" + req.params.username + "/head"
-                        }
+                        },
+                        skills: {}
                     };
                     var lines = body.split("\n");
                     lines.forEach((line, index) => {
                         var parts = line.split(",");
                         if (parts.length === 3) {
-                            response[skilllist[index]] = { rank: parts[0], level: parts[1], exp: parts[2] };
+                            response.skills[skilllist[index]] = { rank: parts[0], level: parts[1], exp: parts[2] };
                         }
                     });
 
