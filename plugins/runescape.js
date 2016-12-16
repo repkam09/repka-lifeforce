@@ -53,6 +53,8 @@ function addHandlers(server) {
             var url = "http://services.runescape.com/m=avatar-rs/" + req.params.username + "/chat.png"
             urlcache(url, "rs", config.logpathhidden).then((path) => {
                 fs.createReadStream(path).pipe(res);
+            }).catch((error) => {
+                res.send(500, error);
             });
         }
     });

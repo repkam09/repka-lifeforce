@@ -1,20 +1,30 @@
 const log = require("../utils/logger");
 const request = require("request");
+const urlcache = require("../utils/urlcache");
+const fs = require('fs');
 
 function addHandlers(server) {
     server.get("/api/comics/qc/:number", (req, res, next) => {
-	if (req.params.number) {
-	    let url = "http://www.questionablecontent.net/comics/" + req.params.number + ".png";
-            request.get(url).pipe(res);
-	} else {
+        if (req.params.number) {
+            let url = "http://www.questionablecontent.net/comics/" + req.params.number + ".png";
+            urlcache(url, "qc", config.logpathhidden).then((path) => {
+                fs.createReadStream(path).pipe(res);
+            }).catch((error) => {
+                res.send(500, error);
+            });
+        } else {
             res.send(400);
-	}
+        }
     });
 
     server.get("/api/comics/sa/:number", (req, res, next) => {
         if (req.params.number) {
             let url = "http://www.collectedcurios.com/SA_" + req.params.number + "_small.jpg";
-            request.get(url).pipe(res);
+            urlcache(url, "sa", config.logpathhidden).then((path) => {
+                fs.createReadStream(path).pipe(res);
+            }).catch((error) => {
+                res.send(500, error);
+            });
         } else {
             res.send(400);
         }

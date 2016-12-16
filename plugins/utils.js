@@ -25,6 +25,8 @@ function addHandlers(server) {
             var url = "http://i.imgur.com/" + req.params.url + ".jpg";
             urlcache(url, "imgur", config.logpathhidden).then((path) => {
                 fs.createReadStream(path).pipe(res);
+            }).catch((error) => {
+                res.send(500, error);
             });
         }
     });
