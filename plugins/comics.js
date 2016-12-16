@@ -1,6 +1,7 @@
 const log = require("../utils/logger");
 const request = require("request");
 const urlcache = require("../utils/urlcache");
+const config = require("../config.json");
 const fs = require('fs');
 
 function addHandlers(server) {
