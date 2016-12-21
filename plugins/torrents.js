@@ -15,7 +15,7 @@ function addHandlers(server) {
     server.get('/repcast/dirget/:filepath', function (req, res, next) {
         var getpath = new Buffer(req.params.filepath, 'base64').toString();
         log.verbose("Requested directory listing for " + getpath);
-        res.send({ result: dirlist(pathfix + getpath) });
+        res.send(200, { result: dirlist(pathfix + getpath) });
         return next();
     });
 
