@@ -29,7 +29,7 @@ function addHandlers(server) {
             obj.query = searchterm;
             obj.count = results.length;
             obj.torrents = results;
-            res.send(obj);
+            res.send(200, obj);
         }).catch((error) => {
             log.error("Got an error for " + searchterm);
             var obj = {};
