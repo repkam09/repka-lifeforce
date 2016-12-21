@@ -21,18 +21,22 @@ function addHandlers(server) {
 
     server.get('/repcast/torsearch/:search', function (req, res, next) {
         var searchterm = new Buffer(req.params.search, 'base64').toString();
+        log.verbose("torrent serarch for : " + searchterm);
+
         var test = tpb.search(searchterm).then((results) => {
             log.verbose("torrent serarch results: " + JSON.stringify(results));
             var obj = {};
             obj.query = searchterm;
-            obj.count = results.length; req.params.search
+            obj.count = results.length;
             obj.torrents = results;
             res.send(obj);
         }).catch((error) => {
             log.error("Got an error for " + searchterm);
+            var obj = {};
             obj.count = 0;
+            obj.query = "Error Searching TPB";
             obj.torrents = [];
-            res.send(obj); req.params.search
+            res.send(500, obj);
         });
     });
 
