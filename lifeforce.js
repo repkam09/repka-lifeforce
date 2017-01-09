@@ -32,7 +32,7 @@ server.use(restify.bodyParser({
     mapParams: true,
     mapFiles: true,
     overrideParams: false,
-    keepExtensions: false,
+    keepExtensions: true,
     uploadDir: tempdir,
     multiples: true,
     hash: 'md5'

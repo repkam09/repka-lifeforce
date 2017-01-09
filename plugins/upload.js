@@ -28,9 +28,10 @@ function addHandlers(server) {
 
     server.post("/api/images/upload", (req, res, next) => {
         if (req.files) {
+            var ext = ".jpg";
             var data = req.files.filedata;
             var path = data.path;
-            var newpath = config.publicpath + data.hash;
+            var newpath = config.publicpath + data.hash + ext;
             fs.rename(path, newpath, (err) => {
                 if (err) {
                     log.error("Error moving file from " + path + " to " + newpath);
@@ -41,7 +42,7 @@ function addHandlers(server) {
 
             log.info("Got file: " + data.name);
             log.verbose("Hash: " + data.hash);
-            res.send(200, "https://repkam09.com/i/" + data.hash);
+            res.send(200, "https://repkam09.com/i/" + data.hash + ext);
         } else {
             res.send(200, { filename: false });
         }
