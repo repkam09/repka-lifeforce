@@ -68,6 +68,16 @@ function addHandlers(server) {
             res.send(400);
         }
     });
+
+    server.get("/api/runescape/feed/news", (req, res, next) => {
+        let url = "http://services.runescape.com/m=news/latest_news.rss";
+        request.get(url).pipe(res);
+    });
+
+    server.get("/api/runescape/feed/devblog", (req, res, next) => {
+        let url = "http://services.runescape.com/m=news/latest_news.rss";
+        request.get(url).pipe(res);
+    });    
 }
 
 /**
