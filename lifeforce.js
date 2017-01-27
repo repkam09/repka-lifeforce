@@ -28,7 +28,7 @@ const server = restify.createServer({
 
 const cors = corsMiddleware({
     origins: ['https://repkam09.com'],
-    allowHeaders: ['Cache-Control']
+    allowHeaders: ['cache-control']
 });
 
 server.use(restify.fullResponse());
