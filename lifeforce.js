@@ -2,6 +2,7 @@
  * Set up imports that are required at this level for the application
  */
 const restify = require('restify');
+const corsMiddleware = require('restify-cors-middleware');
 const fs = require("fs");
 const os = require('os');
 const path = require('path')
@@ -25,8 +26,13 @@ const server = restify.createServer({
     version: '1.1.0'
 });
 
+const cors = corsMiddleware({
+    origins: ['https://repkam09.com'],
+});
+
 server.use(restify.fullResponse());
-server.use(restify.CORS());
+server.pre(cors.preflight);
+server.use(cors.actual);
 server.use(restify.authorizationParser());
 server.use(restify.bodyParser({
     mapParams: true,
