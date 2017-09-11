@@ -19,6 +19,23 @@ function addHandlers(server) {
         return next();
     });
 
+    server.get('/repcast/fileget/:type', function (req, res, next) {
+        var ftype = "." + req.params.type; //new Buffer(req.params.type, 'base64').toString();
+        if (ftype === "") {
+            res.send(200, { result: [] });
+            return next();
+        } else {
+            log.verbose("Requested listing for file type " + ftype);
+
+            var list = filelist(pathfix, ftype);
+
+            // Go through the list checking that the file ends in type
+
+            res.send(200, { result: list });
+            return next();
+        }
+    });
+
     server.get('/repcast/torsearch/:search', function (req, res, next) {
         var searchterm = new Buffer(req.params.search, 'base64').toString();
         log.verbose("torrent serarch for : " + searchterm);
@@ -57,6 +74,31 @@ function addHandlers(server) {
     });
 }
 
+function filelist(path, ftype) {
+    var list = walk(path);
+    list = list.filter((element) => {
+        if (element.endsWith(ftype)) {
+            return true;
+        }
+    });
+
+    list = list.map((element) => {
+        return element.replace(pathfix, "");
+    });
+    return list;
+}
+
+var walk = function (dir) {
+    var results = []
+    var list = fs.readdirSync(dir)
+    list.forEach(function (file) {
+        file = dir + '/' + file
+        var stat = fs.statSync(file)
+        if (stat && stat.isDirectory()) results = results.concat(walk(file))
+        else results.push(file)
+    })
+    return results
+}
 
 function dirlist(filepath) {
     // get the list of files in this directory:
@@ -119,7 +161,7 @@ function dirlist(filepath) {
  */
 module.exports = {
     enabled: true,
-    name: "torrents",
+    name: "repcast",
     start: (server) => {
         addHandlers(server);
     }
