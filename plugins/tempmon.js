@@ -1,5 +1,6 @@
 // This is a replacement for the raspi-temp-monitor project
 const log = require("../utils/logger");
+const fs = require('fs');
 
 const prefix = 'repserv';
 const threshold = 45;
@@ -125,7 +126,7 @@ function sendMailMessage(options) {
  * You must have an enabled, name, and start property defined
  */
 module.exports = {
-    enabled: false,
+    enabled: true,
     name: "temp monitor",
     start: (server) => {
         addHandlers(server);
