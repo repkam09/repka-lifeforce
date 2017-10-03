@@ -1,53 +1,70 @@
-// This is a replacement for the raspi-temp-monitor project
-const log = require("../utils/logger");
-const fs = require('fs');
+const apiMap = [
+    {
+        path: "/api/tempmon/:temp",
+        type: "get",
+        handler: handletempCheckin
+    }
+];
 
-const prefix = 'repserv';
-const threshold = 45;
-const timertime = 2700000;
-const errormode = false;
+class RaspiTempMonitor {
+    constructor(server, logger, name) {
+        this.config = require("../config.json");
+        this.log = logger;
+        this.server = server;
+        this.name = name;
 
-// Stores the timer
-var timerfunc = null;
+        this.threshold = 45;
+        this.timertime = 0;
+        this.errormode = false;
+    }
 
-function addHandlers(server) {
-    server.get("/api/tempmon/:temp", (req, res, next) => {
-        log.info("Got a temp checkin from raspberry pi");
-
-        // Clear the current timer because we got a check in time
-        clearTimeout(timerfunc);
-
-        // If we get this call, but we're in errormode, the system got a message
-        // after a previous failure.
-        if (errormode) {
-            errorResolved();
+    addHandlers() {
+        for (var i = 0; i < apiMap.length; i++) {
+            var item = apiMap[i];
+            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
+            this.server[item.type](item.path, item.handler);
         }
-
-        var response = {};
-        response.date = Date.now();
-        response.temp = req.params.temp;
-
-        // Check if the temp is under our threshold and warn us!
-        if (response.temp < threshold) {
-            handleColdTemp(response.temp);
-        }
-
-        // Write the results to a text file
-        var fileString = response.date + " | " + response.temp;
-        logfileout(fileString, "templogfile.txt");
-
-        // Send the response to the client
-        res.send(response);
-
-        // restart the timer to wait until the next checkin
-        log("Starting timer to wait for client checkin...");
-        timerfunc = setTimeout(function () {
-            serverTempTimeout();
-        }, timertime);
-
-        return next();
-    });
+    }
 }
+
+function handletempCheckin(req, res, next) {
+    log.info("Got a temp checkin from raspberry pi");
+
+    // Clear the current timer because we got a check in time
+    clearTimeout(timerfunc);
+
+    // If we get this call, but we're in errormode, the system got a message
+    // after a previous failure.
+    if (errormode) {
+        errorResolved();
+    }
+
+    var response = {};
+    response.date = Date.now();
+    response.temp = req.params.temp;
+
+    // Check if the temp is under our threshold and warn us!
+    if (response.temp < threshold) {
+        handleColdTemp(response.temp);
+    }
+
+    // Write the results to a text file
+    var fileString = response.date + " | " + response.temp;
+    logfileout(fileString, "templogfile.txt");
+
+    // Send the response to the client
+    res.send(response);
+
+    // restart the timer to wait until the next checkin
+    log("Starting timer to wait for client checkin...");
+    timerfunc = setTimeout(function () {
+        serverTempTimeout();
+    }, timertime);
+
+    return next();
+}
+
+
 
 
 // Helper function to write to a file
@@ -120,15 +137,4 @@ function sendMailMessage(options) {
     });
 }
 
-
-/**
- * This set of properties defines this as a plugin
- * You must have an enabled, name, and start property defined
- */
-module.exports = {
-    enabled: true,
-    name: "temp monitor",
-    start: (server) => {
-        addHandlers(server);
-    }
-}
+module.exports = RaspiTempMonitor;

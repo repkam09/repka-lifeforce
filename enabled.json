@@ -1,6 +1,17 @@
 {
-    "dospaces": {
-        "enabled": true,
-        "log": true
+    "TelegramBot": {
+        "enabled": false
+    },
+    "Template": {
+        "enabled": false
+    },
+    "ElectionResults": {
+        "enabled": false
+    },
+    "RaspiTempMonitor": {
+        "enabled": false
+    },
+    "MetaEndpoints": {
+        "enabled": false
     }
 }

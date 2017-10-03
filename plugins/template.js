@@ -1,19 +1,17 @@
 const apiMap = [
     {
-        path: "/api/election/full",
+        path: "/api/example/example",
         type: "get",
-        handler: handleElectionResults
+        handler: handleExampleFunction
     }
 ];
 
-class ElectionResults {
+class Template {
     constructor(server, logger, name) {
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
-
-        this.election_results = require("../static/election_results.json");
     }
 
     addHandlers() {
@@ -25,11 +23,8 @@ class ElectionResults {
     }
 }
 
-function handleElectionResults(req, res, next) {
-    // This used to be dynamic and updated from CNN website, but since election
-    // is now over, use a static file to give results. Faster and more reliable since 
-    // the information is no longer changing.
-    res.send(200, this.election_results);
+function handleExampleFunction(req, res, next) {
+    
 }
 
-module.exports = ElectionResults;
+module.exports = Template;

@@ -1,54 +1,74 @@
-const log = require("../utils/logger");
+const apiMap = [
+    {
+        path: "/api/lifeforce/heartbeat/:appname",
+        type: "get",
+        handler: handleHeartbeat
+    },
+    {
+        path: "/api/lifeforce/analytics/:appname",
+        type: "get",
+        handler: handleAnalytics
+    },
+    {
+        path: "/api/lifeforce/heartbeat/:appname/last",
+        type: "get",
+        handler: handleHeartbeatLast
+    }
+];
 
-var applist = [];
+class HeartbeatAnalytics {
+    constructor(server, logger, name) {
+        this.config = require("../config.json");
+        this.log = logger;
+        this.server = server;
+        this.name = name;
 
-function addHandlers(server) {
-    // Set up the lifeforce heartbeat listener
-    server.get("/api/lifeforce/heartbeat/:appname", (req, res, next) => {
-        if (req.params.appname) {
-            var timestamp = new Date().getTime();
-            log.debug("Heartbeat from " + req.params.appname + " at " + Date(timestamp.toLocaleString()));
-            res.send(200, "OK");
-            applist[req.params.appname] = timestamp;
-        } else {
-            res.send(400, "Please supply an application name");
+        this.applist = [];
+    }
+
+    addHandlers() {
+        for (var i = 0; i < apiMap.length; i++) {
+            var item = apiMap[i];
+            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
+            this.server[item.type](item.path, item.handler);
         }
-    });
-
-    // Set up the lifeforce heartbeat listener
-    server.get("/api/lifeforce/analytics/:appname", (req, res, next) => {
-        if (req.params.appname) {
-            var timestamp = new Date().getTime();
-            log.debug("Page view analytics from " + req.params.appname + " at " + Date(timestamp.toLocaleString()));
-            res.send(200, "OK");
-            applist[req.params.appname] = timestamp;
-        } else {
-            res.send(400, "Please supply an application name");
-        }
-    });
-
-    server.get("/api/lifeforce/heartbeat/:appname/last", (req, res, next) => {
-        if (req.params.appname) {
-            if (applist.hasOwnProperty(req.params.appname)) {
-                res.send(200, applist[req.params.appname]);
-            } else {
-                res.send(400, 0);
-            }
-        } else {
-            res.send(400, "Please supply an application name");
-        }
-    });
-}
-
-
-/**
- * This set of properties defines this as a plugin
- * You must have an enabled, name, and start property defined
- */
-module.exports = {
-    enabled: true,
-    name: "heartbeat",
-    start: (server) => {
-        addHandlers(server);
     }
 }
+
+function handleHeartbeat(req, res, next) {
+    if (req.params.appname) {
+        var timestamp = new Date().getTime();
+        log.debug("Heartbeat from " + req.params.appname + " at " + Date(timestamp.toLocaleString()));
+        res.send(200, "OK");
+        this.applist[req.params.appname] = timestamp;
+    } else {
+        res.send(400, "Please supply an application name");
+    }
+}
+
+
+function handleHeartbeatLast(req, res, next) {
+    if (req.params.appname) {
+        if (this.applist.hasOwnProperty(req.params.appname)) {
+            res.send(200, this.applist[req.params.appname]);
+        } else {
+            res.send(400, 0);
+        }
+    } else {
+        res.send(400, "Please supply an application name");
+    }
+}
+
+function handleAnalytics(req, res, next) {
+    if (req.params.appname) {
+        var timestamp = new Date().getTime();
+        log.debug("Page view analytics from " + req.params.appname + " at " + Date(timestamp.toLocaleString()));
+        res.send(200, "OK");
+        this.applist[req.params.appname] = timestamp;
+    } else {
+        res.send(400, "Please supply an application name");
+    }
+}
+
+
+module.exports = HeartbeatAnalytics;
