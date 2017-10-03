@@ -12,6 +12,8 @@ const path = require('path')
  */
 const log = require("./utils/logger.js");
 
+const enabledList = require("./enabled.json");
+
 // Set the app name and some other helpful variables
 const tempdir = os.tmpdir();
 const pluginpath = "./plugins/";
@@ -76,14 +78,20 @@ fs.readdir(pluginpath, (err, files) => {
                     // Check that this is a valid plugin. 
                     // A Plugin must have a name, an enabled value, and a 'start' function
                     if (plugin.hasOwnProperty('name') && plugin.hasOwnProperty('enabled') && plugin.hasOwnProperty('start')) {
-                        if (plugin.enabled) {
-                            // If this plugin is enabled, start it!
-                            log.info("Starting up " + plugin.name + " plugin");
-
-                            // Call the plugins start method to attach the various get/post/etc
-                            plugin.start(server);
+                        // Check the enabled list for this plugin
+                        var status = enabledList[plugin.name];
+                        if (!status) {
+                            log.debug("Skipping " + plugin.name + " plugin because it does not have an entry in config");
                         } else {
-                            log.debug("Skipping " + plugin.name + " plugin because it is disabled");
+                            if (status && status.enabled) {
+                                // If this plugin is enabled, start it!
+                                log.info("Starting up " + plugin.name + " plugin");
+
+                                // Call the plugins start method to attach the various get/post/etc
+                                plugin.start(server);
+                            } else {
+                                log.debug("Skipping " + plugin.name + " plugin because it is disabled");
+                            }
                         }
                     } else {
                         // Found a potential plugin, but it is malformed or missing a property
