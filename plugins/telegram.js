@@ -14,7 +14,7 @@ class TelegramBot {
         this.name = name;
 
         const TGBot = require('node-telegram-bot-api');
-        this.bot = new TGBot(config.telegram.token, { polling: true });
+        this.bot = new TGBot(this.config.telegram.token, { polling: true });
 
         this.bot.on('message', (msg) => {
             const chatId = msg.chat.id;

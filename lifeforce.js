@@ -11,19 +11,20 @@ const path = require('path')
  * Set up imports from local files
  */
 const log = require("./utils/logger.js");
+const logName = "Lifeforce";
 
 // Set the app name and some other helpful variables
 const tempdir = os.tmpdir();
 const pluginpath = "./plugins/";
 
 // This variable will contain settings and api keys that are not public
-log.info("Loading settings from config.json...");
+log.info("Loading settings from config.json...", logName);
 const settings = require("./config.json");
 
-log.info("loading enabled list from enabled.json");
+log.info("loading enabled list from enabled.json", logName);
 const enabledPlugins = require("./enabled.json");
 
-log.info("Creating Restify Server...");
+log.info("Creating Restify Server...", logName);
 const server = restify.createServer({
     name: 'api.repkam09.com',
     version: '1.1.0'
@@ -61,7 +62,7 @@ server.use(function logging(req, res, next) {
     }
 
     var user = { method: req.method, endpoint: req.url, ip: clientip };
-    log.info(">>> " + JSON.stringify(user) + " <<<");
+    log.info(">>> " + JSON.stringify(user) + " <<<", logName);
     return next();
 });
 
@@ -77,17 +78,17 @@ fs.readdir(pluginpath, (err, files) => {
                     const plugin = require(pluginpath + "/" + file);
                     var status = enabledPlugins[plugin.name];
                     if (!status) {
-                        log.debug("Skipping " + plugin.name + " plugin because it does not have an entry in config");
+                        log.debug("Skipping " + plugin.name + " plugin because it does not have an entry in config", logName);
                     } else {
                         if (status && status.enabled) {
                             // If this plugin is enabled, start it!
-                            log.info("Starting up " + plugin.name + " plugin");
+                            log.info("Starting up " + plugin.name + " plugin", logName);
 
                             // Call the plugins start method to attach the various get/post/etc
                             var temp = new plugin(server, log, plugin.name);
                             temp.addHandlers();
                         } else {
-                            log.debug("Skipping " + plugin.name + " plugin because it is disabled");
+                            //log.debug("Skipping " + plugin.name + " plugin because it is disabled", logName);
                         }
                     }
                 }
@@ -97,7 +98,7 @@ fs.readdir(pluginpath, (err, files) => {
 });
 
 // Startup the server
-log.info("Starting Restify Server...");
+log.info("Starting Restify Server...", logName);
 server.listen(16001, () => {
-    log.info(server.name + ' listening at ' + server.url);
+    log.info(server.name + ' listening at ' + server.url, logName);
 });

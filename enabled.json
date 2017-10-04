@@ -3,15 +3,36 @@
         "enabled": false
     },
     "Template": {
-        "enabled": false
+        "enabled": true
     },
     "ElectionResults": {
-        "enabled": false
+        "enabled": true
     },
     "RaspiTempMonitor": {
-        "enabled": false
+        "enabled": true
     },
     "MetaEndpoints": {
-        "enabled": false
+        "enabled": true
+    },
+    "FormatConvert": {
+        "enabled": true
+    },
+    "FileUploads": {
+        "enabled": true
+    },
+    "HeartbeatAnalytics": {
+        "enabled": true
+    },
+    "Music": {
+        "enabled": true
+    },
+    "RuneScape": {
+        "enabled": true
+    },
+    "SlackBot": {
+        "enabled": true
+    },
+    "Weather": {
+        "enabled": true
     }
 }
