@@ -1,51 +1,47 @@
-const apiMap = [
-    {
-        path: "/api/runescape/rs3/current/:username",
-        type: "get",
-        handler: handleRs3CurrentRaw
-    },
-    {
-        path: "/api/runescape/rs3/current/:username/json",
-        type: "get",
-        handler: handleRs3CurrentJSON
-    },
-    {
-        path: "/api/runescape/avatar/:username/head",
-        type: "get",
-        handler: handleRsAvatarHead
-    },
-    {
-        path: "/api/runescape/osrs/current/:username",
-        type: "get",
-        handler: handleOsrsCurrentRaw
-    },
-    {
-        path: "/api/runescape/feed/news",
-        type: "get",
-        handler: handleRsNewsFeed
-    },
-    {
-        path: "/api/runescape/feed/devblog",
-        type: "get",
-        handler: handleRsDevblogFeed
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class RuneScape {
+
+
+class RuneScape extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/runescape/rs3/current/:username",
+                type: "get",
+                handler: handleRs3CurrentRaw
+            },
+            {
+                path: "/api/runescape/rs3/current/:username/json",
+                type: "get",
+                handler: handleRs3CurrentJSON
+            },
+            {
+                path: "/api/runescape/avatar/:username/head",
+                type: "get",
+                handler: handleRsAvatarHead
+            },
+            {
+                path: "/api/runescape/osrs/current/:username",
+                type: "get",
+                handler: handleOsrsCurrentRaw
+            },
+            {
+                path: "/api/runescape/feed/news",
+                type: "get",
+                handler: handleRsNewsFeed
+            },
+            {
+                path: "/api/runescape/feed/devblog",
+                type: "get",
+                handler: handleRsDevblogFeed
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
         this.request = require("request");
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

@@ -1,28 +1,21 @@
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require('fs');
 
-const apiMap = [
-    {
-        path: "/api/example/example",
-        type: "get",
-        handler: handleExampleFunction
-    }
-];
-
-class YouTubeDownload {
+class YouTubeDownload extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/example/example",
+                type: "get",
+                handler: handleExampleFunction
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
         this.youtubedl = require('youtube-dl');
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

@@ -1,37 +1,33 @@
-const apiMap = [
-    {
-        path: "/api/about",
-        type: "get",
-        handler: handleAboutApi
-    },
-    {
-        path: "/api/lifeforce/restart",
-        type: "get",
-        handler: handleRestartLifeforce
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class MetaEndpoints {
+
+
+class MetaEndpoints extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/about",
+                type: "get",
+                handler: handleAboutApi
+            },
+            {
+                path: "/api/lifeforce/restart",
+                type: "get",
+                handler: handleRestartLifeforce
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 
 function handleAboutApi(req, res, next) {
     var server = this.server;
     var apis = [];
-    var keys = Object.keys(server.router.mounts);
+    var keys = Object.keys(this.server.router.mounts);
     keys.forEach((key) => {
         var current = server.router.mounts[key];
         apis.push({ path: "https://api.repkam09.com" + current.spec.path, method: current.method });

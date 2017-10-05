@@ -1,30 +1,26 @@
-const apiMap = [
-    {
-        path: "/api/files/upload",
-        type: "post",
-        handler: handleFileUpload
-    },
-    {
-        path: "/api/imgur/upload",
-        type: "get",
-        handler: handleImgurCache
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class FileUploads {
+
+
+class FileUploads extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
+        this.apiMap = [
+            {
+                path: "/api/files/upload",
+                type: "post",
+                handler: handleFileUpload
+            },
+            {
+                path: "/api/imgur/upload",
+                type: "get",
+                handler: handleImgurCache
+            }
+        ];
     }
 }
 

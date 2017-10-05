@@ -1,37 +1,33 @@
-const apiMap = [
-    {
-        path: "/api/lifeforce/heartbeat/:appname",
-        type: "get",
-        handler: handleHeartbeat
-    },
-    {
-        path: "/api/lifeforce/analytics/:appname",
-        type: "get",
-        handler: handleAnalytics
-    },
-    {
-        path: "/api/lifeforce/heartbeat/:appname/last",
-        type: "get",
-        handler: handleHeartbeatLast
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class HeartbeatAnalytics {
+
+class HeartbeatAnalytics extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
 
         this.applist = [];
-    }
 
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
+        this.apiMap = [
+            {
+                path: "/api/lifeforce/heartbeat/:appname",
+                type: "get",
+                handler: handleHeartbeat
+            },
+            {
+                path: "/api/lifeforce/analytics/:appname",
+                type: "get",
+                handler: handleAnalytics
+            },
+            {
+                path: "/api/lifeforce/heartbeat/:appname/last",
+                type: "get",
+                handler: handleHeartbeatLast
+            }
+        ];
     }
 }
 

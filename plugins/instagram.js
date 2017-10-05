@@ -1,26 +1,22 @@
-const apiMap = [
-    {
-        path: "/api/instagram/recent/:username",
-        type: "get",
-        handler: handleInstagramRecent
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class Instagram {
+
+
+class Instagram extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/instagram/recent/:username",
+                type: "get",
+                handler: handleInstagramRecent
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
         this.request = require("request");
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

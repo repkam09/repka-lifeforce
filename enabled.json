@@ -43,5 +43,8 @@
     },
     "Webhook": {
         "enabled": true
+    },
+    "Instagram": {
+        "enabled": true
     }
 }

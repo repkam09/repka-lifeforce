@@ -1,15 +1,18 @@
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
 
-const apiMap = [
-    {
-        path: "/api/spaces/upload",
-        type: "post",
-        handler: handleSpacesUpload
-    }
-];
 
-class SpacesS3 {
+
+class SpacesS3 extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/spaces/upload",
+                type: "post",
+                handler: handleSpacesUpload
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
@@ -23,14 +26,6 @@ class SpacesS3 {
                 endpoint: "https://" + this.config.digitalocean.endpoint
             }
         });
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 
     uploadItem(localPath, remotePath) {

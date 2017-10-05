@@ -1,31 +1,26 @@
-const apiMap = [
-    {
-        path: "/api/weather/current/zip/:zip",
-        type: "get",
-        handler: handleWeatherZipCode
-    },
-    {
-        path: "/api/weather/current/name/:name",
-        type: "get",
-        handler: handleWeatherCityName
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class Weather {
+class Weather extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/weather/current/zip/:zip",
+                type: "get",
+                handler: handleWeatherZipCode
+            },
+            {
+                path: "/api/weather/current/name/:name",
+                type: "get",
+                handler: handleWeatherCityName
+            }
+        ];
+
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
         this.request = require("request");
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

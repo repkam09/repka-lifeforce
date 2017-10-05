@@ -1,13 +1,17 @@
-const apiMap = [
-    {
-        path: "/api/telegram/log",
-        type: "post",
-        handler: handleTelegramLog
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class TelegramBot {
+
+
+class TelegramBot extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/telegram/log",
+                type: "post",
+                handler: handleTelegramLog
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
@@ -22,14 +26,6 @@ class TelegramBot {
             // send a message to the chat acknowledging receipt of their message 
             this.bot.sendMessage(chatId, "Hello! Here is the information about your chat message: \n" + JSON.stringify(msg.chat));
         });
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

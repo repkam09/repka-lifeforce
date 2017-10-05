@@ -1,28 +1,23 @@
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exec = require('child_process').exec;
 
-const apiMap = [
-    {
-        path: "/api/github",
-        type: "post",
-        handler: handleWebhookGithub
-    }
-];
 
-class Webhook {
+
+class Webhook extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/github",
+                type: "post",
+                handler: handleWebhookGithub
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
         this.name = name;
         this.updaters = this.config.webhooks;
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

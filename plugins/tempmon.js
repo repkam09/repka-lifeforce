@@ -1,13 +1,16 @@
-const apiMap = [
-    {
-        path: "/api/tempmon/:temp",
-        type: "get",
-        handler: handletempCheckin
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class RaspiTempMonitor {
+
+class RaspiTempMonitor extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/tempmon/:temp",
+                type: "get",
+                handler: handletempCheckin
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
@@ -16,14 +19,6 @@ class RaspiTempMonitor {
         this.threshold = 45;
         this.timertime = 0;
         this.errormode = false;
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 

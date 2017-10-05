@@ -1,30 +1,21 @@
-const apiMap = [
-    {
-        path: "/api/b64",
-        type: "post",
-        handler: handleBase64Encode
-    },
-    {
-        path: "/api/d64",
-        type: "post",
-        handler: handleBase64Decode
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class FormatConvert {
+class FormatConvert extends LifeforcePlugin {
     constructor(server, logger, name) {
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
-    }
+        super(server, logger, name);
 
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
+        this.apiMap = [
+            {
+                path: "/api/b64",
+                type: "post",
+                handler: handleBase64Encode
+            },
+            {
+                path: "/api/d64",
+                type: "post",
+                handler: handleBase64Decode
+            }
+        ];
     }
 }
 

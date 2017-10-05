@@ -1,13 +1,15 @@
-const apiMap = [
-    {
-        path: "/api/slack/log",
-        type: "post",
-        handler: handleSlackPush
-    }
-];
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-class SlackBot {
+class SlackBot extends LifeforcePlugin {
     constructor(server, logger, name) {
+        super(server, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/slack/log",
+                type: "post",
+                handler: handleSlackPush
+            }
+        ];
         this.config = require("../config.json");
         this.log = logger;
         this.server = server;
@@ -18,14 +20,6 @@ class SlackBot {
             token: this.config.slack.token,
             name: 'kabuildbot'
         });
-    }
-
-    addHandlers() {
-        for (var i = 0; i < apiMap.length; i++) {
-            var item = apiMap[i];
-            this.log.info("Starting up handler for " + item.type + " request on " + item.path + "", this.name);
-            this.server[item.type](item.path, item.handler);
-        }
     }
 }
 
