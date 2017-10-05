@@ -10,20 +10,20 @@ class MetaEndpoints extends LifeforcePlugin {
             {
                 path: "/api/about",
                 type: "get",
-                handler: this.handleAboutApi
+                handler: handleAboutApi
             }
         ];
     }
+}
 
-    handleAboutApi(req, res, next) {
-        var apis = [];
-        var keys = Object.keys(this.restifyserver.router.mounts);
-        keys.forEach((key) => {
-            var current = this.restifyserver.router.mounts[key];
-            apis.push({ path: serverhostname + current.spec.path, method: current.method });
-        });
-        res.send(200, apis);
-    }
+function handleAboutApi(req, res, next) {
+    var apis = [];
+    var keys = Object.keys(this.restifyserver.router.mounts);
+    keys.forEach((key) => {
+        var current = this.restifyserver.router.mounts[key];
+        apis.push({ path: serverhostname + current.spec.path, method: current.method });
+    });
+    res.send(200, apis);
 }
 
 module.exports = MetaEndpoints;
