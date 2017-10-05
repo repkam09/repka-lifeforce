@@ -14,7 +14,7 @@ class Webhook {
         this.log = logger;
         this.server = server;
         this.name = name;
-        this.updaters = config.webhooks;
+        this.updaters = this.config.webhooks;
     }
 
     addHandlers() {

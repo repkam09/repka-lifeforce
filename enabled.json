@@ -34,5 +34,14 @@
     },
     "Weather": {
         "enabled": true
+    },
+    "SpacesS3": {
+        "enabled": true
+    },
+    "YouTubeDownload": {
+        "enabled": true
+    },
+    "Webhook": {
+        "enabled": true
     }
 }
