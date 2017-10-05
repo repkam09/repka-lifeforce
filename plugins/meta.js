@@ -11,6 +11,11 @@ class MetaEndpoints extends LifeforcePlugin {
                 path: "/api/about",
                 type: "get",
                 handler: handleAboutApi
+            },
+            {
+                path: "/",
+                type: "get",
+                handler: handleAboutApi
             }
         ];
     }

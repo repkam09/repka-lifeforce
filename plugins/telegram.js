@@ -25,18 +25,20 @@ class TelegramBot extends LifeforcePlugin {
             this.bot.sendMessage(chatId, "Hello! Here is the information about your chat message: \n" + JSON.stringify(msg.chat));
         });
 
-        var messageSend = function (message) {
-            messageQueue.push(message);
-        }
-
-        logger.registerCallback(messageSend.bind(this));
-
-        readyTimer = setInterval(() => {
-            if (messageQueue.length > 0) {
-                this.bot.sendMessage(this.config.telegram.chatid, messageQueue.join("\n"));
-                messageQueue = [];
+        if (this.config.telegram.logger) {
+            var messageSend = function (message) {
+                messageQueue.push(message);
             }
-        }, 10000);
+
+            logger.registerCallback(messageSend.bind(this));
+
+            readyTimer = setInterval(() => {
+                if (messageQueue.length > 0) {
+                    this.bot.sendMessage(this.config.telegram.chatid, messageQueue.join("\n"));
+                    messageQueue = [];
+                }
+            }, 10000);
+        }
     }
 }
 
