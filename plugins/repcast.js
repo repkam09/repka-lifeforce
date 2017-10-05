@@ -1,6 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
 const path = require("path");
+const trans = require('transmission');
 
 class RepCast extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
