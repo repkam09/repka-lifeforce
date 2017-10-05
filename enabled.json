@@ -1,6 +1,6 @@
 {
     "TelegramBot": {
-        "enabled": false
+        "enabled": true
     },
     "RepCast": {
         "enabled": true

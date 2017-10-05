@@ -1,6 +1,8 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-
+let messageQueue = [];
+let readySend = false;
+let readyTimer = null;
 
 class TelegramBot extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -22,6 +24,19 @@ class TelegramBot extends LifeforcePlugin {
             // send a message to the chat acknowledging receipt of their message 
             this.bot.sendMessage(chatId, "Hello! Here is the information about your chat message: \n" + JSON.stringify(msg.chat));
         });
+
+        var messageSend = function (message) {
+            messageQueue.push(message);
+        }
+
+        logger.registerCallback(messageSend.bind(this));
+
+        readyTimer = setInterval(() => {
+            if (messageQueue.length > 0) {
+                this.bot.sendMessage(this.config.telegram.chatid, messageQueue.join("\n"));
+                messageQueue = [];
+            }
+        }, 10000);
     }
 }
 
