@@ -2,7 +2,7 @@
     "TelegramBot": {
         "enabled": false
     },
-    "Template": {
+    "RepCast": {
         "enabled": true
     },
     "ElectionResults": {

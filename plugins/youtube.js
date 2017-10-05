@@ -2,8 +2,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require('fs');
 
 class YouTubeDownload extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/example/example",
@@ -11,10 +11,7 @@ class YouTubeDownload extends LifeforcePlugin {
                 handler: handleExampleFunction
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
+
         this.youtubedl = require('youtube-dl');
     }
 }

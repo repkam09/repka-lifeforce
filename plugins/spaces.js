@@ -4,8 +4,8 @@ const fs = require("fs");
 
 
 class SpacesS3 extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/spaces/upload",
@@ -13,10 +13,6 @@ class SpacesS3 extends LifeforcePlugin {
                 handler: handleSpacesUpload
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
         this.s3 = require("s3");
 
         this.doclient = this.s3.createClient({

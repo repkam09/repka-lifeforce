@@ -3,8 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class RuneScape extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/runescape/rs3/current/:username",
@@ -37,10 +37,6 @@ class RuneScape extends LifeforcePlugin {
                 handler: handleRsDevblogFeed
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
         this.request = require("request");
     }
 }
@@ -88,7 +84,7 @@ function handleRsAvatarHead(req, res, next) {
     // Download and cache the image for future loads
     if (req.params.username) {
         var url = "http://services.runescape.com/m=avatar-rs/" + req.params.username + "/chat.png"
-        urlcache(url, "rs", config.logpathhidden).then((path) => {
+        urlcache(url, "rs", this.config.logpathhidden).then((path) => {
             fs.createReadStream(path).pipe(res);
         }).catch((error) => {
             res.send(500, error);

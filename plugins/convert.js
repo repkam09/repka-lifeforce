@@ -1,9 +1,8 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 class FormatConvert extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
-
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/b64",

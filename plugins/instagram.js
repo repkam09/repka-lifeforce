@@ -3,8 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class Instagram extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/instagram/recent/:username",
@@ -12,10 +12,6 @@ class Instagram extends LifeforcePlugin {
                 handler: handleInstagramRecent
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
         this.request = require("request");
     }
 }

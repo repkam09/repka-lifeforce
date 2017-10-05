@@ -2,8 +2,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class RaspiTempMonitor extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/tempmon/:temp",
@@ -11,10 +11,6 @@ class RaspiTempMonitor extends LifeforcePlugin {
                 handler: handletempCheckin
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
 
         this.threshold = 45;
         this.timertime = 0;

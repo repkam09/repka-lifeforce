@@ -1,9 +1,10 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const fs = require("fs");
+const path = require("path");
 
-
-class Template extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+class RepCast extends LifeforcePlugin {
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/repcast/dirget/:filepath",
@@ -28,17 +29,16 @@ class Template extends LifeforcePlugin {
 
         ];
 
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
+        // Grab some specific values from the config
+        this.settings = this.config.torrent;
+        this.pathfix = this.config.mediamount;
     }
 }
 
 function handleRepcastDirGet(req, res, next) {
     var getpath = new Buffer(req.params.filepath, 'base64').toString();
-    log.verbose("Requested directory listing for " + getpath);
-    res.send(200, { result: dirlist(pathfix + getpath) });
+    this.log.verbose("Requested directory listing for " + getpath);
+    res.send(200, { result: dirlist(this.pathfix + getpath) });
     return next();
 }
 
@@ -48,9 +48,9 @@ function handleRepcastFileTypeGet(req, res, next) {
         res.send(200, { result: [] });
         return next();
     } else {
-        log.verbose("Requested listing for file type " + ftype);
+        this.log.verbose("Requested listing for file type " + ftype);
 
-        var list = filelist(pathfix, ftype);
+        var list = filelist(this.pathfix, ftype);
 
         // Go through the list checking that the file ends in type
 
@@ -61,17 +61,17 @@ function handleRepcastFileTypeGet(req, res, next) {
 
 function handleRepcastTorSearch(req, res, next) {
     var searchterm = new Buffer(req.params.search, 'base64').toString();
-    log.verbose("torrent serarch for : " + searchterm);
+    this.log.verbose("torrent serarch for : " + searchterm);
 
     var test = tpb.search(searchterm).then((results) => {
-        log.verbose("torrent serarch results: " + JSON.stringify(results));
+        this.log.verbose("torrent serarch results: " + JSON.stringify(results));
         var obj = {};
         obj.query = searchterm;
         obj.count = results.length;
         obj.torrents = results;
         res.send(200, obj);
     }).catch((error) => {
-        log.error("Got an error for " + searchterm);
+        this.log.error("Got an error for " + searchterm);
         var obj = {};
         obj.count = 0;
         obj.query = "Error Searching TPB";
@@ -82,9 +82,9 @@ function handleRepcastTorSearch(req, res, next) {
 
 function handleRepcastTorAdd(req, res, next) {
     var magnet = new Buffer(req.params.magnet, 'base64').toString();
-    log.verbose("Request on toradd for " + magnet);
+    this.log.verbose("Request on toradd for " + magnet);
 
-    var instance = new trans({ port: settings.port, host: settings.host, username: settings.username, password: settings.password });
+    var instance = new trans({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
     instance.addUrl(magnet, {}, function (err, result) {
         if (err) {
             console.log(err);
@@ -105,7 +105,7 @@ function filelist(path, ftype) {
     });
 
     list = list.map((element) => {
-        return element.replace(pathfix, "");
+        return element.replace(this.pathfix, "");
     });
     return list;
 }
@@ -133,7 +133,7 @@ function dirlist(filepath) {
     var filelist = [];
 
     files.forEach(function (file) {
-        var fixpath = filepath.replace(pathfix, "");
+        var fixpath = filepath.replace(this.pathfix, "");
 
         var pathb64 = new Buffer(fixpath + file).toString('base64');
 
@@ -175,4 +175,4 @@ function dirlist(filepath) {
     return filelist;
 }
 
-module.exports = Template;
+module.exports = RepCast;

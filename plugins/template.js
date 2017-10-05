@@ -2,8 +2,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class Template extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/example/example",
@@ -11,10 +11,6 @@ class Template extends LifeforcePlugin {
                 handler: handleExampleFunction
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
     }
 }
 

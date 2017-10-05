@@ -3,12 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class FileUploads extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/files/upload",

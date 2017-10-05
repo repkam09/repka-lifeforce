@@ -1,8 +1,8 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 class SlackBot extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/slack/log",
@@ -10,10 +10,6 @@ class SlackBot extends LifeforcePlugin {
                 handler: handleSlackPush
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
 
         const SlackBot = require('slackbots');
         this.bot = new SlackBot({

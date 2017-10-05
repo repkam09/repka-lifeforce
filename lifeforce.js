@@ -68,6 +68,7 @@ server.use(function logging(req, res, next) {
 
 
 // Go out and check the plugins list for endpoints to listen on
+var pluginList = [];
 fs.readdir(pluginpath, (err, files) => {
     files.forEach(file => {
         fs.stat(pluginpath + "/" + file, (err, stats) => {
@@ -81,14 +82,16 @@ fs.readdir(pluginpath, (err, files) => {
                         log.debug("Skipping " + plugin.name + " plugin because it does not have an entry in config", logName);
                     } else {
                         if (status && status.enabled) {
-                            // If this plugin is enabled, start it!
-                            log.info("Starting up " + plugin.name + " plugin", logName);
-
                             // Call the plugins start method to attach the various get/post/etc
                             var temp = new plugin(server, log, plugin.name);
+
+                            // Attach the handlers to restify
                             temp.addHandlers();
+
+                            // Add this plugin to the list of plugins
+                            pluginList.push(temp);
                         } else {
-                            //log.debug("Skipping " + plugin.name + " plugin because it is disabled", logName);
+                            log.debug("Skipping " + plugin.name + " plugin because it is disabled", logName);
                         }
                     }
                 }

@@ -3,8 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class ElectionResults extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/election/full",
@@ -12,6 +12,7 @@ class ElectionResults extends LifeforcePlugin {
                 handler: handleElectionResults
             }
         ];
+
         this.election_results = require("../static/election_results.json");
     }
 }

@@ -3,8 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 
 class TelegramBot extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/telegram/log",
@@ -12,10 +12,6 @@ class TelegramBot extends LifeforcePlugin {
                 handler: handleTelegramLog
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
 
         const TGBot = require('node-telegram-bot-api');
         this.bot = new TGBot(this.config.telegram.token, { polling: true });
@@ -34,7 +30,7 @@ function handleTelegramLog(req, res, next) {
         var payload = req.body + "";
 
         // send a message to the chat acknowledging receipt of their message 
-        this.bot.sendMessage(config.telegram.chatid, payload);
+        this.bot.sendMessage(this.config.telegram.chatid, payload);
         res.send(200, { error: false });
     } else {
         res.send(400);

@@ -1,8 +1,8 @@
 class LifeforcePlugin {
-    constructor(server, logger, name) {
+    constructor(restifyserver, logger, name) {
         this.config = require("../config.json");
         this.log = logger;
-        this.server = server;
+        this.restifyserver = restifyserver;
         this.name = name;
     }
 
@@ -12,7 +12,7 @@ class LifeforcePlugin {
             var path = item.path;
             var type = item.type.toUpperCase();
             this.log.info("" + type + " - " + path + "", this.name);
-            this.server[item.type](item.path, item.handler);
+            this.restifyserver[item.type](item.path, item.handler.bind(this));
         }
     }
 }

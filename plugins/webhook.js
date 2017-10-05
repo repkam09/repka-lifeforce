@@ -4,8 +4,8 @@ const exec = require('child_process').exec;
 
 
 class Webhook extends LifeforcePlugin {
-    constructor(server, logger, name) {
-        super(server, logger, name);
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
         this.apiMap = [
             {
                 path: "/api/github",
@@ -13,10 +13,7 @@ class Webhook extends LifeforcePlugin {
                 handler: handleWebhookGithub
             }
         ];
-        this.config = require("../config.json");
-        this.log = logger;
-        this.server = server;
-        this.name = name;
+        
         this.updaters = this.config.webhooks;
     }
 }
