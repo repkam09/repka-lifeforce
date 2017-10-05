@@ -1,5 +1,11 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const fs = require('fs');
 
+let errormode = false;
+const threshold = 45;
+const timertime = 2700000;
+let settings = null;
+let transporter = null;
 
 class RaspiTempMonitor extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -8,21 +14,31 @@ class RaspiTempMonitor extends LifeforcePlugin {
             {
                 path: "/api/tempmon/:temp",
                 type: "get",
-                handler: handletempCheckin
+                handler: handleTempCheckin
             }
         ];
 
-        this.threshold = 45;
-        this.timertime = 0;
-        this.errormode = false;
+        // Grab the subset of settings we actually want
+        settings = this.config.tempmonitor;
+        this.timerfunc = null;
+
+        // create reusable transporter object using SMTP transport
+        const nodemailer = require("nodemailer");
+        transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: settings.emailuser,
+                pass: settings.emailpass
+            }
+        });
     }
 }
 
-function handletempCheckin(req, res, next) {
-    log.info("Got a temp checkin from raspberry pi");
+function handleTempCheckin(req, res, next) {
+    this.log.info("Got a temp checkin from raspberry pi");
 
     // Clear the current timer because we got a check in time
-    clearTimeout(timerfunc);
+    clearTimeout(this.timerfunc);
 
     // If we get this call, but we're in errormode, the system got a message
     // after a previous failure.
@@ -47,30 +63,28 @@ function handletempCheckin(req, res, next) {
     res.send(response);
 
     // restart the timer to wait until the next checkin
-    log("Starting timer to wait for client checkin...");
-    timerfunc = setTimeout(function () {
+    this.log.info("Starting timer to wait for client checkin...");
+    this.timerfunc = setTimeout(function () {
         serverTempTimeout();
     }, timertime);
 
     return next();
 }
 
-
-
-
 // Helper function to write to a file
 function logfileout(message, filename) {
     console.log("logfileout: " + filename + ":" + message);
-    fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
-        if (err) {
-            console.log(err);
-        }
-    });
+    try {
+        fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    } catch (error) {
+        console.error("Unable to write to output file... " + error.message);
+        debugger;
+    }
 }
-
-
-//var emailstring = settings.emailstring;
-//console.log("Send alerts to: " + emailstring);
 
 function serverTempTimeout() {
     console.log("Error: client timeout passed");
@@ -79,7 +93,7 @@ function serverTempTimeout() {
 
     var powerInternetMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: emailstring, // list of receivers
+        to: settings.emailstring, // list of receivers
         subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
         text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
     };

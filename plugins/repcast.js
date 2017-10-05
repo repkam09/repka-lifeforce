@@ -32,6 +32,8 @@ class RepCast extends LifeforcePlugin {
         // Grab some specific values from the config
         this.settings = this.config.torrent;
         this.pathfix = this.config.mediamount;
+
+        this.tpb = require("thepiratebay");
     }
 }
 
@@ -63,7 +65,7 @@ function handleRepcastTorSearch(req, res, next) {
     var searchterm = new Buffer(req.params.search, 'base64').toString();
     this.log.verbose("torrent serarch for : " + searchterm);
 
-    var test = tpb.search(searchterm).then((results) => {
+    var test = this.tpb.search(searchterm).then((results) => {
         this.log.verbose("torrent serarch results: " + JSON.stringify(results));
         var obj = {};
         obj.query = searchterm;
