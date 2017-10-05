@@ -37,6 +37,7 @@ class RuneScape {
         this.log = logger;
         this.server = server;
         this.name = name;
+        this.request = require("request");
     }
 
     addHandlers() {
@@ -51,7 +52,7 @@ class RuneScape {
 function handleRs3CurrentRaw(req, res, next) {
     if (req.params.username) {
         let url = "http://hiscore.runescape.com/index_lite.ws?player=" + req.params.username;
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }
@@ -60,7 +61,7 @@ function handleRs3CurrentRaw(req, res, next) {
 function handleRs3CurrentJSON(req, res, next) {
     if (req.params.username) {
         let url = "http://hiscore.runescape.com/index_lite.ws?player=" + req.params.username;
-        request.get(url, (error, response, body) => {
+        this.request.get(url, (error, response, body) => {
             if (!error) {
                 // Split on the lines
                 let response = {
@@ -102,7 +103,7 @@ function handleRsAvatarHead(req, res, next) {
 function handleOsrsCurrentRaw(req, res, next) {
     if (req.params.username) {
         let url = "http://services.runescape.com/m=hiscore_oldschool/index_lite.ws?player=" + req.params.username;
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }
@@ -110,12 +111,12 @@ function handleOsrsCurrentRaw(req, res, next) {
 
 function handleRsNewsFeed(req, res, next) {
     let url = "http://services.runescape.com/m=news/latest_news.rss";
-    request.get(url).pipe(res);
+    this.request.get(url).pipe(res);
 }
 
 function handleRsDevblogFeed(req, res, next) {
     let url = "http://services.runescape.com/m=news/latest_news.rss";
-    request.get(url).pipe(res);
+    this.request.get(url).pipe(res);
 }
 
 module.exports = RuneScape;

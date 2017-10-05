@@ -17,6 +17,7 @@ class Weather {
         this.log = logger;
         this.server = server;
         this.name = name;
+        this.request = require("request");
     }
 
     addHandlers() {
@@ -31,7 +32,7 @@ class Weather {
 function handleWeatherZipCode(req, res, next) {
     if (req.params.zip) {
         let url = "http://api.openweathermap.org/data/2.5/weather?zip=" + req.params.zip + " &appid=" + config.weatherapikey;
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }
@@ -40,7 +41,7 @@ function handleWeatherZipCode(req, res, next) {
 function handleWeatherCityName(req, res, next) {
     if (req.params.name) {
         let url = "http://api.openweathermap.org/data/2.5/weather?q=" + req.params.name + " &appid=" + config.weatherapikey;
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }

@@ -17,6 +17,7 @@ class Music {
         this.log = logger;
         this.server = server;
         this.name = name;
+        this.request = require("request");
     }
 
     addHandlers() {
@@ -31,7 +32,7 @@ class Music {
 function handleGetMusicNow(req, res, next) {
     if (req.params.name) {
         var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&user=" + req.params.name + "&api_key=" + config.lastfmapi + "&format=json";
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }
@@ -40,7 +41,7 @@ function handleGetMusicNow(req, res, next) {
 function handleGetMusicRecent(req, res, next) {
     if (req.params.name) {
         var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=" + req.params.name + "&api_key=" + config.lastfmapi + "&format=json";
-        request.get(url).pipe(res);
+        this.request.get(url).pipe(res);
     } else {
         res.send(400);
     }
