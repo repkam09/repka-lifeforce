@@ -208,10 +208,10 @@ function handleYoutubeDownload(req, res, next) {
 
 function handleGetSpacesFileList(req, res, next) {
     this.listItems("repcast/").then((items) => {
-        res.send(200, { error: false, info: items });
+        res.send(200, { error: false, info: items, count: items.length });
         next();
     }).catch((error) => {
-        res.send(500, { error: true, info: null });
+        res.send(500, { error: true, info: [], count: 0 });
     });
 }
 
