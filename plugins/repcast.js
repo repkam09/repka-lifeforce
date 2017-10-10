@@ -40,7 +40,8 @@ class RepCast extends LifeforcePlugin {
 
 function handleRepcastDirGet(req, res, next) {
     var getpath = new Buffer(req.params.filepath, 'base64').toString();
-    this.log.verbose("Requested directory listing for " + getpath);
+    getpath = getpath.replace(this.pathfix, "");
+    this.log.verbose("Requested directory listing for " + this.pathfix + getpath);
     res.send(200, { result: dirlist(this.pathfix + getpath) });
     return next();
 }
