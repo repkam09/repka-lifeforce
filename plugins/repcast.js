@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const trans = require('transmission');
 
+let pathfix = "";
+
 class RepCast extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -32,7 +34,7 @@ class RepCast extends LifeforcePlugin {
 
         // Grab some specific values from the config
         this.settings = this.config.torrent;
-        this.pathfix = this.config.mediamount;
+        pathfix = this.config.mediamount;
 
         this.tpb = require("thepiratebay");
     }
@@ -40,9 +42,9 @@ class RepCast extends LifeforcePlugin {
 
 function handleRepcastDirGet(req, res, next) {
     var getpath = new Buffer(req.params.filepath, 'base64').toString();
-    getpath = getpath.replace(this.pathfix, "");
-    this.log.verbose("Requested directory listing for " + this.pathfix + getpath);
-    res.send(200, { result: dirlist(this.pathfix + getpath) });
+    getpath = getpath.replace(pathfix, "");
+    this.log.verbose("Requested directory listing for " + pathfix + getpath);
+    res.send(200, { result: dirlist(pathfix + getpath) });
     return next();
 }
 
@@ -54,7 +56,7 @@ function handleRepcastFileTypeGet(req, res, next) {
     } else {
         this.log.verbose("Requested listing for file type " + ftype);
 
-        var list = filelist(this.pathfix, ftype);
+        var list = filelist(pathfix, ftype);
 
         // Go through the list checking that the file ends in type
 
@@ -109,7 +111,7 @@ function filelist(path, ftype) {
     });
 
     list = list.map((element) => {
-        return element.replace(this.pathfix, "");
+        return element.replace(pathfix, "");
     });
     return list;
 }
@@ -137,7 +139,7 @@ function dirlist(filepath) {
     var filelist = [];
 
     files.forEach(function (file) {
-        var fixpath = filepath.replace(this.pathfix, "");
+        var fixpath = filepath.replace(pathfix, "");
 
         var pathb64 = new Buffer(fixpath + file).toString('base64');
 
