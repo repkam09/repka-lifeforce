@@ -1,35 +1,40 @@
-const log = require("../utils/logger");
-const request = require('request');
-const config = require("../config.json");
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-function addHandlers(server) {
-    server.get("/api/weather/current/zip/:zip", (req, res, next) => {
-        if (req.params.zip) {
-            let url = "http://api.openweathermap.org/data/2.5/weather?zip=" + req.params.zip + " &appid=" + config.weatherapikey;
-            request.get(url).pipe(res);
-        } else {
-            res.send(400);
-        }
-    });
+class Weather extends LifeforcePlugin {
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/weather/current/zip/:zip",
+                type: "get",
+                handler: handleWeatherZipCode
+            },
+            {
+                path: "/api/weather/current/name/:name",
+                type: "get",
+                handler: handleWeatherCityName
+            }
+        ];
 
-    server.get("/api/weather/current/name/:name", (req, res, next) => {
-        if (req.params.name) {
-            let url = "http://api.openweathermap.org/data/2.5/weather?q=" + req.params.name + " &appid=" + config.weatherapikey;
-            request.get(url).pipe(res);
-        } else {
-            res.send(400);
-        }
-    });
-}
-
-/**
- * This set of properties defines this as a plugin
- * You must have an enabled, name, and start property defined
- */
-module.exports = {
-    enabled: true,
-    name: "weather",
-    start: (server) => {
-        addHandlers(server);
+        this.request = require("request");
     }
 }
+
+function handleWeatherZipCode(req, res, next) {
+    if (req.params.zip) {
+        let url = "http://api.openweathermap.org/data/2.5/weather?zip=" + req.params.zip + "&appid=" + this.config.weatherapikey;
+        this.request.get(url).pipe(res);
+    } else {
+        res.send(400);
+    }
+}
+
+function handleWeatherCityName(req, res, next) {
+    if (req.params.name) {
+        let url = "http://api.openweathermap.org/data/2.5/weather?q=" + req.params.name + " &appid=" + this.config.weatherapikey;
+        this.request.get(url).pipe(res);
+    } else {
+        res.send(400);
+    }
+}
+module.exports = Weather;

@@ -1,76 +1,104 @@
-const log = require("../utils/logger");
-const tpb = require('thepiratebay');
-const trans = require('transmission');
-const path = require('path');
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
-const os = require('os');
-const config = require('../config.json');
+const path = require("path");
+const trans = require('transmission');
 
-// Grab some specific values from the config
-const settings = config.torrent;
-const pathfix = config.mediamount;
-const logpath = config.logpath;
+let pathfix = "";
 
-function addHandlers(server) {
-    server.get('/repcast/dirget/:filepath', function (req, res, next) {
-        var getpath = new Buffer(req.params.filepath, 'base64').toString();
-        log.verbose("Requested directory listing for " + getpath);
-        res.send(200, { result: dirlist(pathfix + getpath) });
+class RepCast extends LifeforcePlugin {
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
+        this.apiMap = [
+            {
+                path: "/repcast/dirget/:filepath",
+                type: "get",
+                handler: handleRepcastDirGet
+            },
+            {
+                path: "/repcast/fileget/:type",
+                type: "get",
+                handler: handleRepcastFileTypeGet
+            },
+            {
+                path: "/repcast/torsearch/:search",
+                type: "get",
+                handler: handleRepcastTorSearch
+            },
+            {
+                path: "/repcast/toradd/:magnet",
+                type: "get",
+                handler: handleRepcastTorAdd
+            },
+
+        ];
+
+        // Grab some specific values from the config
+        this.settings = this.config.torrent;
+        pathfix = this.config.mediamount;
+
+        this.tpb = require("thepiratebay");
+    }
+}
+
+function handleRepcastDirGet(req, res, next) {
+    var getpath = new Buffer(req.params.filepath, 'base64').toString();
+    getpath = getpath.replace(pathfix, "");
+    this.log.verbose("Requested directory listing for " + pathfix + getpath);
+    res.send(200, { result: dirlist(pathfix + getpath) });
+    return next();
+}
+
+function handleRepcastFileTypeGet(req, res, next) {
+    var ftype = "." + req.params.type; //new Buffer(req.params.type, 'base64').toString();
+    if (ftype === "") {
+        res.send(200, { result: [] });
         return next();
-    });
+    } else {
+        this.log.verbose("Requested listing for file type " + ftype);
 
-    server.get('/repcast/fileget/:type', function (req, res, next) {
-        var ftype = "." + req.params.type; //new Buffer(req.params.type, 'base64').toString();
-        if (ftype === "") {
-            res.send(200, { result: [] });
-            return next();
+        var list = filelist(pathfix, ftype);
+
+        // Go through the list checking that the file ends in type
+
+        res.send(200, { result: list });
+        return next();
+    }
+}
+
+function handleRepcastTorSearch(req, res, next) {
+    var searchterm = new Buffer(req.params.search, 'base64').toString();
+    this.log.verbose("torrent serarch for : " + searchterm);
+
+    var test = this.tpb.search(searchterm).then((results) => {
+        this.log.verbose("torrent serarch results: " + JSON.stringify(results));
+        var obj = {};
+        obj.query = searchterm;
+        obj.count = results.length;
+        obj.torrents = results;
+        res.send(200, obj);
+    }).catch((error) => {
+        this.log.error("Got an error for " + searchterm);
+        var obj = {};
+        obj.count = 0;
+        obj.query = "Error Searching TPB";
+        obj.torrents = [];
+        res.send(500, obj);
+    });
+}
+
+function handleRepcastTorAdd(req, res, next) {
+    var magnet = new Buffer(req.params.magnet, 'base64').toString();
+    this.log.verbose("Request on toradd for " + magnet);
+
+    var instance = new trans({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
+    instance.addUrl(magnet, {}, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.send(400, err);
         } else {
-            log.verbose("Requested listing for file type " + ftype);
-
-            var list = filelist(pathfix, ftype);
-
-            // Go through the list checking that the file ends in type
-
-            res.send(200, { result: list });
-            return next();
+            var id = result.id;
+            res.send(200, { torrentid: id });
         }
-    });
-
-    server.get('/repcast/torsearch/:search', function (req, res, next) {
-        var searchterm = new Buffer(req.params.search, 'base64').toString();
-        log.verbose("torrent serarch for : " + searchterm);
-
-        var test = tpb.search(searchterm).then((results) => {
-            log.verbose("torrent serarch results: " + JSON.stringify(results));
-            var obj = {};
-            obj.query = searchterm;
-            obj.count = results.length;
-            obj.torrents = results;
-            res.send(200, obj);
-        }).catch((error) => {
-            log.error("Got an error for " + searchterm);
-            var obj = {};
-            obj.count = 0;
-            obj.query = "Error Searching TPB";
-            obj.torrents = [];
-            res.send(500, obj);
-        });
-    });
-
-    server.get('/repcast/toradd/:magnet', function (req, res, next) {
-        var magnet = new Buffer(req.params.magnet, 'base64').toString();
-        log.verbose("Request on toradd for " + magnet);
-
-        var instance = new trans({ port: settings.port, host: settings.host, username: settings.username, password: settings.password });
-        instance.addUrl(magnet, {}, function (err, result) {
-            if (err) {
-                console.log(err);
-                res.send(400, err);
-            } else {
-                var id = result.id;
-                res.send(200, { torrentid: id });
-            }
-        });
     });
 }
 
@@ -153,16 +181,4 @@ function dirlist(filepath) {
     return filelist;
 }
 
-
-
-/**
- * This set of properties defines this as a plugin
- * You must have an enabled, name, and start property defined
- */
-module.exports = {
-    enabled: true,
-    name: "repcast",
-    start: (server) => {
-        addHandlers(server);
-    }
-}
+module.exports = RepCast;

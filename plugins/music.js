@@ -1,44 +1,42 @@
-const log = require("../utils/logger");
-const request = require('request');
-const config = require("../config.json");
+const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-function addHandlers(server) {
-    server.get("/api/music/now/:name", (req, res, next) => {
-        if (req.params.name) {
-            var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&user=" + req.params.name + "&api_key=" + config.lastfmapi + "&format=json";
-            request.get(url).pipe(res);
-        } else {
-            res.send(400);
-        }
-    });
 
-    server.get("/api/music/recent/:name", (req, res, next) => {
-        if (req.params.name) {
-            var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=" + req.params.name + "&api_key=" + config.lastfmapi + "&format=json";
-            request.get(url).pipe(res);
-        } else {
-            res.send(400);
-        }
-    });
 
-server.get("/api/music/submit", (req, res, next) => {
-        if (req.body) {
-	    log.info("Music Submit: " + JSON.stringify(req.body));
-	    res.send(200, "OK");
-        } else {
-            res.send(400);
-        }
-    });
-}
-
-/**
- * This set of properties defines this as a plugin
- * You must have an enabled, name, and start property defined
- */
-module.exports = {
-    enabled: true,
-    name: "music",
-    start: (server) => {
-        addHandlers(server);
+class Music extends LifeforcePlugin {
+    constructor(restifyserver, logger, name) {
+        super(restifyserver, logger, name);
+        this.apiMap = [
+            {
+                path: "/api/music/now/:name",
+                type: "get",
+                handler: handleGetMusicNow
+            },
+            {
+                path: "/api/music/recent/:name",
+                type: "get",
+                handler: handleGetMusicRecent
+            }
+        ];
+        this.request = require("request");
     }
 }
+
+function handleGetMusicNow(req, res, next) {
+    if (req.params.name) {
+        var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&user=" + req.params.name + "&api_key=" + this.config.lastfmapi + "&format=json";
+        this.request.get(url).pipe(res);
+    } else {
+        res.send(400);
+    }
+}
+
+function handleGetMusicRecent(req, res, next) {
+    if (req.params.name) {
+        var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=" + req.params.name + "&api_key=" + this.config.lastfmapi + "&format=json";
+        this.request.get(url).pipe(res);
+    } else {
+        res.send(400);
+    }
+}
+
+module.exports = Music;
