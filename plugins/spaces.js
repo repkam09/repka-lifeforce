@@ -1,5 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
+const aws4 = require("aws4");
+const aws2 = require("aws2");
 
 let uploadInProgress = false;
 let uploadQueue = [];
@@ -102,6 +104,7 @@ class SpacesS3 extends LifeforcePlugin {
     }
 
     listItems(prefix) {
+        var that = this;
         return new Promise((resolve, reject) => {
             var list = this.doclient.listObjects({
                 s3Params: {
@@ -139,12 +142,32 @@ class SpacesS3 extends LifeforcePlugin {
                     }
 
                     // Create a path that can be used to stream the secured file for 12 hours
+                    var opts = {
+                        host: 'repcast.' + that.config.digitalocean.endpoint,
+                        path: file.Key,
+                        signQuery: true
+                    };
 
+                    // create a copy of the options
+                    var optionsv2 = Object.assign({}, opts);
+                    var optionsv4 = Object.assign({}, opts);
+
+                    var signedv4 = aws4.sign(optionsv4, {
+                        accessKeyId: that.config.digitalocean.accessKey,
+                        secretAccessKey: that.config.digitalocean.secretKey
+                    });
+
+                    var signedv2 = aws2.sign(optionsv2, {
+                        accessKeyId: that.config.digitalocean.accessKey,
+                        secretAccessKey: that.config.digitalocean.secretKey
+                    });
 
                     let filestruct = {
                         size: file.Size,
                         name: file.Key,
-                        path: file.Key,
+                        path: "https://" + opts.host + "/" + opts.path,
+                        pathv4: "https://" + opts.host + "/" + signedv4.path,
+                        pathv2: "https://" + opts.host + "/" + signedv2.path,
                         hash: hashString
                     };
 
