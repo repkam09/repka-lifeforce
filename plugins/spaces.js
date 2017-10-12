@@ -191,7 +191,7 @@ function handleYoutubeDownload(req, res, next) {
 
         video.on('end', (res) => {
             this.log.info("Video download finished, starting upload to Spaces...")
-            this.uploadItem(filepath, "storage/yt_dl_" + req.params.videoid + ".mp4").then(() => {
+            this.uploadItem(filepath, "repcast/yt_dl_" + req.params.videoid + ".mp4").then(() => {
                 this.log.info("Video upload to Spaces finished!");
             }).catch((error) => {
                 this.log.info("Video upload to Spaces failed!");
