@@ -19,6 +19,6 @@
     "slackbots": "^1.1.0",
     "thepiratebay": "^1.4.5",
     "transmission": "^0.4.5",
-    "youtube-dl": "^1.11.1"
+    "youtube-dl": "latest"
   }
 }

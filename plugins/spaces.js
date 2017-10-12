@@ -27,11 +27,10 @@ class SpacesS3 extends LifeforcePlugin {
 
             },
             {
-                path: "/repcast/spaces/sync",
+                path: "/repcast/youtube/:videoid",
                 type: "get",
-                handler: handleSyncMediaFiles
-
-            }
+                handler: handleYoutubeDownload
+            },
         ];
 
         this.s3 = require("s3");
@@ -203,21 +202,32 @@ function handleSpacesUpload(req, res, next) {
 function handleYoutubeDownload(req, res, next) {
     if (req.params.videoid) {
         var filepath = "./temp/yt_dl_" + req.params.videoid + ".mp4";
+        var videoinfo = null;
         var video = this.youtubedl('http://www.youtube.com/watch?v=' + req.params.videoid,
             [],
             { cwd: __dirname });
 
         // Will be called when the download starts.
         video.on('info', (info) => {
+            videoinfo = info;
             res.send(200, { error: false, info });
         });
 
         video.on('end', (res) => {
-            this.log.info("Video download finished, starting upload to Spaces...")
-            this.uploadItem(filepath, "storage/yt_dl_" + req.params.videoid + ".mp4").then(() => {
-                this.log.info("Video upload to Spaces finished!");
-            }).catch((error) => {
-                this.log.info("Video upload to Spaces failed!");
+            this.log.info("Video download finished, starting upload to Spaces...");
+            // Rename the video to something better...
+            var newFilePath = "./temp/" + videoinfo.filename;
+            move(filepath, newFilePath).then((result) => {
+                var spacesName = "repcast/yt_dl_" + videoinfo.filename
+                this.log.info("Upload as " + spacesName);
+                this.uploadItem(newFilePath, spacesName).then(() => {
+                    this.log.info("Video upload to Spaces finished!");
+                    fs.unlink(newFilePath, () => {
+                        this.log.info("Deleted temp local video file");
+                    });
+                }).catch((error) => {
+                    this.log.info("Video upload to Spaces failed!");
+                });
             });
         });
 
@@ -226,6 +236,46 @@ function handleYoutubeDownload(req, res, next) {
         res.send(400, { error: "bad request" });
     }
     next();
+}
+
+function move(oldPath, newPath) {
+    function copy() {
+        var readStream = fs.createReadStream(oldPath);
+        var writeStream = fs.createWriteStream(newPath);
+
+        readStream.on('error', (err) => {
+            reject(err);
+        });
+
+        writeStream.on('error', (err) => {
+            reject(err);
+        });
+
+        readStream.on('close', function () {
+            fs.unlink(oldPath, callback);
+            resolve();
+        });
+
+        readStream.pipe(writeStream);
+    }
+
+    return new Promise((resolve, reject) => {
+        fs.rename(oldPath, newPath, function (err) {
+            if (err) {
+                if (err.code === 'EXDEV') {
+                    copy();
+                } else {
+                    reject(err);
+                }
+                return;
+            }
+            resolve();
+        });
+    });
+
+
+
+
 }
 
 
