@@ -1,7 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
-const serverhostname = "http://localhost:16001";
-//const serverhostname = "https://api.repkam09.com";
+//const serverhostname = "http://localhost:16001";
+const serverhostname = "https://api.repkam09.com";
 
 class MetaEndpoints extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
