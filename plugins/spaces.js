@@ -1,7 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
-const aws4 = require("aws4");
-const aws2 = require("aws2");
 
 let uploadInProgress = false;
 let uploadQueue = [];
@@ -21,7 +19,7 @@ class SpacesS3 extends LifeforcePlugin {
                 handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/spaces/getfiles",
+                path: "/repcast/spaces/getfiles/:authkey",
                 type: "get",
                 handler: handleGetSpacesFileList
 
@@ -33,7 +31,16 @@ class SpacesS3 extends LifeforcePlugin {
             },
         ];
 
+        const AWS = require('aws-sdk');
         this.s3 = require("s3");
+
+
+        const spacesEndpoint = new AWS.Endpoint(this.config.digitalocean.endpoint);
+        this.s3auth = new AWS.S3({
+            endpoint: spacesEndpoint,
+            accessKeyId: this.config.digitalocean.accessKey,
+            secretAccessKey: this.config.digitalocean.secretKey
+        });
 
         this.doclient = this.s3.createClient({
             s3Options: {
@@ -140,33 +147,18 @@ class SpacesS3 extends LifeforcePlugin {
                         hashString = (hashString.substr(1, hashString.length - 2));
                     }
 
-                    // Create a path that can be used to stream the secured file for 12 hours
-                    var opts = {
-                        host: 'repcast.' + that.config.digitalocean.endpoint,
-                        path: file.Key,
-                        signQuery: true
-                    };
+                    const expireSeconds = 60 * 5;
 
-                    // create a copy of the options
-                    var optionsv2 = Object.assign({}, opts);
-                    var optionsv4 = Object.assign({}, opts);
-
-                    var signedv4 = aws4.sign(optionsv4, {
-                        accessKeyId: that.config.digitalocean.accessKey,
-                        secretAccessKey: that.config.digitalocean.secretKey
-                    });
-
-                    var signedv2 = aws2.sign(optionsv2, {
-                        accessKeyId: that.config.digitalocean.accessKey,
-                        secretAccessKey: that.config.digitalocean.secretKey
+                    const urlpath = that.s3auth.getSignedUrl('getObject', {
+                        Bucket: 'repcast',
+                        Key: file.Key,
+                        Expires: expireSeconds
                     });
 
                     let filestruct = {
                         size: file.Size,
                         name: file.Key,
-                        path: "https://" + opts.host + "/" + opts.path,
-                        pathv4: "https://" + opts.host + "/" + signedv4.path,
-                        pathv2: "https://" + opts.host + "/" + signedv2.path,
+                        path: urlpath,
                         hash: hashString
                     };
 
@@ -280,12 +272,17 @@ function move(oldPath, newPath) {
 
 
 function handleGetSpacesFileList(req, res, next) {
-    this.listItems("repcast/").then((items) => {
-        res.send(200, { error: false, info: items, count: items.length });
-        next();
-    }).catch((error) => {
-        res.send(500, { error: true, info: [], count: 0 });
-    });
+    if (req.params.authkey === this.config.digitalocean.accessKey) {
+
+        this.listItems("repcast/").then((items) => {
+            res.send(200, { error: false, info: items, count: items.length });
+            next();
+        }).catch((error) => {
+            res.send(500, { error: true, info: [], count: 0 });
+        });
+    } else {
+        res.send(401, "Unauthorized");
+    }
 }
 
 function handleSyncMediaFiles(req, res, next) {
