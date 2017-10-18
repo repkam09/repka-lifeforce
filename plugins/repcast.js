@@ -51,18 +51,16 @@ class RepCast extends LifeforcePlugin {
 
 function handleDialogFlow(req, res, next) {
     if (req.body) {
-        var parsedbody = JSON.parse(req.body);
         this.log.special("Body Found");
-        this.log.special(JSON.stringify(parsedbody));
+        this.log.special(req.body);
     } else {
         this.log.special("No Body Found");
         this.log.special(JSON.stringify(req));
     }
 
     if (req.params) {
-        var params = JSON.parse(req.params);
         this.log.special("Params Found");
-        this.log.special(JSON.stringify(params));
+        this.log.special(req.params);
     } else {
         this.log.special("No Params Found");
     }
