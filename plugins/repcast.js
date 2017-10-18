@@ -45,6 +45,10 @@ class RepCast extends LifeforcePlugin {
 }
 
 function handleDialogFlow(req, res, next) {
+    if (req.body) {
+        var parsedbody = JSON.parse(req.body);
+        this.log.info(JSON.stringify(parsedbody));
+    }
     res.send(200, "OK!");
 }
 
