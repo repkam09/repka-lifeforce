@@ -33,6 +33,11 @@ class RepCast extends LifeforcePlugin {
                 path: "/repcast/dialogflow",
                 type: "post",
                 handler: handleDialogFlow
+            },
+            {
+                path: "/repcast/dialogflow",
+                type: "get",
+                handler: handleDialogFlow
             }
         ];
 
