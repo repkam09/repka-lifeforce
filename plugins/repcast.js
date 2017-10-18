@@ -29,7 +29,11 @@ class RepCast extends LifeforcePlugin {
                 type: "get",
                 handler: handleRepcastTorAdd
             },
-
+            {
+                path: "/repcast/dialogflow",
+                type: "post",
+                handler: handleDialogFlow
+            }
         ];
 
         // Grab some specific values from the config
@@ -38,6 +42,10 @@ class RepCast extends LifeforcePlugin {
 
         this.tpb = require("thepiratebay");
     }
+}
+
+function handleDialogFlow(req, res, next) {
+    res.send(200, "OK!");
 }
 
 function handleRepcastDirGet(req, res, next) {
