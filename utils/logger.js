@@ -35,7 +35,7 @@ module.exports = MyLogger;
 
 function printer(message) {
     console.log(message);
-    
+
     callbacks.forEach((callback) => {
         callback(message);
     });
@@ -46,6 +46,8 @@ function printererror(message) {
 }
 
 function printerspecial(message) {
+    console.log(message);
+
     callbacks.forEach((callback) => {
         callback(message);
     });
