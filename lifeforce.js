@@ -31,7 +31,7 @@ const server = restify.createServer({
 });
 
 const cors = corsMiddleware({
-    origins: ['https://repkam09.com'],
+    origins: ['https://repkam09.com', 'http://localhost:8080', 'http://localhost'],
     allowHeaders: ['cache-control']
 });
 
