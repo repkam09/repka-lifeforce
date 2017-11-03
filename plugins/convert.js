@@ -29,7 +29,7 @@ function handleBase64Encode(req, res, next) {
 
 function handleBase64Decode(req, res, next) {
     if (req.body) {
-        var d64 = new Buffer(req.body, 'base64').toString('ascii')
+        var d64 = new Buffer(req.body, 'base64').toString('ascii');
         res.send(200, d64);
     } else {
         res.send(400, "Bad Request");
