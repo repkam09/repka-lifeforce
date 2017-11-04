@@ -147,7 +147,7 @@ class SpacesS3 extends LifeforcePlugin {
                         hashString = (hashString.substr(1, hashString.length - 2));
                     }
 
-                    const expireSeconds = 60 * 5;
+                    const expireSeconds = 172800;
 
                     const urlpath = that.s3auth.getSignedUrl('getObject', {
                         Bucket: 'repcast',

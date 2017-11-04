@@ -13,6 +13,16 @@ class LifeforcePlugin {
             var type = item.type.toUpperCase();
             this.log.info("" + type + " - " + path + "", this.name);
             this.restifyserver[item.type](item.path, item.handler.bind(this));
+
+            var keys = Object.keys(this.restifyserver.router.mounts);
+            keys.forEach((key) => {
+                var current = this.restifyserver.router.mounts[key];
+
+                if (current.spec.path == path) {
+                    current.plugin = this.name;
+                }
+
+            });
         }
     }
 }

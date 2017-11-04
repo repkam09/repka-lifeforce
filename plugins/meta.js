@@ -36,7 +36,7 @@ function handleAboutApi(req, res, next) {
     var keys = Object.keys(this.restifyserver.router.mounts);
     keys.forEach((key) => {
         var current = this.restifyserver.router.mounts[key];
-        apis.push({ path: serverhostname + current.spec.path, method: current.method });
+        apis.push({ path: serverhostname + current.spec.path, method: current.method, plugin: current.plugin });
     });
     res.send(200, apis);
 }

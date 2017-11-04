@@ -50,15 +50,17 @@ class RepCast extends LifeforcePlugin {
 }
 
 function handleDialogFlow(req, res, next) {
+    var responseData = "OK!";
     if (req.body) {
         this.log.special("Body Found: " + typeof req.body + " " + JSON.stringify(req.body));
+        responseData = req.body.result.parameters.video_name;
     }
 
     if (req.params) {
         this.log.special("Params Found: " + typeof req.params + " " + JSON.stringify(req.params));
     }
 
-    res.send(200, "OK!");
+    res.send(200, responseData);
 }
 
 function handleRepcastDirGet(req, res, next) {

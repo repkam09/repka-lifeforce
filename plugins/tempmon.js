@@ -7,6 +7,8 @@ const timertime = 2700000;
 let settings = null;
 let transporter = null;
 
+let tempCheckinLists = {};
+
 class RaspiTempMonitor extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -15,6 +17,11 @@ class RaspiTempMonitor extends LifeforcePlugin {
                 path: "/api/tempmon/:temp",
                 type: "get",
                 handler: handleTempCheckin
+            },
+            {
+                path: "/api/temp/checkin",
+                type: "post",
+                handler: handleTempCheckinNew
             }
         ];
 
@@ -60,13 +67,29 @@ function handleTempCheckin(req, res, next) {
     logfileout(fileString, "templogfile.txt");
 
     // Send the response to the client
-    res.send(response);
+    res.send(200, response);
 
     // restart the timer to wait until the next checkin
     this.log.info("Starting timer to wait for client checkin...");
     this.timerfunc = setTimeout(function () {
         serverTempTimeout();
     }, timertime);
+
+    return next();
+}
+
+function handleTempCheckinNew(req, res, next) {
+    if (req.body) {
+        let body = req.body;
+        let clientid = null;
+        let temp = null;
+
+        if (req.body.clientid && req.body.temp) {
+            this.log.info("Got a client checkin from " + req.body.clientid + " with temp " + req.body.temp);
+            tempCheckinLists[clientid] = req.body.temp;
+            res.send(200, { checkin: "OK!", clientid: req.body.clientid, temp: req.body.temp });
+        }
+    }
 
     return next();
 }
