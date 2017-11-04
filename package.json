@@ -20,6 +20,7 @@
     "thepiratebay": "^1.4.5",
     "transmission": "^0.4.5",
     "youtube-dl": "latest",
-    "node-lgtv-api": "^0.9.1"
+    "node-lgtv-api": "^0.9.1",
+    "mime-types": "^2.1.17"
   }
 }
