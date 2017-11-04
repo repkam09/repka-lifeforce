@@ -25,7 +25,7 @@ class SpacesS3 extends LifeforcePlugin {
                 handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/spaces/getfiles/:authkey",
+                path: "/repcast/spaces/getfiles",
                 type: "get",
                 handler: handleGetSpacesFileList
 
@@ -312,20 +312,15 @@ function move(oldPath, newPath) {
 
 
 function handleGetSpacesFileList(req, res, next) {
-    if (req.params.authkey === this.config.digitalocean.accessKey) {
+    this.listItems("repcast/").then((items) => {
+        // Create an object to return
+        const response = { error: false, count: items.length, info: items };
 
-        this.listItems("repcast/").then((items) => {
-            // Create an object to return
-            const response = { error: false, count: items.length, info: items };
-
-            res.send(200, response);
-            next();
-        }).catch((error) => {
-            res.send(500, { error: true, info: [], count: 0 });
-        });
-    } else {
-        res.send(401, "Unauthorized");
-    }
+        res.send(200, response);
+        next();
+    }).catch((error) => {
+        res.send(500, { error: true, info: [], count: 0 });
+    });
 }
 
 function handleSyncMediaFiles(req, res, next) {
