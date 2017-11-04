@@ -1,5 +1,6 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
+const mimetype = require('mime-types');
 
 let uploadInProgress = false;
 let uploadQueue = [];
@@ -186,6 +187,10 @@ class SpacesS3 extends LifeforcePlugin {
                         name = name.replaceAll(rmstr, "");
                     });
 
+                    let mtype = mimetype.lookup(filetype);
+                    if (!mtype) {
+                        mtype = "application/octet-stream";
+                    }
 
                     let filestruct = {
                         size: file.Size,
@@ -193,13 +198,15 @@ class SpacesS3 extends LifeforcePlugin {
                         original: file.Key,
                         path: urlpath,
                         hash: hashString,
-                        type: filetype,
+                        type: "file",
+                        mimetype: mtype,
+                        filetype: filetype,
                         thumb: "https://repkam09.com/img/file.png"
                     };
 
                     // Check for invalid file types
                     var invalid = ["txt", "nfo", "srt", "jpg", "png", "jpeg", "sfv", "ico", "PNG", "sh", "tmp"];
-                    if (invalid.indexOf(filestruct.type) < 0) {
+                    if (invalid.indexOf(filestruct.filetype) < 0) {
                         filelist.push(filestruct);
                     }
 
