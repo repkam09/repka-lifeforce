@@ -4,6 +4,12 @@ const fs = require("fs");
 let uploadInProgress = false;
 let uploadQueue = [];
 
+String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
+
 class SpacesS3 extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -155,14 +161,48 @@ class SpacesS3 extends LifeforcePlugin {
                         Expires: expireSeconds
                     });
 
+                    // Get the file type
+                    let filetype = file.Key.split('.').pop();
+
+                    // Improve the names and paths
+                    let nameParts = file.Key.split("/");
+                    let namePath = "";
+
+                    if (nameParts.length > 2) {
+                        namePath = nameParts[1] + "/";
+                    }
+
+                    let name = namePath + nameParts.pop();
+
+                    // Convert the name to something nicer looking
+                    let removesstring = ["720p", "x264", "AAC", "ETRG", "BRRip", "WEB-DL", "H264", "AC3", "EVO",
+                        "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip"];
+
+                    removesstring.map((rmstr) => {
+                        name = name.replaceAll("." + rmstr, "");
+                        name = name.replaceAll("-" + rmstr, "");
+                        name = name.replaceAll(rmstr.toUpperCase(), "");
+                        name = name.replaceAll(rmstr.toLowerCase(), "");
+                        name = name.replaceAll(rmstr, "");
+                    });
+
+
                     let filestruct = {
                         size: file.Size,
-                        name: file.Key,
+                        name: name,
+                        original: file.Key,
                         path: urlpath,
-                        hash: hashString
+                        hash: hashString,
+                        type: filetype,
+                        thumb: "https://repkam09.com/img/file.png"
                     };
 
-                    filelist.push(filestruct)
+                    // Check for invalid file types
+                    var invalid = ["txt", "nfo", "srt", "jpg", "png", "jpeg", "sfv", "ico", "PNG", "sh", "tmp"];
+                    if (invalid.indexOf(filestruct.type) < 0) {
+                        filelist.push(filestruct);
+                    }
+
                 });
 
                 resolve(filelist);
@@ -275,7 +315,10 @@ function handleGetSpacesFileList(req, res, next) {
     if (req.params.authkey === this.config.digitalocean.accessKey) {
 
         this.listItems("repcast/").then((items) => {
-            res.send(200, { error: false, info: items, count: items.length });
+            // Create an object to return
+            const response = { error: false, count: items.length, info: items };
+
+            res.send(200, response);
             next();
         }).catch((error) => {
             res.send(500, { error: true, info: [], count: 0 });
