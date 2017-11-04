@@ -26,7 +26,7 @@ class SpacesS3 extends LifeforcePlugin {
                 handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/spaces/getfiles",
+                path: "/repcast/spaces/getfiles/:pathid",
                 type: "get",
                 handler: handleGetSpacesFileList
 
@@ -169,8 +169,15 @@ class SpacesS3 extends LifeforcePlugin {
                     let nameParts = file.Key.split("/");
                     let namePath = "";
 
+                    let isDirectory = false;
                     if (nameParts.length > 2) {
+                        //This has a directory. Add the directory thing to the thing but not the file...
                         namePath = nameParts[1] + "/";
+                        isDirectory = true;
+                    }
+
+                    if (prefix != "repcast/") {
+                        isDirectory = false;
                     }
 
                     let name = namePath + nameParts.pop();
@@ -204,12 +211,38 @@ class SpacesS3 extends LifeforcePlugin {
                         thumb: "https://repkam09.com/img/file.png"
                     };
 
-                    // Check for invalid file types
-                    var invalid = ["txt", "nfo", "srt", "jpg", "png", "jpeg", "sfv", "ico", "PNG", "sh", "tmp"];
-                    if (invalid.indexOf(filestruct.filetype) < 0) {
-                        filelist.push(filestruct);
-                    }
 
+                    if (!isDirectory) {
+                        // Check for invalid file types
+                        var invalid = ["txt", "nfo", "srt", "jpg", "png", "jpeg", "sfv", "ico", "PNG", "sh", "tmp"];
+                        if (invalid.indexOf(filestruct.filetype) < 0) {
+                            filelist.push(filestruct);
+                        }
+                    } else {
+                        // If the thing is a directory...
+                        filestruct.type = "dir";
+                        filestruct.key = new Buffer(namePath).toString('base64');;
+                        filestruct.name = namePath;
+                        delete filestruct.original;
+                        delete filestruct.hash;
+                        delete filestruct.mimetype;
+                        delete filestruct.filetype;
+                        delete filestruct.size;
+                        delete filestruct.path;
+
+
+                        // Check if the dir is already in the list
+                        let alreadyInList = false;
+                        filelist.map((list) => {
+                            if (list.name == filestruct.name) {
+                                alreadyInList = true;
+                            }
+                        });
+
+                        if (!alreadyInList) {
+                            filelist.push(filestruct);
+                        }
+                    }
                 });
 
                 resolve(filelist);
@@ -319,7 +352,16 @@ function move(oldPath, newPath) {
 
 
 function handleGetSpacesFileList(req, res, next) {
-    this.listItems("repcast/").then((items) => {
+    let pathid = "";
+    if (req.params.pathid) {
+        pathid = req.params.pathid;
+    }
+
+    pathid = new Buffer(pathid, 'base64').toString('ascii');
+
+    console.log("Looking at directory prefix " + pathid);
+
+    this.listItems("repcast/" + pathid).then((items) => {
         // Create an object to return
         const response = { error: false, count: items.length, info: items };
 
