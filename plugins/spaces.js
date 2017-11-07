@@ -42,6 +42,11 @@ class SpacesS3 extends LifeforcePlugin {
                 type: "get",
                 handler: handleYoutubeDownload
             },
+            {
+                path: "/repcast/spaces/cleanup",
+                type: "get",
+                handler: handleCleanupSpacesFiles
+            }
         ];
 
         const AWS = require('aws-sdk');
@@ -64,6 +69,15 @@ class SpacesS3 extends LifeforcePlugin {
         });
 
         this.youtubedl = require('youtube-dl');
+
+        // Create an object to hold file cache information in
+        this.fileListCache = {};
+
+        // Start up a timer to reset the file cache if needed
+        this.clearFileListCacheTimer = setInterval(() => {
+            console.log("Cleaning up the file cache, new pull required for next request");
+            this.fileListCache = {};
+        }, 900000);
     }
 
     uploadItem(localPath, remotePath) {
@@ -125,39 +139,48 @@ class SpacesS3 extends LifeforcePlugin {
     listItems(prefix) {
         var that = this;
         return new Promise((resolve, reject) => {
-            var list = this.doclient.listObjects({
-                s3Params: {
-                    Prefix: prefix,
-                    Bucket: "repcast"
-                }
-            });
-
-            list.on('error', function (err) {
-                reject(err.message);
-            });
-
-            var itemlist = [];
-            list.on("data", function (data) {
-                data.Contents.map((item) => {
-                    itemlist.push(item);
-                });
-            });
-
-            list.on('end', function () {
-                let filelist = [];
-
-                // Remove any file that does not have a size above zero
-                itemlist = itemlist.filter((item) => {
-                    if (item.Size > 0) {
-                        return true;
-                    } else {
-                        return false;
+            // Check the cache to see if this request has already been made before with this prefix
+            if (that.fileListCache[prefix]) {
+                console.log("Using cached response for " + prefix);
+                resolve({ itemlist: that.fileListCache[prefix], status: "cache" });
+            } else {
+                // If this request has not been made before, we'll have to go out to the server for it
+                var list = this.doclient.listObjects({
+                    s3Params: {
+                        Prefix: prefix,
+                        Bucket: "repcast"
                     }
                 });
 
-                resolve(itemlist);
-            });
+                list.on('error', function (err) {
+                    reject(err.message);
+                });
+
+                var itemlist = [];
+                list.on("data", function (data) {
+                    data.Contents.map((item) => {
+                        itemlist.push(item);
+                    });
+                });
+
+                list.on('end', function () {
+                    let filelist = [];
+
+                    // Remove any file that does not have a size above zero
+                    itemlist = itemlist.filter((item) => {
+                        if (item.Size > 0) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
+
+                    that.fileListCache[prefix] = itemlist;
+                    resolve({ itemlist, status: "live" });
+                });
+            }
         });
+
     }
 }
 
@@ -260,6 +283,17 @@ function move(oldPath, newPath) {
 
 }
 
+function handleCleanupSpacesFiles(req, res, next) {
+    let prefix = "repcast/";
+    let that = this;
+    this.listItems(prefix).then((response) => {
+        let itemlist = response.itemlist;
+        let status = response.status;
+        res.send(200, "OK!");
+    });
+}
+
+
 function handleGetSpacesFileList(req, res, next) {
     let pathid = "";
     if (req.params.pathid) {
@@ -271,7 +305,9 @@ function handleGetSpacesFileList(req, res, next) {
     console.log("Looking at directory prefix " + pathid);
     let prefix = "repcast/" + pathid;
     let that = this;
-    this.listItems(prefix).then((itemlist) => {
+    this.listItems(prefix).then((response) => {
+        let itemlist = response.itemlist;
+        let status = response.status;
         let filelist = [];
 
         itemlist = itemlist.map((file) => {
@@ -378,9 +414,9 @@ function handleGetSpacesFileList(req, res, next) {
         });
 
         // Create an object to return
-        const response = { error: false, count: filelist.length, info: filelist };
+        const restresponse = { error: false, status, count: filelist.length, info: filelist };
 
-        res.send(200, response);
+        res.send(200, restresponse);
         next();
     }).catch((error) => {
         res.send(500, { error: true, info: [], count: 0 });
