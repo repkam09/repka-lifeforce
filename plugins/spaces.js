@@ -200,7 +200,7 @@ function handleYoutubeDownload(req, res, next) {
             // Rename the video to something better...
             var newFilePath = "./temp/" + videoinfo.filename;
             move(filepath, newFilePath).then((result) => {
-                var spacesName = "repcast/yt_dl_" + videoinfo.filename
+                var spacesName = "repcast/YouTube/" + videoinfo.filename
                 this.log.info("Upload as " + spacesName);
                 this.uploadItem(newFilePath, spacesName).then(() => {
                     this.log.info("Video upload to Spaces finished!");
