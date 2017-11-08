@@ -345,8 +345,13 @@ function handleGetSpacesFileList(req, res, next) {
                 isDirectory = false;
             }
 
-            let name = namePath + nameParts.pop();
-
+            let name;
+            if (!isDirectory) {
+                name = nameParts.pop();
+            } else {
+                name = namePath + nameParts.pop();
+            }
+            
             // Convert the name to something nicer looking
             let removesstring = ["720p", "x264", "AAC", "ETRG", "BRRip", "WEB-DL", "H264", "AC3", "EVO",
                 "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip", "320kbps", "[Hunter]", "1080p", "[]"];
