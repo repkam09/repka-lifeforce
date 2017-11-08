@@ -229,6 +229,9 @@ function handleYoutubeDownload(req, res, next) {
                     this.log.info("Video upload to Spaces finished!");
                     fs.unlink(newFilePath, () => {
                         this.log.info("Deleted temp local video file");
+
+                        // Reset the cache of file list. There is a new file!
+                        this.fileListCache = {};
                     });
                 }).catch((error) => {
                     this.log.info("Video upload to Spaces failed!");
@@ -351,7 +354,7 @@ function handleGetSpacesFileList(req, res, next) {
             } else {
                 name = namePath + nameParts.pop();
             }
-            
+
             // Convert the name to something nicer looking
             let removesstring = ["720p", "x264", "AAC", "ETRG", "BRRip", "WEB-DL", "H264", "AC3", "EVO",
                 "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip", "320kbps", "[Hunter]", "1080p", "[]"];
