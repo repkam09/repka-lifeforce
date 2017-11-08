@@ -277,10 +277,6 @@ function move(oldPath, newPath) {
             resolve();
         });
     });
-
-
-
-
 }
 
 function handleCleanupSpacesFiles(req, res, next) {
@@ -289,6 +285,13 @@ function handleCleanupSpacesFiles(req, res, next) {
     this.listItems(prefix).then((response) => {
         let itemlist = response.itemlist;
         let status = response.status;
+
+        response.itemlist.map((item) => {
+            // Check if this item ends in the right file ext
+            debugger;
+        });
+
+
         res.send(200, "OK!");
     });
 }
@@ -334,7 +337,7 @@ function handleGetSpacesFileList(req, res, next) {
             let isDirectory = false;
             if (nameParts.length > 2) {
                 //This has a directory. Add the directory thing to the thing but not the file...
-                namePath = nameParts[1] + "/";
+                namePath = nameParts[1] + "";
                 isDirectory = true;
             }
 
@@ -346,7 +349,7 @@ function handleGetSpacesFileList(req, res, next) {
 
             // Convert the name to something nicer looking
             let removesstring = ["720p", "x264", "AAC", "ETRG", "BRRip", "WEB-DL", "H264", "AC3", "EVO",
-                "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip"];
+                "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip", "320kbps", "[Hunter]", "1080p", "[]"];
 
             removesstring.map((rmstr) => {
                 name = name.replaceAll("." + rmstr, "");
