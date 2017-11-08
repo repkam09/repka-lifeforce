@@ -8,6 +8,7 @@ let settings = null;
 let transporter = null;
 
 let tempCheckinLists = {};
+let tempCheckinTimers = {};
 
 class RaspiTempMonitor extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -85,11 +86,26 @@ function handleTempCheckinNew(req, res, next) {
         let temp = null;
 
         if (req.body.clientid && req.body.temp) {
-            this.log.info("Got a client checkin from " + req.body.clientid + " with temp " + req.body.temp);
-            tempCheckinLists[clientid] = req.body.temp;
-            res.send(200, { checkin: "OK!", clientid: req.body.clientid, temp: req.body.temp });
+
+            clientid = req.body.clientid;
+            temp = req.body.temp;
+
+            this.log.info("Got a client checkin from " + clientid + " with temp " + temp);
+            clearTimeout(tempCheckinTimers[clientid]);
+
+            tempCheckinLists[clientid] = temp;
+            tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew, timertime / 100, clientid);
+
+            res.send(200, { checkin: "OK!", clientid: clientid, temp: temp });
+        } else {
+            res.send(400, "Bad Request");
+
         }
+    } else {
+        res.send(400, "Bad Request");
+
     }
+
 
     return next();
 }
@@ -123,6 +139,26 @@ function serverTempTimeout() {
 
     sendMailMessage(powerInternetMail);
 }
+
+
+function serverTempTimeoutNew(clientid) {
+    console.log("Error: client " + clientid + " timeout passed");
+    debugger;
+    let singleClientError = true;
+    var currentTime = new Date();
+
+    var powerInternetMail = {
+        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
+        to: settings.emailstring, // list of receivers
+        subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
+        text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
+    };
+
+    debugger;
+    //sendMailMessage(powerInternetMail);
+}
+
+
 
 function handleColdTemp(temp) {
     console.log("Error: Cold Temp - " + temp);
