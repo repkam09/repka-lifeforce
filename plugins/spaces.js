@@ -208,14 +208,16 @@ function handleYoutubeDownload(req, res, next) {
     if (req.params.videoid) {
         var filepath = "./temp/yt_dl_" + req.params.videoid + ".mp4";
         var videoinfo = null;
-        var video = this.youtubedl('http://www.youtube.com/watch?v=' + req.params.videoid,
+        
+	res.send(200, { error: false, "OK!" });
+	var video = this.youtubedl('http://www.youtube.com/watch?v=' + req.params.videoid,
             [],
             { cwd: __dirname });
 
         // Will be called when the download starts.
         video.on('info', (info) => {
             videoinfo = info;
-            res.send(200, { error: false, info });
+            //res.send(200, { error: false, info });
         });
 
         video.on('end', (res) => {
@@ -241,7 +243,7 @@ function handleYoutubeDownload(req, res, next) {
 
         video.pipe(fs.createWriteStream(filepath));
     } else {
-        res.send(400, { error: "bad request" });
+        //res.send(400, { error: "bad request" });
     }
     next();
 }
