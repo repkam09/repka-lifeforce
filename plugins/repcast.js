@@ -70,12 +70,14 @@ function handleRepcastDirGet(req, res, next) {
 
     // This call has been disabled as the new repcast is active now
     res.send(200, {
-        "name": "Please Update RepCast",
-        "type": "dir",
-        "path": "/",
-        "cast": false,
-        "video": false,
-        "path64": ""
+        result: [{
+            "name": "Please Update RepCast",
+            "type": "dir",
+            "path": "/",
+            "cast": false,
+            "video": false,
+            "path64": ""
+        }]
     });
 
     return next();
@@ -206,7 +208,7 @@ function dirlist(filepath) {
                 filelist.push(jsonstruct);
             } else {
                 // For other normal files...
-                filelist.push(jsonstruct);
+                filelistfilelist.push(jsonstruct);
             }
         }
     });
