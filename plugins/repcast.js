@@ -76,7 +76,7 @@ function handleRepcastDirGet(req, res, next) {
             "path": "/",
             "cast": false,
             "video": false,
-            "path64": ""
+            "path64": "Lw=="
         }]
     });
 
