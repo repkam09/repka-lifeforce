@@ -64,10 +64,11 @@ function handleDialogFlow(req, res, next) {
 }
 
 function handleRepcastDirGet(req, res, next) {
-    var getpath = new Buffer(req.params.filepath, 'base64').toString();
-    getpath = getpath.replace(pathfix, "");
-    this.log.verbose("Requested directory listing for " + pathfix + getpath);
+    //var getpath = new Buffer(req.params.filepath, 'base64').toString();
+    //getpath = getpath.replace(pathfix, "");
+    //this.log.verbose("Requested directory listing for " + pathfix + getpath);
 
+    // This call has been disabled as the new repcast is active now
     res.send(200, {
         "name": "Please Update RepCast",
         "type": "dir",
@@ -76,6 +77,7 @@ function handleRepcastDirGet(req, res, next) {
         "video": false,
         "path64": ""
     });
+
     return next();
 }
 
