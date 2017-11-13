@@ -1,0 +1,43 @@
+{
+    "error": false,
+    "status": "cache",
+    "count": 3,
+    "info": [
+        {
+            "size": 12345678,
+            "time": "",
+            "name": "Big Buck Bunny",
+            "original": "BigBuckBunny.mp4",
+            "path": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "hash": "",
+            "type": "file",
+            "mimetype": "video/mp4",
+            "filetype": "mp4",
+            "thumb": "https://repkam09.com/img/file.png"
+        },
+        {
+            "size": 12345678,
+            "time": "",
+            "name": "Elephants Dream",
+            "original": "ElephantsDream.mp4",
+            "path": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "hash": "",
+            "type": "file",
+            "mimetype": "video/mp4",
+            "filetype": "mp4",
+            "thumb": "https://repkam09.com/img/file.png"
+        },
+        {
+            "size": 12345678,
+            "time": "",
+            "name": "We Are Going On Bullrun",
+            "original": "WeAreGoingOnBullrun.mp4",
+            "path": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            "hash": "",
+            "type": "file",
+            "mimetype": "video/mp4",
+            "filetype": "mp4",
+            "thumb": "https://repkam09.com/img/file.png"
+        }
+    ]
+}

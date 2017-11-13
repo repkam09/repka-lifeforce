@@ -1,6 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
 const mimetype = require('mime-types');
+const exampleRepcast = require("../static/example_repcast.json");
 
 let uploadInProgress = false;
 let uploadQueue = [];
@@ -30,6 +31,11 @@ class SpacesS3 extends LifeforcePlugin {
                 type: "get",
                 handler: handleGetSpacesFileList
 
+            },
+            {
+                path: "/repcast/spaces/getfilestest/:pathid",
+                type: "get",
+                handler: handleGetSpacesFileListExample
             },
             {
                 path: "/repcast/spaces/getfiles",
@@ -434,6 +440,10 @@ function handleGetSpacesFileList(req, res, next) {
     }).catch((error) => {
         res.send(500, { error: true, info: [], count: 0 });
     });
+}
+
+function handleGetSpacesFileListExample(req, res, next) {
+    res.send(200, exampleRepcast);
 }
 
 function handleSyncMediaFiles(req, res, next) {
