@@ -378,7 +378,7 @@ function handleGetSpacesFileList(req, res, next) {
                 size: file.Size,
                 time: file.LastModified,
                 name: name,
-                original: file.Key,
+                original: file.Key.replace("repcast/", ""),
                 path: urlpath,
                 hash: hashString,
                 type: "file",
