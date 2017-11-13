@@ -67,7 +67,15 @@ function handleRepcastDirGet(req, res, next) {
     var getpath = new Buffer(req.params.filepath, 'base64').toString();
     getpath = getpath.replace(pathfix, "");
     this.log.verbose("Requested directory listing for " + pathfix + getpath);
-    res.send(200, { result: dirlist(pathfix + getpath) });
+
+    res.send(200, {
+        "name": "Please Update RepCast",
+        "type": "dir",
+        "path": "/",
+        "cast": false,
+        "video": false,
+        "path64": ""
+    });
     return next();
 }
 

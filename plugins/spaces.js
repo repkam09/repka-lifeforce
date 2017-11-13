@@ -208,9 +208,9 @@ function handleYoutubeDownload(req, res, next) {
     if (req.params.videoid) {
         var filepath = "./temp/yt_dl_" + req.params.videoid + ".mp4";
         var videoinfo = null;
-        
-	res.send(200, { error: false, "OK!" });
-	var video = this.youtubedl('http://www.youtube.com/watch?v=' + req.params.videoid,
+
+        res.send(200, { error: false, info: "OK!" });
+        var video = this.youtubedl('http://www.youtube.com/watch?v=' + req.params.videoid,
             [],
             { cwd: __dirname });
 
