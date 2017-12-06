@@ -52,6 +52,11 @@ class SpacesS3 extends LifeforcePlugin {
                 path: "/repcast/spaces/cleanup",
                 type: "get",
                 handler: handleCleanupSpacesFiles
+            },
+            {
+                path: "/repcast/spaces/clearcache",
+                type: "get",
+                handler: handleInvalidateSpacesCache
             }
         ];
 
@@ -288,6 +293,12 @@ function move(oldPath, newPath) {
             resolve();
         });
     });
+}
+
+function handleInvalidateSpacesCache(req, res, next) {
+    this.fileListCache = {};
+    res.send(200, "OK!");
+    next();
 }
 
 function handleCleanupSpacesFiles(req, res, next) {
