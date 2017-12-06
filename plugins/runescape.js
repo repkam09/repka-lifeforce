@@ -35,9 +35,23 @@ class RuneScape extends LifeforcePlugin {
                 path: "/api/runescape/feed/devblog",
                 type: "get",
                 handler: handleRsDevblogFeed
+            },
+            {
+                path: "/api/runescape/runemetrics/:username",
+                type: "get",
+                handler: handleRsMetericsPlayerInfo
             }
         ];
         this.request = require("request");
+    }
+}
+
+function handleRsMetericsPlayerInfo(req, res, next) {
+    if (req.params.username) {
+        let url = "https://apps.runescape.com/runemetrics/profile/profile?user=" + req.params.username + "&activities=20";
+        this.request.get(url).pipe(res);
+    } else {
+        res.send(400);
     }
 }
 
