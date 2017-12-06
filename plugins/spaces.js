@@ -412,12 +412,16 @@ function handleGetSpacesFileList(req, res, next) {
                 delete filestruct.size;
                 delete filestruct.path;
 
-
                 // Check if the dir is already in the list
                 let alreadyInList = false;
                 filelist.map((list) => {
                     if (list.name == filestruct.name) {
                         alreadyInList = true;
+
+                        // If the time stamp of this dir is newer, replace with this one.
+                        if (list.time < filestruct.time) {
+                            list.time = filestruct.time;
+                        }
                     }
                 });
 
