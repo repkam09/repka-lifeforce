@@ -397,11 +397,9 @@ function handleGetSpacesFileList(req, res, next) {
                 name: name,
                 original: file.Key.replace("repcast/", ""),
                 path: urlpath,
-                hash: hashString,
                 type: "file",
                 mimetype: mtype,
-                filetype: filetype,
-                thumb: "https://repkam09.com/img/file.png"
+                filetype: filetype
             };
 
 
@@ -445,6 +443,15 @@ function handleGetSpacesFileList(req, res, next) {
         // Sort the list by access time
         filelist.sort((a, b) => {
             return b.time - a.time
+        });
+
+        filelist = filelist.map((item) => {
+            // Remove extra properties that add size
+            if (item.time) {
+                delete item.time;
+            }
+
+            return item;
         });
 
         // Create an object to return
