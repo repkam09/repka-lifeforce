@@ -33,6 +33,12 @@ class SpacesS3 extends LifeforcePlugin {
 
             },
             {
+                path: "/repcast/spaces/getfilessecure/:pathid",
+                type: "get",
+                handler: handleGetSpacesFileListSecure
+
+            },
+            {
                 path: "/repcast/spaces/getfilestest/:pathid",
                 type: "get",
                 handler: handleGetSpacesFileListExample
@@ -320,6 +326,167 @@ function handleCleanupSpacesFiles(req, res, next) {
 
 
 function handleGetSpacesFileList(req, res, next) {
+    let pathid = "";
+    if (req.params.pathid) {
+        pathid = req.params.pathid;
+    }
+
+    pathid = new Buffer(pathid, 'base64').toString('ascii');
+
+    console.log("Looking at directory prefix " + pathid);
+    let prefix = "repcast/" + pathid;
+    let that = this;
+    this.listItems(prefix).then((response) => {
+        let itemlist = response.itemlist;
+        let status = response.status;
+        let filelist = [];
+
+        itemlist = itemlist.map((file) => {
+            var hashString = file.ETag;
+            if (hashString.charAt(0) === '"' && hashString.charAt(hashString.length - 1) === '"') {
+                hashString = (hashString.substr(1, hashString.length - 2));
+            }
+
+            const expireSeconds = 172800;
+
+            const urlpath = that.s3auth.getSignedUrl('getObject', {
+                Bucket: 'repcast',
+                Key: file.Key,
+                Expires: expireSeconds
+            });
+
+            // Get the file type
+            let filetype = file.Key.split('.').pop();
+
+            // Improve the names and paths
+            let nameParts = file.Key.split("/");
+            let namePath = "";
+
+            let isDirectory = false;
+            if (nameParts.length > 2) {
+                //This has a directory. Add the directory thing to the thing but not the file...
+                namePath = nameParts[1] + "";
+                isDirectory = true;
+            }
+
+            if (prefix != "repcast/") {
+                isDirectory = false;
+            }
+
+            let name;
+            if (!isDirectory) {
+                name = nameParts.pop();
+            } else {
+                name = namePath + nameParts.pop();
+            }
+
+            // Convert the name to something nicer looking
+            let removesstring = ["720p", "x264", "AAC", "ETRG", "BRRip", "WEB-DL", "H264", "AC3", "EVO",
+                "rarbg", "HDTV", "W4F", "hdtv", "w4f", "ETRG", "YIFY", "1080p", "BluRay", "DVDRip", "320kbps", "[Hunter]", "1080p", "[]"];
+
+            removesstring.map((rmstr) => {
+                name = name.replaceAll("." + rmstr, "");
+                name = name.replaceAll("-" + rmstr, "");
+                name = name.replaceAll(rmstr.toUpperCase(), "");
+                name = name.replaceAll(rmstr.toLowerCase(), "");
+                name = name.replaceAll(rmstr, "");
+            });
+
+            let mtype = mimetype.lookup(filetype);
+            if (!mtype) {
+                mtype = "application/octet-stream";
+            }
+
+            let filestruct = {
+                size: file.Size,
+                time: file.LastModified,
+                name: name,
+                original: file.Key.replace("repcast/", ""),
+                path: urlpath,
+                type: "file",
+                mimetype: mtype,
+                filetype: filetype
+            };
+
+
+            if (!isDirectory) {
+                // Check for invalid file types
+                var invalid = ["txt", "nfo", "srt", "jpg", "png", "jpeg", "sfv", "ico", "PNG", "sh", "tmp"];
+                if (invalid.indexOf(filestruct.filetype) < 0) {
+                    filelist.push(filestruct);
+                }
+            } else {
+                // If the thing is a directory...
+                filestruct.type = "dir";
+                filestruct.key = new Buffer(namePath).toString('base64');;
+                filestruct.name = namePath;
+                delete filestruct.original;
+                delete filestruct.hash;
+                delete filestruct.mimetype;
+                delete filestruct.filetype;
+                delete filestruct.size;
+                delete filestruct.path;
+
+                // Check if the dir is already in the list
+                let alreadyInList = false;
+                filelist.map((list) => {
+                    if (list.name == filestruct.name) {
+                        alreadyInList = true;
+
+                        // If the time stamp of this dir is newer, replace with this one.
+                        if (list.time < filestruct.time) {
+                            list.time = filestruct.time;
+                        }
+                    }
+                });
+
+                if (!alreadyInList) {
+                    filelist.push(filestruct);
+                }
+            }
+        });
+
+        // Sort the list by access time
+        filelist.sort((a, b) => {
+            return b.time - a.time
+        });
+
+        filelist = filelist.map((item) => {
+            // Remove extra properties that add size
+            if (item.time) {
+                delete item.time;
+            }
+
+            return item;
+        });
+
+        // Create an object to return
+        const restresponse = { error: false, status, count: filelist.length, info: filelist };
+
+        res.send(200, restresponse);
+        next();
+    }).catch((error) => {
+        res.send(500, { error: true, info: [], count: 0 });
+    });
+}
+
+function handleGetSpacesFileListSecure(req, res, next) {
+    const blankResponse = {
+        "error": false,
+        "status": "live",
+        "count": 0,
+        "info": []
+    };
+
+    const header = req.headers["repka-repcast-token"];
+    if (!header) {
+        res.send(200, exampleRepcast);
+    } else {
+        if (header !== "cmVwa2EtcmVwY2FzdC10b2tlbg==") {
+            res.send(200, exampleRepcast);
+        }
+    }
+
     let pathid = "";
     if (req.params.pathid) {
         pathid = req.params.pathid;
