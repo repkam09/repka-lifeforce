@@ -6,6 +6,7 @@ const threshold = 45;
 const timertime = 2700000;
 let settings = null;
 let transporter = null;
+let log = null;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
@@ -25,6 +26,8 @@ class RaspiTempMonitor extends LifeforcePlugin {
                 handler: handleTempCheckinNew
             }
         ];
+
+        log = logger;
 
         // Grab the subset of settings we actually want
         settings = this.config.tempmonitor;
@@ -115,11 +118,11 @@ function handleTempCheckinNew(req, res, next) {
 
 // Helper function to write to a file
 function logfileout(message, filename) {
-    this.log.info("logfileout: " + filename + ":" + message);
+    log.info("logfileout: " + filename + ":" + message);
     try {
         fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
             if (err) {
-                this.log.info("Warning! Unable to write to log file!");
+                log.info("Warning! Unable to write to log file!");
                 console.log(err);
             }
         });
@@ -165,13 +168,13 @@ function serverTempTimeoutNew(clientid) {
 
 
 function handleColdTemp(temp) {
-    this.log.info("Error: Cold Temp - " + temp);
+    log.info("Error: Cold Temp - " + temp);
     errormode = true;
     var currentTime = new Date();
 
     var coldMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: emailstring, // list of receivers
+        to: settings.emailstring, // list of receivers
         subject: 'Cold Temp Alert - pitempmon - ' + currentTime, // Subject line
         text: 'Hello! \nThis is an alert that the current temp recorded by the tempreature monitoring system was ' + temp + '.\nThis is below the accepted threshold of ' + threshold + '\n\nPlease verify that this reading is correct!'
     };
@@ -187,7 +190,7 @@ function errorResolved() {
 
     var resolvedMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>',
-        to: emailstring,
+        to: settings.emailstring,
         subject: "Temp Monitor Okay - pitempmon - " + currentTime,
         text: "Hello! \nThis is a notification that the house temp monitor service is back up and running after an error. There is nothing you need to do at this time."
     };
@@ -197,13 +200,13 @@ function errorResolved() {
 
 function sendMailMessage(options) {
 
-    this.log.info("Sending email message to " + emailstring + " with " + JSON.stringify(options));
+    log.info("Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
 
     transporter.sendMail(options, function (error, info) {
         if (error) {
-            this.log.info("Unable to send email:" + JSON.stringify(error));
+            log.info("Unable to send email:" + JSON.stringify(error));
         } else {
-            this.log.info('Message sent: ' + info.response);
+            log.info('Message sent: ' + info.response);
         }
     });
 }
