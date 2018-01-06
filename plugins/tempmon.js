@@ -60,7 +60,10 @@ function handleTempCheckin(req, res, next) {
 
     // Check if the temp is under our threshold and warn us!
     if (response.temp < threshold) {
+        this.log.info("This is a cold temp! Handle this error!");
         handleColdTemp(response.temp);
+    } else {
+        this.log.info("Normal checkin, nothing is wrong.");
     }
 
     // Write the results to a text file
@@ -112,10 +115,11 @@ function handleTempCheckinNew(req, res, next) {
 
 // Helper function to write to a file
 function logfileout(message, filename) {
-    console.log("logfileout: " + filename + ":" + message);
+    this.log.info("logfileout: " + filename + ":" + message);
     try {
         fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
             if (err) {
+                this.log.info("Warning! Unable to write to log file!");
                 console.log(err);
             }
         });
@@ -126,7 +130,7 @@ function logfileout(message, filename) {
 }
 
 function serverTempTimeout() {
-    console.log("Error: client timeout passed");
+    this.log.info("Error: client timeout passed");
     errormode = true;
     var currentTime = new Date();
 
@@ -142,7 +146,7 @@ function serverTempTimeout() {
 
 
 function serverTempTimeoutNew(clientid) {
-    console.log("Error: client " + clientid + " timeout passed");
+    this.log.info("Error: client " + clientid + " timeout passed");
     debugger;
     let singleClientError = true;
     var currentTime = new Date();
@@ -161,7 +165,7 @@ function serverTempTimeoutNew(clientid) {
 
 
 function handleColdTemp(temp) {
-    console.log("Error: Cold Temp - " + temp);
+    this.log.info("Error: Cold Temp - " + temp);
     errormode = true;
     var currentTime = new Date();
 
@@ -192,11 +196,14 @@ function errorResolved() {
 }
 
 function sendMailMessage(options) {
+
+    this.log.info("Sending email message to " + emailstring + " with " + JSON.stringify(options));
+
     transporter.sendMail(options, function (error, info) {
         if (error) {
-            console.log(error);
+            this.log.info("Unable to send email:" + JSON.stringify(error));
         } else {
-            console.log('Message sent: ' + info.response);
+            this.log.info('Message sent: ' + info.response);
         }
     });
 }
