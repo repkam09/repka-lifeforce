@@ -51,12 +51,6 @@ function handleTempCheckin(req, res, next) {
     // Clear the current timer because we got a check in time
     clearTimeout(this.timerfunc);
 
-    // If we get this call, but we're in errormode, the system got a message
-    // after a previous failure.
-    if (errormode) {
-        errorResolved();
-    }
-
     var response = {};
     response.date = Date.now();
     response.temp = req.params.temp;
@@ -67,6 +61,12 @@ function handleTempCheckin(req, res, next) {
         handleColdTemp(response.temp);
     } else {
         this.log.info("Normal checkin, nothing is wrong.");
+
+        // If we get this call, but we're in errormode, the system got a message
+        // after a previous failure.
+        if (errormode) {
+            errorResolved();
+        }
     }
 
     // Write the results to a text file
