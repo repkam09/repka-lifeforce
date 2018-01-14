@@ -26,9 +26,26 @@ class MetaEndpoints extends LifeforcePlugin {
                 path: "/api/posttest",
                 type: "post",
                 handler: handlePostTest
+            },
+            {
+                path: "/api/getip",
+                type: "get",
+                handler: handleGetIp
             }
+
         ];
     }
+}
+
+function handleGetIp(req, res, next) {
+    var clientip = "unknown";
+    if (req.headers['x-forwarded-for']) {
+        clientip = req.headers['x-forwarded-for'];
+    } else if (req.connection.remoteAddress) {
+        clientip = req.connection.remoteAddress;
+    }
+    res.send(200, { ip: clientip });
+    next();
 }
 
 function handleAboutApi(req, res, next) {
