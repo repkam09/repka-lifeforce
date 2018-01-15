@@ -2,7 +2,7 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require('fs');
 
 let errormode = false;
-const threshold = 45;
+const threshold = 42;
 const timertime = 2700000;
 let settings = null;
 let transporter = null;
