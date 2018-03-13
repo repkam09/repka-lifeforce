@@ -8,6 +8,11 @@ class SlackBot extends LifeforcePlugin {
                 path: "/api/slack/log",
                 type: "post",
                 handler: handleSlackPush
+            },
+            {
+                path: "/api/slack/deploy",
+                type: "post",
+                handler: handleSlackPushDeploy
             }
         ];
 
@@ -24,6 +29,21 @@ function handleSlackPush(req, res, next) {
         var payload = req.body + "";
 
         this.bot.postMessageToChannel('general', payload, {
+            icon_emoji: ':robot_face:'
+        });
+
+        // send a message to the chat acknowledging receipt of their message 
+        res.send(200, { error: false });
+    } else {
+        res.send(400, { error: true, msg: "No request body" });
+    }
+}
+
+function handleSlackPushDeploy(req, res, next) {
+    if (req.body) {
+        var payload = req.body + "";
+
+        this.bot.postMessageToChannel('deployment', payload, {
             icon_emoji: ':robot_face:'
         });
 
