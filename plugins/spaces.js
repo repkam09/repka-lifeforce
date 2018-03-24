@@ -63,6 +63,11 @@ class SpacesS3 extends LifeforcePlugin {
                 path: "/repcast/spaces/clearcache",
                 type: "get",
                 handler: handleInvalidateSpacesCache
+            },
+            {
+                path: "/repcast/dialogflow/actions",
+                type: "post",
+                handler: handleDialogFlowActions
             }
         ];
 
@@ -200,6 +205,28 @@ class SpacesS3 extends LifeforcePlugin {
 
     }
 }
+
+function handleDialogFlowActions(req, res, next) {
+
+    if (req.body) {
+        // Print out the request json
+        this.log.info("DialogFlowAction ==> " + req.body);
+
+        const staticresponse = {
+            speech: "The REST api has successfully responded with some data!",
+            displayText: "This is the text response of the repcast REST api"
+        }
+
+        res.send(200, staticresponse);
+
+    } else {
+        res.send(400, { error: true });
+    }
+
+    next();
+
+}
+
 
 function handleSpacesUpload(req, res, next) {
     if (req.files) {
