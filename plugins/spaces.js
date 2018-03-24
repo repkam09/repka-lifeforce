@@ -208,17 +208,38 @@ class SpacesS3 extends LifeforcePlugin {
 
 function handleDialogFlowActions(req, res, next) {
 
+    let staticresponse = {
+        speech: "Sorry! Something went wrong on the server side when trying to handle your request.",
+        displayText: "Something went wrong on the server side when trying to handle your request"
+    }
+
     if (req.body) {
         // Print out the request json
         this.log.info("DialogFlowAction ==> " + JSON.stringify(req.body));
+        try {
+            let uid = req.body.sessionId;
+            let response = req.body.result;
+            let textresponse = response.fulfillment.speech;
 
-        const staticresponse = {
-            speech: "The REST api has successfully responded with some data!",
-            displayText: "This is the text response of the repcast REST api"
+
+            // Fill in the real response data
+            staticresponse = {
+                speech: textresponse,
+                displayText: textresponse
+            }
+
+            res.send(200, staticresponse);
+
+
+            // Spin off a thing to check how many of the input there are on repcast
+            const query = response.parameters["show-name"];
+            this.log.info("The user searched for " + query);
+
+
+        } catch (error) {
+            this.log.info("There was an error when handling the request!");
+            res.send(200, staticresponse);
         }
-
-        res.send(200, staticresponse);
-
     } else {
         res.send(400, { error: true });
     }
