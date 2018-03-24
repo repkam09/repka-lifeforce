@@ -210,7 +210,7 @@ function handleDialogFlowActions(req, res, next) {
 
     if (req.body) {
         // Print out the request json
-        this.log.info("DialogFlowAction ==> " + req.body);
+        this.log.info("DialogFlowAction ==> " + JSON.stringify(req.body));
 
         const staticresponse = {
             speech: "The REST api has successfully responded with some data!",
