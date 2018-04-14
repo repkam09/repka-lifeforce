@@ -2,6 +2,7 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
 const mimetype = require('mime-types');
 const exampleRepcast = require("../static/example_repcast.json");
+const hasSecureHeader = require("../utils/secure.js");
 
 let uploadInProgress = false;
 let uploadQueue = [];
@@ -50,12 +51,17 @@ class SpacesS3 extends LifeforcePlugin {
 
             },
             {
+                path: "/repcast/spaces/getfilesraw",
+                type: "get",
+                handler: handleGetSpacesFileListRaw
+            },
+            {
                 path: "/repcast/youtube/:videoid",
                 type: "get",
                 handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/spaces/cleanup",
+                path: "/repcast/spaces/cleanup/:pathid",
                 type: "get",
                 handler: handleCleanupSpacesFiles
             },
@@ -203,6 +209,25 @@ class SpacesS3 extends LifeforcePlugin {
             }
         });
 
+    }
+
+
+    deleteItem(remotepath) {
+        let that = this;
+        return new Promise((resolve, reject) => {
+
+            var deleter = that.doclient.deleteItem(remotepath);
+
+            deleter.on('error', function (err) {
+                debugger;
+                reject(err.message);
+            });
+
+            deleter.on('end', function () {
+                debugger;
+                resolve();
+            });
+        });
     }
 }
 
@@ -356,22 +381,41 @@ function handleInvalidateSpacesCache(req, res, next) {
 }
 
 function handleCleanupSpacesFiles(req, res, next) {
+    let pathid = "";
+    if (req.params.pathid) {
+        pathid = req.params.pathid;
+    }
+
+    pathid = new Buffer(pathid, 'base64').toString('ascii');
+
+    console.log("Looking at directory prefix " + pathid);
+
     let prefix = "repcast/";
-    let that = this;
-    this.listItems(prefix).then((response) => {
-        let itemlist = response.itemlist;
-        let status = response.status;
 
-        response.itemlist.map((item) => {
-            // Check if this item ends in the right file ext
-            debugger;
-        });
+    this.deleteItem(pathid);
 
 
-        res.send(200, "OK!");
-    });
+    res.send(200, "OK!");
 }
 
+function handleGetSpacesFileListRaw(req, res, next) {
+    if (!hasSecureHeader(req, res)) {
+        return next();
+    } else {
+        let pathid = "";
+
+        console.log("Looking at directory prefix " + pathid);
+        let prefix = "repcast/" + pathid;
+        let that = this;
+        this.listItems(prefix).then((response) => {
+
+            res.send(200, response);
+            next();
+        }).catch((error) => {
+            res.send(500, { error: true, info: [], count: 0 });
+        });
+    }
+}
 
 function handleGetSpacesFileList(req, res, next) {
     let pathid = "";

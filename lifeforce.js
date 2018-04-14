@@ -32,7 +32,7 @@ const server = restify.createServer({
 
 const cors = corsMiddleware({
     origins: ['https://repkam09.com', 'http://localhost:8080', 'http://localhost', 'https://demo.kaspe.net', 'http://localhost:3000'],
-    allowHeaders: ['cache-control', 'repka-repcast-token']
+    allowHeaders: ['cache-control', 'repka-repcast-token', 'repka-verify']
 });
 
 server.use(restify.fullResponse());
