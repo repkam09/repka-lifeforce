@@ -8,12 +8,14 @@ class RepcastFile {
 	public $type;
 	public $mimetype;
 	public $filetype;
+	public $datetime;
 }
 
 class RepcastDirectory {
 	public $name;
 	public $type;
 	public $key;
+	public $datetime;
 }
 
 class RepcastResponse {
@@ -158,6 +160,9 @@ foreach ($files as $filedir) {
 
 	array_push($repcastfiles, $file);
 }
+
+// Sort the repcast file list by date
+
 
 
 header('Content-Type: application/json');
