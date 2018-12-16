@@ -1,2 +1,5 @@
 #!/bin/bash
-pm2 stop lifeforce && git pull && pm2 flush && pm2 start lifeforce && pm2 logs lifeforce
+sudo service repka-lifeforce stop
+git pull
+sudo service repka-lifeforce start
+sudo service repka-lifeforce status
