@@ -3,7 +3,7 @@ const fs = require('fs');
 
 let errormode = false;
 const threshold = 42;
-const timertime = 2700000;
+const timertime = 2000000;
 let settings = null;
 let transporter = null;
 let log = null;
@@ -100,7 +100,7 @@ function handleTempCheckinNew(req, res, next) {
             clearTimeout(tempCheckinTimers[clientid]);
 
             tempCheckinLists[clientid] = temp;
-            tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew, timertime / 100, clientid);
+            tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew.bind(this), timertime, clientid);
 
             res.send(200, { checkin: "OK!", clientid: clientid, temp: temp });
         } else {
@@ -150,19 +150,17 @@ function serverTempTimeout() {
 
 function serverTempTimeoutNew(clientid) {
     this.log.info("Error: client " + clientid + " timeout passed");
-    debugger;
     let singleClientError = true;
     var currentTime = new Date();
 
     var powerInternetMail = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstring, // list of receivers
+        to: settings.emailstringrepka, // list of receivers
         subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
-        text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
+        text: 'Hello! \nThis is an alert that the tempreature monitoring system for ' + clientid + ' has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
     };
 
-    debugger;
-    //sendMailMessage(powerInternetMail);
+    sendMailMessage(powerInternetMail);
 }
 
 
