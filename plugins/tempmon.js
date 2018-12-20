@@ -1,12 +1,12 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
-const fs = require('fs');
 
-let errormode = false;
-const threshold = 42;
-const timertime = 2000000;
-let settings = null;
+const threshold = 45;
+//const timertime = 2000000;
+const timertime = 20000;
 let transporter = null;
+let settings = null;
 let log = null;
+const sendRealEmail = false;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
@@ -18,7 +18,7 @@ class RaspiTempMonitor extends LifeforcePlugin {
             {
                 path: "/api/tempmon/:temp",
                 type: "get",
-                handler: handleTempCheckin
+                handler: handleTempCheckin // This method has been deprecated
             },
             {
                 path: "/api/temp/checkin",
@@ -33,7 +33,6 @@ class RaspiTempMonitor extends LifeforcePlugin {
         settings = this.config.tempmonitor;
         this.timerfunc = null;
 
-        // create reusable transporter object using SMTP transport
         const nodemailer = require("nodemailer");
         transporter = nodemailer.createTransport({
             service: 'Gmail',
@@ -46,43 +45,20 @@ class RaspiTempMonitor extends LifeforcePlugin {
 }
 
 function handleTempCheckin(req, res, next) {
-    this.log.info("Got a temp checkin from raspberry pi");
+    // This method has been deprecated, convert it into the newer API call
+    if (req.params && req.params.temp) {
 
-    // Clear the current timer because we got a check in time
-    clearTimeout(this.timerfunc);
-
-    var response = {};
-    response.date = Date.now();
-    response.temp = req.params.temp;
-
-    // Check if the temp is under our threshold and warn us!
-    if (response.temp < threshold) {
-        this.log.info("This is a cold temp! Handle this error!");
-        handleColdTemp(response.temp);
-    } else {
-        this.log.info("Normal checkin, nothing is wrong.");
-
-        // If we get this call, but we're in errormode, the system got a message
-        // after a previous failure.
-        if (errormode) {
-            errorResolved();
+        const fakereq = {
+            body: {
+                clientid: "legacy",
+                temp: req.params.temp
+            }
         }
+
+        // Pass this to the new api handler
+        this.log.info("Converting legacy temp checkin to new api format");
+        handleTempCheckinNew.call(this, fakereq, res, next);
     }
-
-    // Write the results to a text file
-    var fileString = response.date + " | " + response.temp;
-    logfileout(fileString, "templogfile.txt");
-
-    // Send the response to the client
-    res.send(200, response);
-
-    // restart the timer to wait until the next checkin
-    this.log.info("Starting timer to wait for client checkin...");
-    this.timerfunc = setTimeout(function () {
-        serverTempTimeout();
-    }, timertime);
-
-    return next();
 }
 
 function handleTempCheckinNew(req, res, next) {
@@ -97,60 +73,56 @@ function handleTempCheckinNew(req, res, next) {
             temp = req.body.temp;
 
             this.log.info("Got a client checkin from " + clientid + " with temp " + temp);
+            // If we get a checkin, clear the current timer
             clearTimeout(tempCheckinTimers[clientid]);
 
-            tempCheckinLists[clientid] = temp;
+            let currentSystem = { temp: -1, error: false };
+            let hasError = false;
+
+            // See if we have seen this sytem before
+            if (tempCheckinLists[clientid]) {
+                currentSystem = tempCheckinLists[clientid];
+            }
+
+            // Check if we're in an error state
+            if (temp < threshold) {
+                hasError = true;
+            } else {
+                // Temp is fine! Log saying so.
+                log.info("Normal checkin for " + clientid + " everything seems to be fine.");
+            }
+
+            // Check which emails if any should be triggered
+            if (hasError) {
+                // Temp has dropped below threshold! Sent alert email!
+                handleColdTemp(temp, clientid);
+            }
+
+            // Check which emails if any should be triggered
+            if (currentSystem.error && !hasError) {
+                // System had an error, but is now okay
+                errorResolved(clientid);
+            }
+
+            // Update the information for the next checkin
+            tempCheckinLists[clientid] = { temp: temp, error: hasError };
+
+            // Start the timer for the next checkin test
             tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew.bind(this), timertime, clientid);
 
-            res.send(200, { checkin: "OK!", clientid: clientid, temp: temp });
+            // Respond to the client that we've processed the checkin
+            res.send(200, { checkin: "OK!", clientid: clientid, temp: temp, hasError: hasError });
         } else {
             res.send(400, "Bad Request");
-
         }
     } else {
         res.send(400, "Bad Request");
-
     }
-
-
     return next();
 }
 
-// Helper function to write to a file
-function logfileout(message, filename) {
-    log.info("logfileout: " + filename + ":" + message);
-    try {
-        fs.appendFile('/home/mark/website/tools/raspi-temp-monitor/' + filename, message + '\r\n', function (err) {
-            if (err) {
-                log.info("Warning! Unable to write to log file!");
-                console.log(err);
-            }
-        });
-    } catch (error) {
-        console.error("Unable to write to output file... " + error.message);
-        debugger;
-    }
-}
-
-function serverTempTimeout() {
-    this.log.info("Error: client timeout passed");
-    errormode = true;
-    var currentTime = new Date();
-
-    var powerInternetMail = {
-        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstring, // list of receivers
-        subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
-        text: 'Hello! \nThis is an alert that the tempreature monitoring system has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
-    };
-
-    sendMailMessage(powerInternetMail);
-}
-
-
 function serverTempTimeoutNew(clientid) {
     this.log.info("Error: client " + clientid + " timeout passed");
-    let singleClientError = true;
     var currentTime = new Date();
 
     var powerInternetMail = {
@@ -163,27 +135,30 @@ function serverTempTimeoutNew(clientid) {
     sendMailMessage(powerInternetMail);
 }
 
-
-
-function handleColdTemp(temp) {
-    log.info("Error: Cold Temp - " + temp);
-    errormode = true;
+function handleColdTemp(temp, clientid) {
+    log.info("[" + clientid + "] Error: Cold Temp Alert - " + temp);
     var currentTime = new Date();
 
-    var coldMail = {
+    var emailoptions = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
         to: settings.emailstring, // list of receivers
-        subject: 'Cold Temp Alert - pitempmon - ' + currentTime, // Subject line
-        text: 'Hello! \nThis is an alert that the current temp recorded by the tempreature monitoring system was ' + temp + '.\nThis is below the accepted threshold of ' + threshold + '\n\nPlease verify that this reading is correct!'
+        subject: `Cold Temp Alert - ${clientid} - ${currentTime}`,
+        text: `Alert! 
+
+        Name: ${clientid}
+        Temp: ${temp}
+        Time: ${currentTime}
+
+        This is an alert that the checkin for ${clientid} was ${temp}. This is below the warning threshold of ${threshold}! 
+        Please try and verify that this reading is correct!`
     };
 
-    sendMailMessage(coldMail);
+    sendMailMessage(emailoptions);
 }
 
 
-function errorResolved() {
-    console.log("Error Resolved - Client Checkin");
-    errormode = false;
+function errorResolved(clientid) {
+    log.info("[" + clientid + "] Error Resolved. Everything okay.");
     var currentTime = new Date();
 
     var resolvedMail = {
@@ -193,20 +168,35 @@ function errorResolved() {
         text: "Hello! \nThis is a notification that the house temp monitor service is back up and running after an error. There is nothing you need to do at this time."
     };
 
+    var emailoptions = {
+        from: 'Temp Monitor <raspitempmon@gmail.com>',
+        to: settings.emailstring,
+        subject: `Temp Monitor Okay - ${clientid} - ${currentTime}`,
+        text: `Alert! 
+
+        Name: ${clientid}
+        Time: ${currentTime}
+
+        Proble ${clientid} was ${temp}. This is below the warning threshold of ${threshold}! 
+        Please try and verify that this reading is correct!`
+    };
+
     sendMailMessage(resolvedMail);
 }
 
 function sendMailMessage(options) {
-
-    log.info("Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
-
-    transporter.sendMail(options, function (error, info) {
-        if (error) {
-            log.info("Unable to send email:" + JSON.stringify(error));
-        } else {
-            log.info('Message sent: ' + info.response);
-        }
-    });
+    if (sendRealEmail) {
+        log.info("Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
+        transporter.sendMail(options, function (error, info) {
+            if (error) {
+                log.info("Unable to send email:" + JSON.stringify(error));
+            } else {
+                log.info('Message sent: ' + info.response);
+            }
+        });
+    } else {
+        log.info(JSON.stringify(options));
+    }
 }
 
 module.exports = RaspiTempMonitor;
