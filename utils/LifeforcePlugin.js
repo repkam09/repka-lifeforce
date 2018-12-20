@@ -1,9 +1,12 @@
+const hasSecureHeader = require("./secure.js");
+
 class LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         this.config = require("../config.json");
         this.log = logger;
         this.restifyserver = restifyserver;
         this.name = name;
+        this.hasSecureHeader = hasSecureHeader;
     }
 
     addHandlers() {
