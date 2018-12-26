@@ -6,7 +6,7 @@ const timertime = 20000;
 let transporter = null;
 let settings = null;
 let log = null;
-const sendRealEmail = false;
+const sendRealEmail = true;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
@@ -141,7 +141,7 @@ function handleColdTemp(temp, clientid) {
 
     var emailoptions = {
         from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstring, // list of receivers
+        to: settings.emailstringrepka, // list of receivers
         subject: `Cold Temp Alert - ${clientid} - ${currentTime}`,
         text: `Alert! 
 
