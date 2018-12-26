@@ -1,8 +1,8 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 const threshold = 45;
-//const timertime = 2000000;
-const timertime = 20000;
+const timertime = 2000000;
+//const timertime = 20000;
 let transporter = null;
 let settings = null;
 let log = null;
