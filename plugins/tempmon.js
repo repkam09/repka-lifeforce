@@ -2,7 +2,7 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 
 const threshold = 45;
 const timertime = 2000000;
-//const timertime = 20000;
+
 let transporter = null;
 let settings = null;
 let log = null;
@@ -10,6 +10,7 @@ const sendRealEmail = true;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
+
 
 class RaspiTempMonitor extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -24,6 +25,16 @@ class RaspiTempMonitor extends LifeforcePlugin {
                 path: "/api/temp/checkin",
                 type: "post",
                 handler: handleTempCheckinNew
+            },
+            {
+                path: "/api/temp/history/:clientid",
+                type: "get",
+                handler: handleGetTempHistory
+            },
+            {
+                path: "/api/temp/clients",
+                type: "get",
+                handler: handleGetClients
             }
         ];
 
@@ -44,6 +55,24 @@ class RaspiTempMonitor extends LifeforcePlugin {
     }
 }
 
+function handleGetClients(req, res, next) {
+    const clients = Object.keys(tempCheckinLists);
+    res.send(clients);
+}
+
+function handleGetTempHistory(req, res, next) {
+    if (req.params && req.params.clientid) {
+        this.log.info("Requesting history for clientid: " + req.params.clientid);
+        getDataFromMongo(req.params.clientid).then((result) => {
+            res.send(200, result);
+            return next();
+        });
+    } else {
+        res.send(400, "Bad Request");
+        return next();
+    }
+}
+
 function handleTempCheckin(req, res, next) {
     // This method has been deprecated, convert it into the newer API call
     if (req.params && req.params.temp) {
@@ -58,6 +87,8 @@ function handleTempCheckin(req, res, next) {
         // Pass this to the new api handler
         this.log.info("Converting legacy temp checkin to new api format");
         handleTempCheckinNew.call(this, fakereq, res, next);
+    } else {
+        res.send(400, "Bad Request");
     }
 }
 
@@ -107,6 +138,13 @@ function handleTempCheckinNew(req, res, next) {
             // Update the information for the next checkin
             tempCheckinLists[clientid] = { temp: temp, error: hasError };
 
+            // Update the mongodb database with this information
+            writeTempToMongo(clientid, temp, threshold).then((resu) => {
+                log.info("Finished database update for checkin. [" + clientid + "," + temp + "]");
+            }).catch((err) => {
+                log.info("Unable to update database for checkin! [" + clientid + "," + temp + "]");
+            });
+
             // Start the timer for the next checkin test
             tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew.bind(this), timertime, clientid);
 
@@ -120,6 +158,60 @@ function handleTempCheckinNew(req, res, next) {
     }
     return next();
 }
+
+function writeTempToMongo(clientid, temp, threshold) {
+    const mongoClient = require("mongodb").MongoClient;
+    const mongoConnect = "mongodb://localhost:27017/";
+
+    return new Promise((resolve, reject) => {
+        mongoClient.connect(mongoConnect, { useNewUrlParser: true }, (err, db) => {
+            if (err) {
+                reject(err);
+            }
+
+            let dbo = db.db("tempmon");
+            let payload = { clientid, temp, threshold, checkinTime: new Date() };
+
+            dbo.collection("temphistory").insertOne(payload, (err, res) => {
+                if (err) {
+                    reject(err);
+                }
+
+                db.close();
+                resolve(res);
+            });
+        });
+    });
+}
+
+function getDataFromMongo(clientid) {
+    const mongoClient = require("mongodb").MongoClient;
+    const mongoConnect = "mongodb://localhost:27017/";
+    const resultlimit = 48;
+
+    log.info("Starting mongo connect, looking for " + resultlimit + " results");
+    return new Promise((resolve, reject) => {
+        mongoClient.connect(mongoConnect, { useNewUrlParser: true }, (err, client) => {
+            if (err) {
+                log.info("Mongo: Unable to connect to mongodb instance, returning empty array");
+                resolve([]);
+            } else {
+                log.info("Mongo: Connected to mongodb instance");
+                try {
+                    const db = client.db("tempmon");
+                    db.collection('temphistory').find({ clientid: clientid }).sort({ $natural: -1 }).limit(resultlimit).toArray((err, result) => {
+                        log.info("Mongo: Returning results to client");
+                        resolve(result);
+                    });
+                } catch (err) {
+                    log.info("Error! " + err.message);
+                    resolve([]);
+                }
+            }
+        });
+    });
+}
+
 
 function serverTempTimeoutNew(clientid) {
     this.log.info("Error: client " + clientid + " timeout passed");

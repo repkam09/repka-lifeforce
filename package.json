@@ -21,6 +21,7 @@
     "transmission": "^0.4.5",
     "youtube-dl": "latest",
     "node-lgtv-api": "^0.9.1",
-    "mime-types": "^2.1.17"
+    "mime-types": "^2.1.17",
+    "mongodb": "^3.1.12"
   }
 }
