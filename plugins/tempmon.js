@@ -132,7 +132,8 @@ function handleTempCheckinNew(req, res, next) {
             // Check which emails if any should be triggered
             if (currentSystem.error && !hasError) {
                 // System had an error, but is now okay
-                errorResolved(clientid);
+                tempCheckinLists[clientid].error = false;
+                //errorResolved(clientid); - ignore this email for now
             }
 
             // Update the information for the next checkin
@@ -149,6 +150,7 @@ function handleTempCheckinNew(req, res, next) {
             tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew.bind(this), timertime, clientid);
 
             // Respond to the client that we've processed the checkin
+            log.info("Finished processing checkin. [" + clientid + "," + temp + "]");
             res.send(200, { checkin: "OK!", clientid: clientid, temp: temp, hasError: hasError });
         } else {
             res.send(400, "Bad Request");
@@ -162,6 +164,8 @@ function handleTempCheckinNew(req, res, next) {
 function writeTempToMongo(clientid, temp, threshold) {
     const mongoClient = require("mongodb").MongoClient;
     const mongoConnect = "mongodb://localhost:27017/";
+
+    log.info("Starting writeTempToMongo for " + clientid);
 
     return new Promise((resolve, reject) => {
         mongoClient.connect(mongoConnect, { useNewUrlParser: true }, (err, db) => {
@@ -273,7 +277,7 @@ function errorResolved(clientid) {
         Please try and verify that this reading is correct!`
     };
 
-    sendMailMessage(resolvedMail);
+    //sendMailMessage(resolvedMail);
 }
 
 function sendMailMessage(options) {
