@@ -21,6 +21,11 @@ class SlackBot extends LifeforcePlugin {
             token: this.config.slack.token,
             name: 'kabuildbot'
         });
+
+        this.kmbot = new SlackBot({
+            token: this.config.slack.kmweb,
+            name: 'kabuildbot'
+        });
     }
 }
 
@@ -29,6 +34,10 @@ function handleSlackPush(req, res, next) {
         var payload = req.body + "";
 
         this.bot.postMessageToChannel('general', payload, {
+            icon_emoji: ':robot_face:'
+        });
+
+        this.bot.postMessageToChannel('ecoweb-development', payload, {
             icon_emoji: ':robot_face:'
         });
 
