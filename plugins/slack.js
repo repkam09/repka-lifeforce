@@ -37,7 +37,7 @@ function handleSlackPush(req, res, next) {
             icon_emoji: ':robot_face:'
         });
 
-        this.bot.postMessageToChannel('ecoweb-development', payload, {
+        this.kmbot.postMessageToChannel('ecoweb-development', payload, {
             icon_emoji: ':robot_face:'
         });
 
