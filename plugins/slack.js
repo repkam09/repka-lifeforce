@@ -16,12 +16,6 @@ class SlackBot extends LifeforcePlugin {
             }
         ];
 
-        const SlackBot = require('slackbots');
-        this.bot = new SlackBot({
-            token: this.config.slack.token,
-            name: 'kabuildbot'
-        });
-
         this.kmbot = new SlackBot({
             token: this.config.slack.kmweb,
             name: 'kabuildbot'
@@ -32,10 +26,6 @@ class SlackBot extends LifeforcePlugin {
 function handleSlackPush(req, res, next) {
     if (req.body) {
         var payload = req.body + "";
-
-        this.bot.postMessageToChannel('general', payload, {
-            icon_emoji: ':robot_face:'
-        });
 
         this.kmbot.postMessageToChannel('ecoweb-development', payload, {
             icon_emoji: ':robot_face:'
