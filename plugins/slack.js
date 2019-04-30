@@ -42,7 +42,7 @@ function handleSlackPushDeploy(req, res, next) {
     if (req.body) {
         var payload = req.body + "";
 
-        this.bot.postMessageToChannel('deployment', payload, {
+        this.kmbot.postMessageToChannel('ecoweb-deploybot', payload, {
             icon_emoji: ':robot_face:'
         });
 
