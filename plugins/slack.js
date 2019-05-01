@@ -16,6 +16,8 @@ class SlackBot extends LifeforcePlugin {
             }
         ];
 
+
+        const SlackBot = require('slackbots');
         this.kmbot = new SlackBot({
             token: this.config.slack.kmweb,
             name: 'kabuildbot'
