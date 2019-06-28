@@ -63,23 +63,29 @@ class SpacesS3 extends LifeforcePlugin {
       }
     ];
 
-    const AWS = require("aws-sdk");
-    this.s3 = require("s3");
+    try {
+      const AWS = require("aws-sdk");
+      this.s3 = require("s3");
 
-    const spacesEndpoint = new AWS.Endpoint(this.config.digitalocean.endpoint);
-    this.s3auth = new AWS.S3({
-      endpoint: spacesEndpoint,
-      accessKeyId: this.config.digitalocean.accessKey,
-      secretAccessKey: this.config.digitalocean.secretKey
-    });
-
-    this.doclient = this.s3.createClient({
-      s3Options: {
+      const spacesEndpoint = new AWS.Endpoint(
+        this.config.digitalocean.endpoint
+      );
+      this.s3auth = new AWS.S3({
+        endpoint: spacesEndpoint,
         accessKeyId: this.config.digitalocean.accessKey,
-        secretAccessKey: this.config.digitalocean.secretKey,
-        endpoint: "https://" + this.config.digitalocean.endpoint
-      }
-    });
+        secretAccessKey: this.config.digitalocean.secretKey
+      });
+
+      this.doclient = this.s3.createClient({
+        s3Options: {
+          accessKeyId: this.config.digitalocean.accessKey,
+          secretAccessKey: this.config.digitalocean.secretKey,
+          endpoint: "https://" + this.config.digitalocean.endpoint
+        }
+      });
+    } catch (err) {
+      console.log("Unable to start up aws functions");
+    }
 
     this.youtubedl = require("youtube-dl");
 
@@ -216,7 +222,6 @@ class SpacesS3 extends LifeforcePlugin {
     });
   }
 }
-
 
 function handleSpacesUpload(req, res, next) {
   if (req.files) {

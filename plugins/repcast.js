@@ -15,11 +15,6 @@ class RepCast extends LifeforcePlugin {
         handler: handleRepcastDirGet
       },
       {
-        path: "/repcast/fileget/:type",
-        type: "get",
-        handler: handleRepcastFileTypeGet
-      },
-      {
         path: "/repcast/toradd/:magnet",
         type: "get",
         handler: handleRepcastTorAdd
@@ -48,23 +43,6 @@ function handleRepcastDirGet(req, res, next) {
   });
 
   return next();
-}
-
-function handleRepcastFileTypeGet(req, res, next) {
-  var ftype = "." + req.params.type; //new Buffer(req.params.type, 'base64').toString();
-  if (ftype === "") {
-    res.send(200, { result: [] });
-    return next();
-  } else {
-    this.log.verbose("Requested listing for file type " + ftype);
-
-    var list = filelist(pathfix, ftype);
-
-    // Go through the list checking that the file ends in type
-
-    res.send(200, { result: list });
-    return next();
-  }
 }
 
 function handleRepcastTorAdd(req, res, next) {
