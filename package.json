@@ -7,8 +7,6 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.134.0",
-    "http-server": "^0.9.0",
-    "lgtv": "^0.2.4",
     "node-telegram-bot-api": "^0.28.0",
     "nodemailer": "^4.1.2",
     "path": "^0.12.7",
@@ -16,11 +14,8 @@
     "restify": "^4.3.0",
     "restify-cors-middleware": "0.0.8",
     "s3": "^4.4.0",
-    "slackbots": "^1.1.0",
-    "thepiratebay": "^1.4.5",
     "transmission": "^0.4.5",
     "youtube-dl": "latest",
-    "node-lgtv-api": "^0.9.1",
     "mime-types": "^2.1.17",
     "mongodb": "^3.1.12"
   }
