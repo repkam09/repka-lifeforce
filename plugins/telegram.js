@@ -1,4 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const fs = require("fs");
 
 let messageQueue = [];
 let readySend = false;
@@ -21,12 +22,34 @@ class TelegramBot extends LifeforcePlugin {
     this.bot.on("message", msg => {
       const chatId = msg.chat.id;
 
-      // send a message to the chat acknowledging receipt of their message
-      this.bot.sendMessage(
-        chatId,
+      let response =
         "Hello! Here is the information about your chat message: \n" +
-          JSON.stringify(msg.chat)
-      );
+        JSON.stringify(msg.chat);
+
+      if (msg.document) {
+        response = "You sent a file: " + JSON.stringify(msg.document);
+        const filepath = this.config.telegram.filepath;
+
+        this.bot
+          .downloadFile(msg.document.file_id, filepath)
+          .then(newpath => {
+            let savepath = filepath + "/" + msg.document.file_name;
+
+            // Take the file from newpath and move it into a better location
+            fs.rename(newpath, savepath, done => {
+              this.bot.sendMessage(chatId, "Saved " + msg.document.file_id);
+            });
+          })
+          .catch(err => {
+            this.bot.sendMessage(
+              chatId,
+              "Unable to save " + msg.document.file_id + ", err: " + err.message
+            );
+          });
+      }
+
+      // send a message to the chat acknowledging receipt of their message
+      this.bot.sendMessage(chatId, response);
     });
 
     if (this.config.telegram.logger) {
