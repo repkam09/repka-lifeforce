@@ -164,7 +164,7 @@ class SpacesS3 extends LifeforcePlugin {
                     });
 
                     that.fileListCache[prefix] = itemlist;
-                    resolve({ itemlist, status: "live" });
+                    resolve({ size: itemlist.length, itemlist, status: "live" });
                 });
             }
         });
@@ -430,8 +430,13 @@ function handleGetSpacesFileListSecure(req, res, next) {
                         "ico",
                         "PNG",
                         "sh",
-                        "tmp"
+                        "tmp",
+                        "idx",
+                        "sub",
+                        "z",
+                        "bak"
                     ];
+
                     if (invalid.indexOf(filestruct.filetype) < 0) {
                         filelist.push(filestruct);
                     }
