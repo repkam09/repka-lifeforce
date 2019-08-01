@@ -466,7 +466,9 @@ function handleGetSpacesFileListSecure(req, res, next) {
             filelist = filelist.map(item => {
                 // Remove extra properties that add size
                 if (item.time) {
-                    delete item.time;
+                    if (item.type === "dir") {
+                        delete item.time;
+                    }
                 }
 
                 return item;
