@@ -401,7 +401,8 @@ function handleGetSpacesFileListSecure(req, res, next) {
                 let filestruct = {
                     size: file.Size,
                     time: file.LastModified,
-                    name: name,
+                    date: file.LastModified,
+		    name: name,
                     original: file.Key.replace("repcast/", ""),
                     path: urlpath,
                     type: "file",
@@ -466,9 +467,7 @@ function handleGetSpacesFileListSecure(req, res, next) {
             filelist = filelist.map(item => {
                 // Remove extra properties that add size
                 if (item.time) {
-                    if (item.type === "dir") {
-                        delete item.time;
-                    }
+                    delete item.time;
                 }
 
                 return item;
