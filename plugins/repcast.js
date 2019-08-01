@@ -1,215 +1,496 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
-const path = require("path");
-const trans = require('transmission');
+const mimetype = require("mime-types");
+const exampleRepcast = require("../static/example_repcast.json");
 
-let pathfix = "";
+String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
 
-class RepCast extends LifeforcePlugin {
+class SpacesS3 extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
         this.apiMap = [
             {
-                path: "/repcast/dirget/:filepath",
+                path: "/api/youtube/download/:videoid",
                 type: "get",
-                handler: handleRepcastDirGet
+                handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/fileget/:type",
+                path: "/repcast/youtube/:videoid",
                 type: "get",
-                handler: handleRepcastFileTypeGet
+                handler: handleYoutubeDownload
             },
             {
-                path: "/repcast/torsearch/:search",
+                path: "/repcast/spaces/getfiles",
                 type: "get",
-                handler: handleRepcastTorSearch
+                handler: handleGetSpacesFileListSecure
             },
             {
-                path: "/repcast/toradd/:magnet",
+                path: "/repcast/spaces/getfiles/:pathid",
                 type: "get",
-                handler: handleRepcastTorAdd
+                handler: handleGetSpacesFileListSecure
             },
             {
-                path: "/repcast/dialogflow",
-                type: "post",
-                handler: handleDialogFlow
+                path: "/repcast/spaces/getfilessecure",
+                type: "get",
+                handler: handleGetSpacesFileListSecure
             },
             {
-                path: "/repcast/dialogflow",
+                path: "/repcast/spaces/getfilessecure/:pathid",
                 type: "get",
-                handler: handleDialogFlow
+                handler: handleGetSpacesFileListSecure
+            },
+            {
+                path: "/repcast/spaces/getfilestest",
+                type: "get",
+                handler: handleGetSpacesFileListExample
+            },
+            {
+                path: "/repcast/spaces/getfilestest/:pathid",
+                type: "get",
+                handler: handleGetSpacesFileListExample
+            },
+            {
+                path: "/repcast/spaces/getfilesraw",
+                type: "get",
+                handler: handleGetSpacesFileListRawSecure
+            },
+            {
+                path: "/repcast/spaces/clearcache",
+                type: "get",
+                handler: handleInvalidateSpacesCache
             }
         ];
 
-        // Grab some specific values from the config
-        this.settings = this.config.torrent;
-        pathfix = this.config.mediamount;
+        try {
+            const AWS = require("aws-sdk");
+            this.s3 = require("s3");
 
-        this.tpb = require("thepiratebay");
-    }
-}
+            const spacesEndpoint = new AWS.Endpoint(
+                this.config.digitalocean.endpoint
+            );
+            this.s3auth = new AWS.S3({
+                endpoint: spacesEndpoint,
+                accessKeyId: this.config.digitalocean.accessKey,
+                secretAccessKey: this.config.digitalocean.secretKey
+            });
 
-function handleDialogFlow(req, res, next) {
-    var responseData = "OK!";
-    if (req.body) {
-        this.log.special("Body Found: " + typeof req.body + " " + JSON.stringify(req.body));
-        responseData = req.body.result.parameters.video_name;
-    }
-
-    if (req.params) {
-        this.log.special("Params Found: " + typeof req.params + " " + JSON.stringify(req.params));
-    }
-
-    res.send(200, responseData);
-}
-
-function handleRepcastDirGet(req, res, next) {
-    // This call has been disabled as the new repcast is active now
-    res.send(200, {
-        result: [{
-            "name": "Please Update RepCast",
-            "type": "dir",
-            "path": "/",
-            "cast": false,
-            "video": false,
-            "path64": "Lw=="
-        }]
-    });
-
-    return next();
-}
-
-function handleRepcastFileTypeGet(req, res, next) {
-    var ftype = "." + req.params.type; //new Buffer(req.params.type, 'base64').toString();
-    if (ftype === "") {
-        res.send(200, { result: [] });
-        return next();
-    } else {
-        this.log.verbose("Requested listing for file type " + ftype);
-
-        var list = filelist(pathfix, ftype);
-
-        // Go through the list checking that the file ends in type
-
-        res.send(200, { result: list });
-        return next();
-    }
-}
-
-function handleRepcastTorSearch(req, res, next) {
-    var searchterm = new Buffer(req.params.search, 'base64').toString();
-    this.log.verbose("torrent serarch for : " + searchterm);
-
-    var test = this.tpb.search(searchterm).then((results) => {
-        this.log.verbose("torrent serarch results: " + JSON.stringify(results));
-        var obj = {};
-        obj.query = searchterm;
-        obj.count = results.length;
-        obj.torrents = results;
-        res.send(200, obj);
-    }).catch((error) => {
-        this.log.error("Got an error for " + searchterm);
-        var obj = {};
-        obj.count = 0;
-        obj.query = "Error Searching TPB";
-        obj.torrents = [];
-        res.send(500, obj);
-    });
-}
-
-function handleRepcastTorAdd(req, res, next) {
-    var magnet = new Buffer(req.params.magnet, 'base64').toString();
-    this.log.verbose("Request on toradd for " + magnet);
-
-    var instance = new trans({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
-    instance.addUrl(magnet, {}, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.send(400, err);
-        } else {
-            var id = result.id;
-            res.send(200, { torrentid: id });
+            this.doclient = this.s3.createClient({
+                s3Options: {
+                    accessKeyId: this.config.digitalocean.accessKey,
+                    secretAccessKey: this.config.digitalocean.secretKey,
+                    endpoint: "https://" + this.config.digitalocean.endpoint
+                }
+            });
+        } catch (err) {
+            this.log.warn("Unable to start up aws functions");
         }
-    });
-}
 
-function filelist(path, ftype) {
-    var list = walk(path);
-    list = list.filter((element) => {
-        if (element.endsWith(ftype)) {
-            return true;
-        }
-    });
+        this.youtubedl = require("youtube-dl");
 
-    list = list.map((element) => {
-        return element.replace(pathfix, "");
-    });
-    return list;
-}
+        // Create an object to hold file cache information in
+        this.fileListCache = {};
 
-var walk = function (dir) {
-    var results = []
-    var list = fs.readdirSync(dir)
-    list.forEach(function (file) {
-        file = dir + '/' + file
-        var stat = fs.statSync(file)
-        if (stat && stat.isDirectory()) results = results.concat(walk(file))
-        else results.push(file)
-    })
-    return results
-}
+        // Start up a timer to reset the file cache if needed
+        this.clearFileListCacheTimer = setInterval(() => {
+            console.log(
+                "Cleaning up the file cache, new pull required for next request"
+            );
+            this.fileListCache = {};
+        }, 900000);
+    }
 
-function dirlist(filepath) {
-    // get the list of files in this directory:
-    var files = fs.readdirSync(filepath);
+    uploadItem(localPath, remotePath) {
+        let that = this;
+        return new Promise((resolve, reject) => {
+            var params = {
+                localFile: localPath,
 
-    files.sort(function (a, b) {
-        return fs.statSync(filepath + b).mtime.getTime() - fs.statSync(filepath + a).mtime.getTime();
-    });
+                s3Params: {
+                    Bucket: "repcast",
+                    Key: remotePath
+                }
+            };
 
-    var filelist = [];
+            var uploader = that.doclient.uploadFile(params);
 
-    files.forEach(function (file) {
-        var fixpath = filepath.replace(pathfix, "");
+            uploader.on("error", function (err) {
+                reject(err.message);
+            });
 
-        var pathb64 = new Buffer(fixpath + file).toString('base64');
+            uploader.on("end", function () {
+                resolve();
+            });
+        });
+    }
 
-        var jsonstruct = {
-            name: file,
-            type: "file",
-            path: fixpath + file,
-            cast: false,
-            video: false
-        };
-
-        var stats = fs.statSync(filepath + file);
-        // If something is a directory do some extra operations, and include it
-        if (stats.isDirectory()) {
-            jsonstruct.type = "dir";
-            jsonstruct.path = jsonstruct.path + "/";
-            jsonstruct.path64 = new Buffer(jsonstruct.path).toString('base64');
-
-            filelist.push(jsonstruct);
-        } else {
-            // Not a directory. Check if its a castable file type (mp4)
-            var pathext = path.extname(filepath + file);
-            if (pathext == ".mp4") {
-                jsonstruct.cast = true;
-                jsonstruct.video = true;
-                filelist.push(jsonstruct);
-            } else if (pathext == ".mkv" || pathext == ".avi") {
-                // This is a video file, but not castable
-                jsonstruct.cast = false;
-                jsonstruct.video = true;
-                filelist.push(jsonstruct);
+    listItems(prefix) {
+        var that = this;
+        return new Promise((resolve, reject) => {
+            // Check the cache to see if this request has already been made before with this prefix
+            if (that.fileListCache[prefix]) {
+                console.log("Using cached response for " + prefix);
+                resolve({ itemlist: that.fileListCache[prefix], status: "cache" });
             } else {
-                // For other normal files...
-                filelist.push(jsonstruct);
-            }
-        }
-    });
+                // If this request has not been made before, we'll have to go out to the server for it
+                var list = this.doclient.listObjects({
+                    s3Params: {
+                        Prefix: prefix,
+                        Bucket: "repcast"
+                    }
+                });
 
-    return filelist;
+                list.on("error", function (err) {
+                    reject(err.message);
+                });
+
+                var itemlist = [];
+                list.on("data", function (data) {
+                    data.Contents.map(item => {
+                        itemlist.push(item);
+                    });
+                });
+
+                list.on("end", function () {
+                    // Remove any file that does not have a size above zero
+                    itemlist = itemlist.filter(item => {
+                        if (item.Size > 0) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
+
+                    that.fileListCache[prefix] = itemlist;
+                    resolve({ itemlist, status: "live" });
+                });
+            }
+        });
+    }
 }
 
-module.exports = RepCast;
+function handleYoutubeDownload(req, res, next) {
+    if (req.params.videoid) {
+        var filepath = "./temp/yt_dl_" + req.params.videoid + ".mp4";
+        var videoinfo = null;
+
+        res.send(200, { error: false, info: "OK!" });
+        var video = this.youtubedl(
+            "http://www.youtube.com/watch?v=" + req.params.videoid,
+            [],
+            { cwd: __dirname }
+        );
+
+        // Will be called when the download starts.
+        video.on("info", info => {
+            videoinfo = info;
+            //res.send(200, { error: false, info });
+        });
+
+        video.on("end", res => {
+            this.log.info("Video download finished, starting upload to Spaces...");
+            // Rename the video to something better...
+            var newFilePath = "./temp/" + videoinfo.filename;
+            move(filepath, newFilePath).then(result => {
+                var spacesName = "repcast/YouTube/" + videoinfo.filename;
+                this.log.info("Upload as " + spacesName);
+                this.uploadItem(newFilePath, spacesName)
+                    .then(() => {
+                        this.log.info("Video upload to Spaces finished!");
+                        fs.unlink(newFilePath, () => {
+                            this.log.info("Deleted temp local video file");
+
+                            // Reset the cache of file list. There is a new file!
+                            this.fileListCache = {};
+                        });
+                    })
+                    .catch(error => {
+                        this.log.info("Video upload to Spaces failed!");
+                    });
+            });
+        });
+
+        video.pipe(fs.createWriteStream(filepath));
+    } else {
+        //res.send(400, { error: "bad request" });
+    }
+    next();
+}
+
+function move(oldPath, newPath) {
+    function copy() {
+        var readStream = fs.createReadStream(oldPath);
+        var writeStream = fs.createWriteStream(newPath);
+
+        readStream.on("error", err => {
+            reject(err);
+        });
+
+        writeStream.on("error", err => {
+            reject(err);
+        });
+
+        readStream.on("close", function () {
+            fs.unlink(oldPath, callback);
+            resolve();
+        });
+
+        readStream.pipe(writeStream);
+    }
+
+    return new Promise((resolve, reject) => {
+        fs.rename(oldPath, newPath, function (err) {
+            if (err) {
+                if (err.code === "EXDEV") {
+                    copy();
+                } else {
+                    reject(err);
+                }
+                return;
+            }
+            resolve();
+        });
+    });
+}
+
+function handleInvalidateSpacesCache(req, res, next) {
+    this.fileListCache = {};
+    res.send(200, "OK!");
+    next();
+}
+
+function handleGetSpacesFileListRawSecure(req, res, next) {
+    const header = req.headers["repka-repcast-token"];
+    if (!header) {
+        res.send(200, exampleRepcast);
+        return;
+    } else {
+        if (header !== this.config.authkey.REPCAST_APP_KEY) {
+            res.send(200, exampleRepcast);
+            return;
+        }
+    }
+
+    let pathid = "";
+
+    console.log("Looking at directory prefix " + pathid);
+    let prefix = "repcast/" + pathid;
+    let that = this;
+    this.listItems(prefix)
+        .then(response => {
+            res.send(200, response);
+            next();
+        })
+        .catch(error => {
+            res.send(500, { error: true, info: [], count: 0 });
+        });
+}
+
+function handleGetSpacesFileListSecure(req, res, next) {
+    const header = req.headers["repka-repcast-token"];
+    if (!header) {
+        res.send(200, exampleRepcast);
+        return;
+    } else {
+        if (header !== this.config.authkey.REPCAST_APP_KEY) {
+            res.send(200, exampleRepcast);
+            return;
+        }
+    }
+
+    let pathid = "";
+    if (req.params.pathid) {
+        pathid = req.params.pathid;
+    }
+
+    pathid = new Buffer.from(pathid, "base64").toString("ascii");
+
+    console.log("Looking at directory prefix " + pathid);
+    let prefix = "repcast/" + pathid;
+    let that = this;
+    this.listItems(prefix)
+        .then(response => {
+            let itemlist = response.itemlist;
+            let status = response.status;
+            let filelist = [];
+
+            itemlist = itemlist.map(file => {
+                var hashString = file.ETag;
+                if (
+                    hashString.charAt(0) === '"' &&
+                    hashString.charAt(hashString.length - 1) === '"'
+                ) {
+                    hashString = hashString.substr(1, hashString.length - 2);
+                }
+
+                const expireSeconds = 172800;
+
+                const urlpath = that.s3auth.getSignedUrl("getObject", {
+                    Bucket: "repcast",
+                    Key: file.Key,
+                    Expires: expireSeconds
+                });
+
+                // Get the file type
+                let filetype = file.Key.split(".").pop();
+
+                // Improve the names and paths
+                let nameParts = file.Key.split("/");
+                let namePath = "";
+
+                let isDirectory = false;
+                if (nameParts.length > 2) {
+                    //This has a directory. Add the directory thing to the thing but not the file...
+                    namePath = nameParts[1] + "";
+                    isDirectory = true;
+                }
+
+                if (prefix != "repcast/") {
+                    isDirectory = false;
+                }
+
+                let name;
+                if (!isDirectory) {
+                    name = nameParts.pop();
+                } else {
+                    name = namePath + nameParts.pop();
+                }
+
+                // Convert the name to something nicer looking
+                let removesstring = [
+                    "720p",
+                    "x264",
+                    "AAC",
+                    "ETRG",
+                    "BRRip",
+                    "WEB-DL",
+                    "H264",
+                    "AC3",
+                    "EVO",
+                    "rarbg",
+                    "HDTV",
+                    "W4F",
+                    "hdtv",
+                    "w4f",
+                    "ETRG",
+                    "YIFY",
+                    "1080p",
+                    "BluRay",
+                    "DVDRip",
+                    "320kbps",
+                    "[Hunter]",
+                    "1080p",
+                    "[]"
+                ];
+
+                removesstring.map(rmstr => {
+                    name = name.replaceAll("." + rmstr, "");
+                    name = name.replaceAll("-" + rmstr, "");
+                    name = name.replaceAll(rmstr.toUpperCase(), "");
+                    name = name.replaceAll(rmstr.toLowerCase(), "");
+                    name = name.replaceAll(rmstr, "");
+                });
+
+                let mtype = mimetype.lookup(filetype);
+                if (!mtype) {
+                    mtype = "application/octet-stream";
+                }
+
+                let filestruct = {
+                    size: file.Size,
+                    time: file.LastModified,
+                    name: name,
+                    original: file.Key.replace("repcast/", ""),
+                    path: urlpath,
+                    type: "file",
+                    mimetype: mtype,
+                    filetype: filetype
+                };
+
+                if (!isDirectory) {
+                    // Check for invalid file types
+                    var invalid = [
+                        "txt",
+                        "nfo",
+                        "srt",
+                        "jpg",
+                        "png",
+                        "jpeg",
+                        "sfv",
+                        "ico",
+                        "PNG",
+                        "sh",
+                        "tmp"
+                    ];
+                    if (invalid.indexOf(filestruct.filetype) < 0) {
+                        filelist.push(filestruct);
+                    }
+                } else {
+                    // If the thing is a directory...
+                    filestruct.type = "dir";
+                    filestruct.key = new Buffer.from(namePath).toString("base64");
+                    filestruct.name = namePath;
+                    delete filestruct.original;
+                    delete filestruct.hash;
+                    delete filestruct.mimetype;
+                    delete filestruct.filetype;
+                    delete filestruct.size;
+                    delete filestruct.path;
+
+                    // Check if the dir is already in the list
+                    let alreadyInList = false;
+                    filelist.map(list => {
+                        if (list.name == filestruct.name) {
+                            alreadyInList = true;
+
+                            // If the time stamp of this dir is newer, replace with this one.
+                            if (list.time < filestruct.time) {
+                                list.time = filestruct.time;
+                            }
+                        }
+                    });
+
+                    if (!alreadyInList) {
+                        filelist.push(filestruct);
+                    }
+                }
+            });
+
+            // Sort the list by access time
+            filelist.sort((a, b) => {
+                return b.time - a.time;
+            });
+
+            filelist = filelist.map(item => {
+                // Remove extra properties that add size
+                if (item.time) {
+                    delete item.time;
+                }
+
+                return item;
+            });
+
+            // Create an object to return
+            const restresponse = {
+                error: false,
+                status,
+                count: filelist.length,
+                info: filelist
+            };
+
+            res.send(200, restresponse);
+            next();
+        })
+        .catch(error => {
+            res.send(500, { error: true, info: [], count: 0 });
+        });
+}
+
+function handleGetSpacesFileListExample(req, res, next) {
+    res.send(200, exampleRepcast);
+}
+
+
+module.exports = SpacesS3;
