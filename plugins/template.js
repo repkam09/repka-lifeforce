@@ -15,7 +15,7 @@ class Template extends LifeforcePlugin {
 }
 
 function handleExampleFunction(req, res, next) {
-
+    res.send(200, "Example Plugin!");
 }
 
 module.exports = Template;
