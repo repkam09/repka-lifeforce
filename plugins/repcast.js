@@ -398,11 +398,18 @@ function handleGetSpacesFileListSecure(req, res, next) {
                     mtype = "application/octet-stream";
                 }
 
+                let date_string = "";
+                try {
+                    date_string = new Date(file.LastModified).toLocaleString();
+                } catch (err) {
+                    console.log("Warn: Unable to parse date string");
+                }
+
                 let filestruct = {
                     size: file.Size,
                     time: file.LastModified,
-                    date: file.LastModified,
-		    name: name,
+                    date: date_string,
+                    name: name,
                     original: file.Key.replace("repcast/", ""),
                     path: urlpath,
                     type: "file",
