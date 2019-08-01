@@ -143,7 +143,7 @@ class SpacesS3 extends LifeforcePlugin {
                 });
 
                 list.on("error", function (err) {
-                    reject(err.message);
+                    reject(err.stack);
                 });
 
                 var itemlist = [];
@@ -400,7 +400,8 @@ function handleGetSpacesFileListSecure(req, res, next) {
 
                 let date_string = "";
                 try {
-                    date_string = new Date(file.LastModified).toLocaleString();
+                    let then = new Date(file.LastModified);
+                    date_string = timeSince(then) + " ago";
                 } catch (err) {
                     console.log("Warn: Unable to parse date string");
                 }
@@ -497,7 +498,7 @@ function handleGetSpacesFileListSecure(req, res, next) {
             next();
         })
         .catch(error => {
-            res.send(500, { error: true, info: [], count: 0 });
+            res.send(500, { error: true, info: [], count: 0, details: error });
         });
 }
 
@@ -505,5 +506,32 @@ function handleGetSpacesFileListExample(req, res, next) {
     res.send(200, exampleRepcast);
 }
 
+
+function timeSince(date) {
+    var seconds = Math.floor((new Date() - date) / 1000);
+
+    var interval = Math.floor(seconds / 31536000);
+
+    if (interval > 1) {
+        return interval + " years";
+    }
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) {
+        return interval + " months";
+    }
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) {
+        return interval + " days";
+    }
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) {
+        return interval + " hours";
+    }
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) {
+        return interval + " minutes";
+    }
+    return Math.floor(seconds) + " seconds";
+}
 
 module.exports = SpacesS3;
