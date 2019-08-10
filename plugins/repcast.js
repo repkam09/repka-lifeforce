@@ -94,7 +94,7 @@ class SpacesS3 extends LifeforcePlugin {
             this.log.warn("Unable to start up aws functions");
         }
 
-        this.youtubedl = require("youtube-dl");
+        //this.youtubedl = require("youtube-dl");
 
         // Create an object to hold file cache information in
         this.fileListCache = {};
@@ -194,6 +194,8 @@ function handleRepcastTorAdd(req, res, next) {
 }
 
 function handleYoutubeDownload(req, res, next) {
+    return res.send(200, { error: false });
+
     if (req.params.videoid) {
         var filepath = "./temp/yt_dl_" + req.params.videoid + ".mp4";
         var videoinfo = null;
