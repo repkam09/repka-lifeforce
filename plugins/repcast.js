@@ -95,6 +95,7 @@ class SpacesS3 extends LifeforcePlugin {
         }
 
         //this.youtubedl = require("youtube-dl");
+        this.settings = this.config.torrent;
 
         // Create an object to hold file cache information in
         this.fileListCache = {};
