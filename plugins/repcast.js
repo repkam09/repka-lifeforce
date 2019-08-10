@@ -1,6 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const fs = require("fs");
 const mimetype = require("mime-types");
+const trans = require('transmission');
 const exampleRepcast = require("../static/example_repcast.json");
 
 String.prototype.replaceAll = function (search, replacement) {
@@ -21,6 +22,11 @@ class SpacesS3 extends LifeforcePlugin {
                 path: "/repcast/youtube/:videoid",
                 type: "get",
                 handler: handleYoutubeDownload
+            },
+            {
+                path: "/repcast/toradd/:magnet",
+                type: "get",
+                handler: handleRepcastTorAdd
             },
             {
                 path: "/repcast/spaces/getfiles",
@@ -169,6 +175,22 @@ class SpacesS3 extends LifeforcePlugin {
             }
         });
     }
+}
+
+function handleRepcastTorAdd(req, res, next) {
+    var magnet = new Buffer(req.params.magnet, 'base64').toString();
+    this.log.verbose("Request on toradd for " + magnet);
+
+    var instance = new trans({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
+    instance.addUrl(magnet, {}, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.send(400, err);
+        } else {
+            var id = result.id;
+            res.send(200, { torrentid: id });
+        }
+    });
 }
 
 function handleYoutubeDownload(req, res, next) {
