@@ -17,11 +17,6 @@ class RaspiTempMonitor extends LifeforcePlugin {
         super(restifyserver, logger, name);
         this.apiMap = [
             {
-                path: "/api/tempmon/:temp",
-                type: "get",
-                handler: handleTempCheckin // This method has been deprecated
-            },
-            {
                 path: "/api/temp/checkin",
                 type: "post",
                 handler: handleTempCheckinNew
@@ -70,25 +65,6 @@ function handleGetTempHistory(req, res, next) {
     } else {
         res.send(400, "Bad Request");
         return next();
-    }
-}
-
-function handleTempCheckin(req, res, next) {
-    // This method has been deprecated, convert it into the newer API call
-    if (req.params && req.params.temp) {
-
-        const fakereq = {
-            body: {
-                clientid: "legacy",
-                temp: req.params.temp
-            }
-        }
-
-        // Pass this to the new api handler
-        this.log.info("Converting legacy temp checkin to new api format");
-        handleTempCheckinNew.call(this, fakereq, res, next);
-    } else {
-        res.send(400, "Bad Request");
     }
 }
 
