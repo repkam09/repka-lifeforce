@@ -31,7 +31,7 @@ function handleProxyFunction(req, res, next) {
         const remote_base = proxy.remote;
 
         const newurl = remote_base + requrl;
-        this.log.info("Lifeforce Proxy hit for " + requrl);
+        this.log.info("Lifeforce Proxy hit for " + requrl + " going to " + remote_base);
 
         let head = req.headers;
         head["x-repka-lf-proxy"] = "repka-lifeforce-proxy";
