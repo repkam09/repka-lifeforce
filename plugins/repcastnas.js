@@ -1,4 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const exampleRepcast = require("../static/example_repcast.json");
 const fs = require("fs");
 const path = require("path");
 
@@ -26,6 +27,17 @@ class RepCastNAS extends LifeforcePlugin {
 }
 
 function handleRepcastDirGet(req, res, next) {
+    const header = req.headers["repka-repcast-token"];
+    if (!header) {
+        res.send(200, exampleRepcast);
+        return;
+    } else {
+        if (header !== this.config.authkey.REPCAST_APP_KEY) {
+            res.send(200, exampleRepcast);
+            return;
+        }
+    }
+
     let getpath = "";
     if (req.params.filepath) {
         getpath = new Buffer(req.params.filepath, 'base64').toString();
