@@ -1,6 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exampleRepcast = require("../static/example_repcast.json");
 const fs = require("fs");
+const mimetype = require("mime-types");
 const path = require("path");
 
 let pathfix = "";
@@ -92,9 +93,13 @@ function dirlist(filepath) {
             jsonstruct.type = "dir";
             jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
         } else {
+            let ext = path.extname(fixpath + file).replace(".", "");
+
             jsonstruct.path = pathprefix + fixpath + file;
             jsonstruct.size = stats.size;
             jsonstruct.original = file;
+            jsonstruct.mimetype = mimetype.lookup(ext);
+            jsonstruct.filetype = ext;
         }
 
         filelist.push(jsonstruct);
