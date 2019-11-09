@@ -41,12 +41,11 @@ const cors = corsMiddleware({
   allowHeaders: ["cache-control", "repka-repcast-token", "repka-verify"]
 });
 
-server.use(restify.fullResponse());
 server.pre(cors.preflight);
 server.use(cors.actual);
-server.use(restify.authorizationParser());
+server.use(restify.plugins.authorizationParser());
 server.use(
-  restify.bodyParser({
+  restify.plugins.bodyParser({
     mapParams: true,
     mapFiles: true,
     overrideParams: false,
@@ -87,8 +86,8 @@ fs.readdir(pluginpath, (err, files) => {
           if (!status) {
             log.debug(
               "Skipping " +
-                plugin.name +
-                " plugin because it does not have an entry in config",
+              plugin.name +
+              " plugin because it does not have an entry in config",
               logName
             );
           } else {

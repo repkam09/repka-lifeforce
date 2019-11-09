@@ -1,5 +1,6 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exampleRepcast = require("../static/example_repcast.json");
+const restify = require("restify");
 const fs = require("fs");
 const mimetype = require("mime-types");
 const path = require("path");
@@ -26,6 +27,26 @@ class RepCastNAS extends LifeforcePlugin {
         // Grab some specific values from the config
         pathfix = this.config.mediamount;
         pathprefix = this.config.mediaprefix;
+
+        restifyserver.use((req, res, next) => {
+            if (req.url.indexOf("/repcast/filesrv/") === 0) {
+                // If we're accessing this path, you need auth headers!
+                const header = req.headers["repka-repcast-token"];
+                if (!header) {
+                    res.send(401);
+                    return next();
+                } else {
+                    if (header !== this.config.authkey.REPCAST_APP_KEY) {
+                        res.send(401);
+                        return next();
+                    }
+                }
+            }
+
+            return next();
+        });
+
+        restifyserver.get("/repcast/filesrv/*", restify.plugins.serveStaticFiles(this.config.mediamount))
     }
 }
 
