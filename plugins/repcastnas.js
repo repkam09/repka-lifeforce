@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 let pathfix = "";
+let pathprefix = "";
 
 class RepCastNAS extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -23,6 +24,7 @@ class RepCastNAS extends LifeforcePlugin {
 
         // Grab some specific values from the config
         pathfix = this.config.mediamount;
+        pathprefix = this.config.mediaprefix;
     }
 }
 
@@ -40,7 +42,7 @@ function handleRepcastDirGet(req, res, next) {
 
     let getpath = "";
     if (req.params.filepath) {
-        getpath = new Buffer(req.params.filepath, 'base64').toString();
+        getpath = Buffer.from(req.params.filepath, 'base64').toString();
         getpath = getpath.replace(pathfix, "");
     }
 
@@ -48,7 +50,7 @@ function handleRepcastDirGet(req, res, next) {
 
     this.log.info("Requested directory listing for " + filepath);
     let result = dirlist(filepath);
-    res.send(200, { error: false, status: "live", count: result.length, result: result });
+    res.send(200, { error: false, status: "live", count: result.length, info: result });
     return next();
 }
 
@@ -75,40 +77,28 @@ function dirlist(filepath) {
 
     let filelist = [];
 
-    files.forEach(function (file) {
+    files.forEach((file) => {
         let fixpath = filepath.replace(pathfix, "");
 
         let jsonstruct = {
+            date: "",
             name: file,
-            type: "file",
-            path: fixpath + file,
+            type: "file"
         };
 
         let stats = fs.statSync(filepath + file);
         // If something is a directory do some extra operations, and include it
         if (stats.isDirectory()) {
             jsonstruct.type = "dir";
-            jsonstruct.path = jsonstruct.path + "/";
-            jsonstruct.path64 = new Buffer(jsonstruct.path).toString('base64');
-
-            filelist.push(jsonstruct);
+            jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
         } else {
-            // Not a directory. Check if its a castable file type (mp4)
-            let pathext = path.extname(filepath + file);
-            if (pathext == ".mp4") {
-                jsonstruct.cast = true;
-                jsonstruct.video = true;
-                filelist.push(jsonstruct);
-            } else if (pathext == ".mkv" || pathext == ".avi") {
-                // This is a video file, but not castable
-                jsonstruct.cast = false;
-                jsonstruct.video = true;
-                filelist.push(jsonstruct);
-            } else {
-                // For other normal files...
-                filelist.push(jsonstruct);
-            }
+            jsonstruct.path = pathprefix + fixpath + file;
+            jsonstruct.size = stats.size;
+            jsonstruct.original = file;
         }
+
+        filelist.push(jsonstruct);
+
     });
 
     return filelist;
