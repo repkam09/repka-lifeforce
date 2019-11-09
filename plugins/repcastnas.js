@@ -2,6 +2,7 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exampleRepcast = require("../static/example_repcast.json");
 const restify = require("restify");
 const fs = require("fs");
+const querystring = require("querystring");
 const mimetype = require("mime-types");
 const path = require("path");
 
@@ -30,20 +31,17 @@ class RepCastNAS extends LifeforcePlugin {
 
         restifyserver.use((req, res, next) => {
             if (req.url.indexOf("/repcast/filesrv/") === 0) {
-                // If we're accessing this path, you need auth headers!
-                const header = req.headers["repka-repcast-token"];
-                if (!header) {
-                    res.send(401);
+                if (req.url.indexOf("?auth=" + this.config.authkey.REPCAST_APP_KEY) !== -1) {
+                    this.log.info("Got a request for file with correct auth!");
                     return next();
                 } else {
-                    if (header !== this.config.authkey.REPCAST_APP_KEY) {
-                        res.send(401);
-                        return next();
-                    }
+                    this.log.info("Got a request for file without correct auth! How did someone get this path?");
+                    res.send(401);
                 }
             }
 
             return next();
+
         });
 
         restifyserver.get("/repcast/filesrv/*", restify.plugins.serveStaticFiles(this.config.mediamount))
@@ -115,8 +113,8 @@ function dirlist(filepath) {
             jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
         } else {
             let ext = path.extname(fixpath + file).replace(".", "");
-
-            jsonstruct.path = pathprefix + fixpath + file;
+            let fullpath = pathprefix + fixpath + querystring.escape(file) + "?auth=cmVwa2EtcmVwY2FzdC10b2tlbg==";
+            jsonstruct.path = fullpath;
             jsonstruct.size = stats.size;
             jsonstruct.original = file;
             jsonstruct.mimetype = mimetype.lookup(ext);

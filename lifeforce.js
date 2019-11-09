@@ -48,7 +48,7 @@ server.use(
   restify.plugins.bodyParser({
     mapParams: true,
     mapFiles: true,
-    overrideParams: false,
+    overrideParams: true,
     keepExtensions: true,
     uploadDir: tempdir,
     multiples: true,
