@@ -8,6 +8,7 @@ const path = require("path");
 
 let pathfix = "";
 let pathprefix = "";
+let authkey = null;
 
 class RepCastNAS extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -28,10 +29,11 @@ class RepCastNAS extends LifeforcePlugin {
         // Grab some specific values from the config
         pathfix = this.config.mediamount;
         pathprefix = this.config.mediaprefix;
+        authkey = this.config.authkey.REPCAST_APP_KEY;
 
         restifyserver.use((req, res, next) => {
             if (req.url.indexOf("/repcast/filesrv/") === 0) {
-                if (req.url.indexOf("?auth=" + this.config.authkey.REPCAST_APP_KEY) !== -1) {
+                if (req.url.indexOf("?auth=" + authkey) !== -1) {
                     return next();
                 } else {
                     this.log.info("Got a request for file without correct auth! How did someone get this path?");
@@ -53,7 +55,7 @@ function handleRepcastDirGet(req, res, next) {
         res.send(200, exampleRepcast);
         return;
     } else {
-        if (header !== this.config.authkey.REPCAST_APP_KEY) {
+        if (header !== authkey) {
             res.send(200, exampleRepcast);
             return;
         }
@@ -112,7 +114,7 @@ function dirlist(filepath) {
             jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
         } else {
             let ext = path.extname(fixpath + file).replace(".", "");
-            let fullpath = pathprefix + querystring.escape(fixpath + file) + "?auth=cmVwa2EtcmVwY2FzdC10b2tlbg==";
+            let fullpath = pathprefix + querystring.escape(fixpath + file) + "?auth=" + authkey;
             jsonstruct.path = fullpath;
             jsonstruct.size = stats.size;
             jsonstruct.original = file;
