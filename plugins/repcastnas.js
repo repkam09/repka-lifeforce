@@ -112,7 +112,7 @@ function dirlist(filepath) {
             jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
         } else {
             let ext = path.extname(fixpath + file).replace(".", "");
-            let fullpath = pathprefix + fixpath + querystring.escape(file) + "?auth=cmVwa2EtcmVwY2FzdC10b2tlbg==";
+            let fullpath = pathprefix + querystring.escape(fixpath + file) + "?auth=cmVwa2EtcmVwY2FzdC10b2tlbg==";
             jsonstruct.path = fullpath;
             jsonstruct.size = stats.size;
             jsonstruct.original = file;
