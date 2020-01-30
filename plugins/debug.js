@@ -15,6 +15,11 @@ class DebugRequests extends LifeforcePlugin {
                 handler: handleDebugRequestWildcard
             },
             {
+                path: "\/api\/debug\/wildcard\/.*",
+                type: "put",
+                handler: handleDebugRequestWildcard
+            },
+            {
                 path: "/api/debug/response/:code",
                 type: "get",
                 handler: handleDebugRequestCode
@@ -69,13 +74,24 @@ function handleDebugRequestCode(req, res, next) {
 function handleDebugRequestWildcard(req, res, next) {
     let response = {
         code: 200,
-        body: null,
         params: req.params,
         url: req.url,
         method: req.method,
         headers: req.headers,
         body: req.body
     }
+
+    try {
+        console.log("");
+        console.log("Request: " + req.method + " " + req.url);
+        console.log("Headers:" + JSON.stringify(req.headers));
+        console.log("Params: " + JSON.stringify(req.params));
+        console.log("Body: " + JSON.stringify(req.body));
+        console.log("");
+    } catch (err) {
+        console.log("Unable to stringify debug request data");
+    }
+
     res.send(200, response);
     return next();
 }
