@@ -1,7 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exec = require('child_process').exec;
 
-
+let log = null;
 
 class Webhook extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -13,8 +13,9 @@ class Webhook extends LifeforcePlugin {
                 handler: handleWebhookGithub
             }
         ];
-        
+
         this.updaters = this.config.webhooks;
+        log = logger;
     }
 }
 
