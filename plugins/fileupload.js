@@ -9,6 +9,11 @@ class FileUploads extends LifeforcePlugin {
         path: "/api/files/upload",
         type: "post",
         handler: handleFileUpload
+      },
+      {
+        path: "/api/files/upload",
+        type: "put",
+        handler: handleFileUpload
       }
     ];
   }
