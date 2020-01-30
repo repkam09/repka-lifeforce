@@ -5,17 +5,17 @@ class DebugRequests extends LifeforcePlugin {
         super(restifyserver, logger, name);
         this.apiMap = [
             {
-                path: "\/api\/debug\/wildcard\/.*",
+                path: "\/api\/debug\/wildcard\/*",
                 type: "get",
                 handler: handleDebugRequestWildcard
             },
             {
-                path: "\/api\/debug\/wildcard\/.*",
+                path: "\/api\/debug\/wildcard\/*",
                 type: "post",
                 handler: handleDebugRequestWildcard
             },
             {
-                path: "\/api\/debug\/wildcard\/.*",
+                path: "\/api\/debug\/wildcard\/*",
                 type: "put",
                 handler: handleDebugRequestWildcard
             },
