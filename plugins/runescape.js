@@ -34,14 +34,16 @@ function handleRsMetericsPlayerInfo(req, res, next) {
         return;
       }
 
+      let parsed = JSON.parse(body);
+
       if (response.statusCode === 200) {
         this.log.info("Updating player data cache for " + req.params.username);
-        PlayerMap.set(req.params.username, body);
-        res.send(200, body);
+        PlayerMap.set(req.params.username, parsed);
+        res.send(200, parsed);
         return
       }
 
-      res.send(response.statusCode, body);
+      res.send(500, "Unexpected response");
     });
   } else {
     res.send(400);
