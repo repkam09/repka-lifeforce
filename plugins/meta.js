@@ -48,17 +48,8 @@ function handleGetIp(req, res, next) {
 }
 
 function handleAboutApi(req, res, next) {
-  var apis = [];
-  var keys = Object.keys(this.restifyserver.router.mounts);
-  keys.forEach(key => {
-    var current = this.restifyserver.router.mounts[key];
-    apis.push({
-      path: serverhostname + current.spec.path,
-      method: current.method,
-      plugin: current.plugin
-    });
-  });
-  res.send(200, apis);
+  console.log("@deprecated handleAboutApi");
+  res.send(200, []);
 }
 
 function handleGetTest(req, res, next) {

@@ -34,6 +34,7 @@ const cors = corsMiddleware({
   origins: [
     "https://repkam09.com",
     "http://localhost:8080",
+    "http://localhost:8000",
     "http://localhost",
     "https://demo.kaspe.net",
     "http://localhost:3000"
