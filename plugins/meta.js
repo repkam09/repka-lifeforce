@@ -48,8 +48,7 @@ function handleGetIp(req, res, next) {
 }
 
 function handleAboutApi(req, res, next) {
-  console.log("@deprecated handleAboutApi");
-  res.send(200, []);
+  res.send(200, this.restifyserver.getAbout());
 }
 
 function handleGetTest(req, res, next) {

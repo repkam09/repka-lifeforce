@@ -73,6 +73,16 @@ server.use(function logging(req, res, next) {
   return next();
 });
 
+const endpoints = [];
+server.updateAbout = (entry) => {
+  endpoints.push(entry);
+}
+
+server.getAbout = () => {
+  return endpoints;
+}
+
+
 // Go out and check the plugins list for endpoints to listen on
 var pluginList = [];
 fs.readdir(pluginpath, (err, files) => {
@@ -113,6 +123,7 @@ fs.readdir(pluginpath, (err, files) => {
     });
   });
 });
+
 
 // Startup the server
 log.info("Starting Restify Server...", logName);
