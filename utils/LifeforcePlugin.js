@@ -16,7 +16,7 @@ class LifeforcePlugin {
             var type = item.type.toUpperCase();
             this.log.info("" + type + " - " + path + "", this.name);
             this.restifyserver[item.type](item.path, item.handler.bind(this));
-            this.restifyserver.updateAbout({ method: type, url: path });
+            this.restifyserver.updateAbout({ method: type, path: path, });
         }
     }
 }
