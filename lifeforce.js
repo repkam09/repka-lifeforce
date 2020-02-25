@@ -61,14 +61,14 @@ server.use(
  * Quick function to log incoming requests
  */
 server.use(function logging(req, res, next) {
-  var clientip = "unknown";
+  let clientip = "unknown";
   if (req.headers["x-forwarded-for"]) {
     clientip = req.headers["x-forwarded-for"];
   } else if (req.connection.remoteAddress) {
     clientip = req.connection.remoteAddress;
   }
 
-  var user = { method: req.method, endpoint: req.url, ip: clientip };
+  const user = { method: req.method, endpoint: req.url, ip: clientip };
   log.info(">>> " + JSON.stringify(user) + " <<<", logName);
   return next();
 });
@@ -84,7 +84,7 @@ server.getAbout = () => {
 
 
 // Go out and check the plugins list for endpoints to listen on
-var pluginList = [];
+const pluginList = [];
 fs.readdir(pluginpath, (err, files) => {
   files.forEach(file => {
     fs.stat(pluginpath + "/" + file, (err, stats) => {
@@ -93,7 +93,7 @@ fs.readdir(pluginpath, (err, files) => {
         if (type === ".js") {
           // Load the plugin and check if it is enabled
           const plugin = require(pluginpath + "/" + file);
-          var status = enabledPlugins[plugin.name];
+          let status = enabledPlugins[plugin.name];
           if (!status) {
             log.debug(
               "Skipping " +
@@ -104,7 +104,7 @@ fs.readdir(pluginpath, (err, files) => {
           } else {
             if (status && status.enabled) {
               // Call the plugins start method to attach the various get/post/etc
-              var temp = new plugin(server, log, plugin.name);
+              let temp = new plugin(server, log, plugin.name);
 
               // Attach the handlers to restify
               temp.addHandlers();

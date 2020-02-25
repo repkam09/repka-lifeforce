@@ -91,7 +91,7 @@ class SpacesS3 extends LifeforcePlugin {
                 }
             });
         } catch (err) {
-            this.log.warn("Unable to start up aws functions");
+            logger.warn("Unable to start up aws functions" + err.message, "SpacesS3");
         }
 
         //this.youtubedl = require("youtube-dl");

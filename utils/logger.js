@@ -13,6 +13,10 @@ let MyLogger = {
         printer("[D] " + prefix + ": " + message);
     },
 
+    warn: (message, prefix = "") => {
+        printer("[W] " + prefix + ": " + message);
+    },
+
     error: (message, prefix = "") => {
         printererror("[ERR] " + prefix + ": " + message);
         printerspecial("[ERR] " + prefix + ": " + message);

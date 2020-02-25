@@ -1,4 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const geoip = require("geoip-country");
 
 //const serverhostname = "http://localhost:16001";
 const serverhostname = "https://api.repkam09.com";
@@ -31,6 +32,11 @@ class MetaEndpoints extends LifeforcePlugin {
         path: "/api/getip",
         type: "get",
         handler: handleGetIp
+      },
+      {
+        path: "/api/geoip",
+        type: "get",
+        handler: getGeoIpCountry
       }
     ];
   }
@@ -44,6 +50,19 @@ function handleGetIp(req, res, next) {
     clientip = req.connection.remoteAddress;
   }
   res.send(200, { ip: clientip });
+  next();
+}
+
+function getGeoIpCountry(req, res, next) {
+  var clientip = "unknown";
+  if (req.headers["x-forwarded-for"]) {
+    clientip = req.headers["x-forwarded-for"];
+  } else if (req.connection.remoteAddress) {
+    clientip = req.connection.remoteAddress;
+  }
+
+  var geo = geoip.lookup(clientip);
+  res.send(200, { geodata: geo });
   next();
 }
 
