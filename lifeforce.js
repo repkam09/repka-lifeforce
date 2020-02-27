@@ -27,7 +27,8 @@ const enabledPlugins = require("./enabled.json");
 log.info("Creating Restify Server...", logName);
 const server = restify.createServer({
   name: "api.repkam09.com",
-  version: "1.1.0"
+  version: "1.1.0",
+  maxParamLength: 1000
 });
 
 const cors = corsMiddleware({
@@ -60,7 +61,7 @@ server.use(
 /**
  * Quick function to log incoming requests
  */
-server.use(function logging(req, res, next) {
+server.pre(function logging(req, res, next) {
   let clientip = "unknown";
   if (req.headers["x-forwarded-for"]) {
     clientip = req.headers["x-forwarded-for"];
