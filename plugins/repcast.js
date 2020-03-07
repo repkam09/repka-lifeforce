@@ -74,7 +74,7 @@ class SpacesS3 extends LifeforcePlugin {
             console.log("Setting up aws-sdk");
             const AWS = require("aws-sdk");
             console.log("Importing s3");
-            this.s3 = require("s3");
+            this.s3 = require("@auth0/s3");
 
             if (!this.config) {
                 logger.warn("Missing config");
