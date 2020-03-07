@@ -74,6 +74,27 @@ class SpacesS3 extends LifeforcePlugin {
             const AWS = require("aws-sdk");
             this.s3 = require("s3");
 
+            if (!this.config) {
+                logger.warn("Missing config");
+            }
+
+            if (!this.config.digitalocean) {
+                logger.warn("Missing config digitalocean");
+            }
+
+            if (!this.config.digitalocean.endpoint) {
+                logger.warn("Missing config digitalocean endpoint");
+            }
+
+            if (!this.config.digitalocean.accessKey) {
+                logger.warn("Missing config digitalocean accessKey");
+            }
+
+            if (!this.config.digitalocean.secretKey) {
+                logger.warn("Missing config digitalocean secretKey");
+            }
+
+
             const spacesEndpoint = new AWS.Endpoint(
                 this.config.digitalocean.endpoint
             );
@@ -91,7 +112,7 @@ class SpacesS3 extends LifeforcePlugin {
                 }
             });
         } catch (err) {
-            logger.warn("Unable to start up aws functions" + err.message, "SpacesS3");
+            logger.warn("Unable to start up aws functions: " + err.message, "SpacesS3");
         }
 
         //this.youtubedl = require("youtube-dl");
