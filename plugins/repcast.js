@@ -71,7 +71,9 @@ class SpacesS3 extends LifeforcePlugin {
         ];
 
         try {
+            console.log("Setting up aws-sdk");
             const AWS = require("aws-sdk");
+            console.log("Importing s3");
             this.s3 = require("s3");
 
             if (!this.config) {
@@ -94,7 +96,7 @@ class SpacesS3 extends LifeforcePlugin {
                 logger.warn("Missing config digitalocean secretKey");
             }
 
-
+            console.log("Creating aws endpoint");
             const spacesEndpoint = new AWS.Endpoint(
                 this.config.digitalocean.endpoint
             );
@@ -104,6 +106,7 @@ class SpacesS3 extends LifeforcePlugin {
                 secretAccessKey: this.config.digitalocean.secretKey
             });
 
+            console.log("Creating s3 client endpoint");
             this.doclient = this.s3.createClient({
                 s3Options: {
                     accessKeyId: this.config.digitalocean.accessKey,
