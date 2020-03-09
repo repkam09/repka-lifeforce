@@ -1,5 +1,13 @@
-const config = require('../config.json');
 const fs = require('fs');
+const path = require("path");
+
+if (!fs.existsSync("./config.json")) {
+    console.log("Configuration file does not exist (logger)");
+    process.exit(1);
+}
+
+const config = require('../config.json');
+
 
 let callbacks = [];
 

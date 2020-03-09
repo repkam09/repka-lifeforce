@@ -19,9 +19,19 @@ const pluginpath = "./plugins/";
 
 // This variable will contain settings and api keys that are not public
 log.info("Loading settings from config.json...", logName);
+if (!fs.existsSync("./config.json")) {
+  console.log("Configuration file does not exist (lf)");
+  process.exit(1);
+}
+
 const settings = require("./config.json");
 
 log.info("loading enabled list from enabled.json", logName);
+if (!fs.existsSync("./enabled.json")) {
+  console.log("Enable list file does not exist");
+  process.exit(1);
+}
+
 const enabledPlugins = require("./enabled.json");
 
 log.info("Creating Restify Server...", logName);

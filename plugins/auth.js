@@ -1,6 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
-
-const users = new Map();
+const secure = require("../utils/secure.js");
 
 class UserAuth extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -21,20 +20,33 @@ class UserAuth extends LifeforcePlugin {
                 type: "post",
                 handler: handleUserLogout
             },
+            {
+                path: "/api/auth/test",
+                type: "get",
+                handler: handleUserTest
+            },
         ];
+    }
+}
+
+function handleUserTest(req, res, next) {
+    if (this.isLoggedIn(req, res)) {
+        res.send(200, createResponse(false, "you are logged in!"));
+    } else {
+        res.send(200, createResponse(false, "you are not logged in"));
     }
 }
 
 function handleUserCreate(req, res, next) {
     if (hasProperties(req.body, ['username', 'password'])) {
 
-        if (users.has(req.body.username)) {
+        if (secure.userExists(req.body.username)) {
             res.send(200, createResponse(true, "user already exists"));
             return next();
         }
 
         const user = { username: req.body.username, password: req.body.password, create: Date.now(), ipaddr: getIPAddr(req) };
-        users.set(req.body.username, user);
+        secure.registerUser(req.body.username, user);
         res.send(200, createResponse(false, "user created"));
     } else {
         res.send(200, createResponse(true, "missing required property"));
@@ -46,8 +58,11 @@ function handleUserLogin(req, res, next) {
     if (hasProperties(req.body, ['username', 'password'])) {
         if (users.has(req.body.username)) {
             if (req.body.password === users.get(req.body.username).password) {
-                res.send(200, createResponse(false, "logged in", "supersecretkey"));
-                userUpdateToken(req.body.username, "supersecretkey")
+
+                let tbuff = new Buffer.from(req.body.username + ":" + req.body.password, 'utf8');
+                let token = tbuff.toString('base64');
+
+                res.send(200, createResponse(false, "logged in", token));
             } else {
                 res.send(200, createResponse(true, "auth failed"));
             }
@@ -62,20 +77,10 @@ function handleUserLogin(req, res, next) {
 }
 
 function handleUserLogout(req, res, next) {
-    if (hasProperties(req.body, ['username', 'token'])) {
-        if (users.has(req.body.username)) {
-            if (req.body.token === users.get(req.body.username).token) {
-                res.send(200, createResponse(false, "logged out", null));
-                userUpdateToken(req.body.username, null);
-            } else {
-                res.send(200, createResponse(true, "auth failed"));
-            }
-            return next();
-        }
-
-        res.send(200, createResponse(true, "user does not exist"));
+    if (secure.isLoggedIn(req, res)) {
+        res.send(200, createResponse(false, "logged out", null));
     } else {
-        res.send(200, createResponse(true, "missing required property"));
+        res.send(200, createResponse(false, "not logged in", null));
     }
     return next();
 }
@@ -114,12 +119,6 @@ function hasProperties(obj, proplist) {
 
 function createResponse(error, status, token = null) {
     return { error, status, token };
-}
-
-function userUpdateToken(username, token) {
-    const currentuser = users.get(username);
-    const tempuser = Object.assign({}, currentuser, { token: "supersecretkey" })
-    users.set(username, tempuser);
 }
 
 module.exports = UserAuth;

@@ -1,4 +1,5 @@
-const hasSecureHeader = require("./secure.js");
+const hasSecureHeader = require("./secure.js").hasSecureHeader;
+const isLoggedIn = require("./secure.js").isLoggedIn;
 
 class LifeforcePlugin {
     constructor(restifyserver, logger, name) {
@@ -7,6 +8,7 @@ class LifeforcePlugin {
         this.restifyserver = restifyserver;
         this.name = name;
         this.hasSecureHeader = hasSecureHeader;
+        this.isLoggedIn = isLoggedIn;
     }
 
     addHandlers() {
