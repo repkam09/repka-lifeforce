@@ -44,7 +44,6 @@ class RepCastNAS extends LifeforcePlugin {
         restifyserver.use((req, res, next) => {
             if (req.url.indexOf("/repcast/filesrv/") === 0) {
                 if (req.url.indexOf("auth=" + authkey) !== -1) {
-                    console.log("Static file request, with auth");
                     return next();
                 } else {
                     this.log.info("Got a request for file without correct auth! How did someone get this path?");
