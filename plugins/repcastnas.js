@@ -23,6 +23,16 @@ class RepCastNAS extends LifeforcePlugin {
                 path: "/repcast/nas/getfiles",
                 type: "get",
                 handler: handleRepcastDirGet
+            },
+            {
+                path: "/repcast/spaces/getfiles",
+                type: "get",
+                handler: handleRepcastDirGet
+            },
+            {
+                path: "/repcast/spaces/getfiles/:filepath",
+                type: "get",
+                handler: handleRepcastDirGet
             }
         ];
 
@@ -33,7 +43,8 @@ class RepCastNAS extends LifeforcePlugin {
 
         restifyserver.use((req, res, next) => {
             if (req.url.indexOf("/repcast/filesrv/") === 0) {
-                if (req.url.indexOf("?auth=" + authkey) !== -1) {
+                if (req.url.indexOf("auth=" + authkey) !== -1) {
+                    console.log("Static file request, with auth");
                     return next();
                 } else {
                     this.log.info("Got a request for file without correct auth! How did someone get this path?");
@@ -52,6 +63,7 @@ class RepCastNAS extends LifeforcePlugin {
 function handleRepcastDirGet(req, res, next) {
     const header = req.headers["repka-repcast-token"];
     if (!header) {
+        this.log.warn("Repcast getfiles request without auth, sending back example file list");
         res.send(200, exampleRepcast);
         return;
     } else {

@@ -27,7 +27,7 @@ function handleFileUpload(req, res, next) {
   if (req.files) {
     var data = req.files.filedata;
     var path = data.path;
-    var newpath = this.config.logpathhidden + "uploads/" + data.name;
+    var newpath = this.config.uploadpath + "uploads/" + data.name;
     console.log("Current Path:" + path);
     console.log("New Path:" + newpath);
     fs.rename(path, newpath, err => {

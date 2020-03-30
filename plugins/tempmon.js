@@ -3,10 +3,8 @@ const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const threshold = 45;
 const timertime = 2000000;
 
-let transporter = null;
 let settings = null;
 let log = null;
-const sendRealEmail = true;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
@@ -38,15 +36,6 @@ class RaspiTempMonitor extends LifeforcePlugin {
         // Grab the subset of settings we actually want
         settings = this.config.tempmonitor;
         this.timerfunc = null;
-
-        const nodemailer = require("nodemailer");
-        transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: settings.emailuser,
-                pass: settings.emailpass
-            }
-        });
     }
 }
 
@@ -228,47 +217,8 @@ function handleColdTemp(temp, clientid) {
     sendMailMessage(emailoptions);
 }
 
-
-function errorResolved(clientid) {
-    log.info("[" + clientid + "] Error Resolved. Everything okay.");
-    var currentTime = new Date();
-
-    var resolvedMail = {
-        from: 'Temp Monitor <raspitempmon@gmail.com>',
-        to: settings.emailstring,
-        subject: "Temp Monitor Okay - pitempmon - " + currentTime,
-        text: "Hello! \nThis is a notification that the house temp monitor service is back up and running after an error. There is nothing you need to do at this time."
-    };
-
-    var emailoptions = {
-        from: 'Temp Monitor <raspitempmon@gmail.com>',
-        to: settings.emailstring,
-        subject: `Temp Monitor Okay - ${clientid} - ${currentTime}`,
-        text: `Alert! 
-
-        Name: ${clientid}
-        Time: ${currentTime}
-
-        Proble ${clientid} was ${temp}. This is below the warning threshold of ${threshold}! 
-        Please try and verify that this reading is correct!`
-    };
-
-    //sendMailMessage(resolvedMail);
-}
-
 function sendMailMessage(options) {
-    if (sendRealEmail) {
-        log.info("Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
-        transporter.sendMail(options, function (error, info) {
-            if (error) {
-                log.info("Unable to send email:" + JSON.stringify(error));
-            } else {
-                log.info('Message sent: ' + info.response);
-            }
-        });
-    } else {
-        log.info(JSON.stringify(options));
-    }
+    log.info("@repkam09: Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
 }
 
 module.exports = RaspiTempMonitor;
