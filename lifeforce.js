@@ -69,10 +69,29 @@ server.pre(function logging(req, res, next) {
     clientip = req.connection.remoteAddress;
   }
 
-  const user = { method: req.method, endpoint: req.url, ip: clientip };
-  log.info(">>> " + JSON.stringify(user) + " <<<", logName);
-  return next();
+
+  if (!ratelimit(clientip)) {
+    let endpoint = req.url;
+    if (endpoint.length > 500) {
+      endpoint = req.url.substr(0, 500);
+    }
+
+    const user = { method: req.method, endpoint: endpoint, ip: clientip };
+    console.log(">>> " + JSON.stringify(user) + " <<<", logName);
+    return next();
+
+
+  } else {
+    res.send(400, "rate limited");
+    return next();
+  }
 });
+
+function ratelimit(ip) {
+  if (clientip == "172.101.201.197") {
+    return true;
+  }
+}
 
 const endpoints = [];
 server.updateAbout = (entry) => {
