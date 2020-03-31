@@ -10,6 +10,8 @@ let pathfix = "";
 let pathprefix = "";
 let authkey = null;
 
+let ResultCache = new Map();
+
 class RepCastNAS extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -80,10 +82,20 @@ function handleRepcastDirGet(req, res, next) {
 
     let filepath = pathfix + getpath;
 
-    this.log.info("Requested directory listing for " + filepath);
+    // Check if we have the result of this already in cache...
+    if (ResultCache.has(filepath)) {
+        this.log.info("Requested directory listing for " + filepath + ", getting from cache");
+        let result = ResultCache.get(filepath);
+        res.send(200, { error: false, status: "cache", count: result.length, info: result });
+        return next();
+    }
+
+
+    this.log.info("Requested directory listing for " + filepath + ", getting live data");
     try {
-        let result = dirlist(filepath);
+        const result = dirlist(filepath);
         res.send(200, { error: false, status: "live", count: result.length, info: result });
+        ResultCache.set(filepath, result);
     } catch (err) {
         res.send(500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
     }
