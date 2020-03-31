@@ -91,7 +91,7 @@ server.pre(function logging(req, res, next) {
 });
 
 function ratelimit(ip) {
-  let limit = ["172.101.201.197"];
+  let limit = [];
 
   if (limit.indexOf(ip) !== -1) {
     return true;
