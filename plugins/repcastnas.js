@@ -22,6 +22,11 @@ class RepCastNAS extends LifeforcePlugin {
                 handler: handleRepcastDirGet
             },
             {
+                path: "/repcast/clearcache",
+                type: "get",
+                handler: handleResetCache
+            },
+            {
                 path: "/repcast/nas/getfiles",
                 type: "get",
                 handler: handleRepcastDirGet
@@ -60,6 +65,14 @@ class RepCastNAS extends LifeforcePlugin {
         restifyserver.get("/repcast/filesrv/*", restify.plugins.serveStaticFiles(this.config.mediamount))
     }
 }
+
+function handleResetCache(req, res, next) {
+    this.log.info("Clearing file cache");
+    ResultCache = new Map();
+    res.send(200, "OK");
+}
+
+
 
 function handleRepcastDirGet(req, res, next) {
     const header = req.headers["repka-repcast-token"];
