@@ -69,21 +69,21 @@ server.pre(function logging(req, res, next) {
     clientip = req.connection.remoteAddress;
   }
 
-
-  if (!ratelimit(clientip)) {
-    let endpoint = req.url;
-    if (endpoint.length > 500) {
-      endpoint = req.url.substr(0, 500);
-    }
-
-    const user = { method: req.method, endpoint: endpoint, ip: clientip };
-    console.log(">>> " + JSON.stringify(user) + " <<<", logName);
-    return next();
-
-  } else {
-    res.send(400, "rate limited");
-    return next();
+  let endpoint = req.url;
+  if (endpoint.length > 500) {
+    endpoint = req.url.substr(0, 500) + "...";
   }
+
+  let limit = ratelimit(clientip);
+
+  if (limit) {
+    res.send(400, "rate limited");
+  }
+
+  const user = { method: req.method, ip: clientip, limit: limit, endpoint: endpoint };
+  console.log(">>> " + JSON.stringify(user) + " <<<", logName);
+
+  return next();
 });
 
 function ratelimit(ip) {
