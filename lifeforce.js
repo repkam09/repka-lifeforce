@@ -87,7 +87,7 @@ server.pre(function logging(req, res, next) {
 });
 
 function ratelimit(ip) {
-  if (clientip == "172.101.201.197") {
+  if (ip == "172.101.201.197") {
     console.log("ratelimited" + ip);
     return true;
   }
