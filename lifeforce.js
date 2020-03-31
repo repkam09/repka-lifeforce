@@ -83,10 +83,16 @@ server.pre(function logging(req, res, next) {
   const user = { method: req.method, ip: clientip, limit: limit, endpoint: endpoint };
   console.log(">>> " + JSON.stringify(user) + " <<<", logName);
 
-  return next();
+  return next(limit);
 });
 
 function ratelimit(ip) {
+  let limit = ["172.101.201.197"];
+
+  if (limit.indexOf(ip) !== -1) {
+    return true;
+  }
+
   return false;
 }
 
