@@ -80,7 +80,6 @@ server.pre(function logging(req, res, next) {
     console.log(">>> " + JSON.stringify(user) + " <<<", logName);
     return next();
 
-
   } else {
     res.send(400, "rate limited");
     return next();
@@ -89,6 +88,7 @@ server.pre(function logging(req, res, next) {
 
 function ratelimit(ip) {
   if (clientip == "172.101.201.197") {
+    console.log("ratelimited" + ip);
     return true;
   }
 }
