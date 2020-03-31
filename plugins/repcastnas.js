@@ -81,8 +81,13 @@ function handleRepcastDirGet(req, res, next) {
     let filepath = pathfix + getpath;
 
     this.log.info("Requested directory listing for " + filepath);
-    let result = dirlist(filepath);
-    res.send(200, { error: false, status: "live", count: result.length, info: result });
+    try {
+        let result = dirlist(filepath);
+        res.send(200, { error: false, status: "live", count: result.length, info: result });
+    } catch (err) {
+        res.send(500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
+    }
+
     return next();
 }
 
