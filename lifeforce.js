@@ -28,7 +28,7 @@ log.info("Creating Restify Server...", logName);
 const server = restify.createServer({
   name: "api.repkam09.com",
   version: "1.1.0",
-  maxParamLength: 1000
+  maxParamLength: 2048
 });
 
 const cors = corsMiddleware({
