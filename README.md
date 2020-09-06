@@ -4,6 +4,12 @@ This api system is expandable with simple 'plugins' that allow me to split out a
 
 The plugins are detected, validated, and started when the main lifeforce.js is run.
 
+## Running and Debugging
+There are systemd service files included as an example, configured for my own personal usage, that allow this to be run continuously. However, testing is easier running as a standard nodejs application through vscode or directly through `node lifeforce`
+
+## Config Files
+Example config files can be found in this repository, values specific to your system will need to be added. The `config.json` file contains keys, values, paths, and other connection information. The `enabled.json` file can turn different plugins on and off both for production and testing use. 
+
 ## Current Plugins and features
 * Weather information
 * Logging service
