@@ -1,0 +1,25 @@
+{
+    "weatherapikey": "",
+    "lastfmapi": "",
+    "mediamount": "",
+    "mediaprefix": "",
+    "uploadpath": "",
+    "torrent": {
+        "host": "localhost",
+        "username": "",
+        "password": "",
+        "settings": "",
+        "port": 9091
+    },
+    "telegram": {
+        "enabled": true,
+        "token": "",
+        "chatid": "",
+        "logger": true,
+        "filepath": ""
+    },
+    "authkey": {
+        "REPCAST_APP_KEY": "",
+        "repka-repcast-token": ""
+    }
+}
