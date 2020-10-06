@@ -162,7 +162,7 @@ server.listen(16001, () => {
 function iplookup(ipaddr) {
   try {
     const geo = geoip.lookup(ipaddr);
-    return geo;
+    return geo.country;
   } catch (err) {
     log.error("Unable to get geoip lookup for " + ipaddr + " " + err.message);
     return "unknown";
