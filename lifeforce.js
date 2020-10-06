@@ -135,7 +135,7 @@ fs.readdir(pluginpath, (err, files) => {
               let temp = new plugin(server, log, plugin.name);
 
               // Attach the handlers to restify
-              temp.addHandlers();
+              temp.addHandlers(plugin.name);
 
               // Add this plugin to the list of plugins
               pluginList.push(temp);

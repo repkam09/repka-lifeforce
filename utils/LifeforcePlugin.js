@@ -9,14 +9,14 @@ class LifeforcePlugin {
         this.hasSecureHeader = hasSecureHeader;
     }
 
-    addHandlers() {
+    addHandlers(pluginname) {
         for (var i = 0; i < this.apiMap.length; i++) {
             var item = this.apiMap[i];
             var path = item.path;
             var type = item.type.toUpperCase();
             this.log.info("" + type + " - " + path + "", this.name);
             this.restifyserver[item.type](item.path, item.handler.bind(this));
-            this.restifyserver.updateAbout({ method: type, path: path, });
+            this.restifyserver.updateAbout({ method: type, path: "https://api.repkam09.com" + path, plugin: pluginname });
         }
     }
 }
