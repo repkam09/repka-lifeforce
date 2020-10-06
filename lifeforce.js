@@ -81,7 +81,7 @@ server.pre(function logging(req, res, next) {
   }
 
   const user = { method: req.method, ip: clientip, limit: limit, endpoint: endpoint };
-  console.log(">>> " + JSON.stringify(user) + " <<<", logName);
+  log.debug(">>> " + JSON.stringify(user) + " <<<", logName);
 
   if (limit) {
     return next(false);

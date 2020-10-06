@@ -118,9 +118,11 @@ function handleTempCheckinNew(req, res, next) {
             log.info("Finished processing checkin. [" + clientid + "," + temp + "]");
             res.send(200, { checkin: "OK!", clientid: clientid, temp: temp, hasError: hasError });
         } else {
+            log.warn("Temp checkin attempted, missing clientid or temp field, bad request!")
             res.send(400, "Bad Request");
         }
     } else {
+        log.warn("Temp checkin attempted, missing body, bad request!")
         res.send(400, "Bad Request");
     }
     return next();
@@ -218,6 +220,7 @@ function handleColdTemp(temp, clientid) {
 }
 
 function sendMailMessage(options) {
+    // Actually just send this to Telegram for now. Dont bother with email.
     log.info("@repkam09: Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
 }
 

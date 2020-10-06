@@ -10,9 +10,9 @@ class Weather extends LifeforcePlugin {
                 handler: handleWeatherZipCode
             },
             {
-                path: "/api/weather/current/name/:name",
+                path: "/api/weather/forecast/zip/:zip",
                 type: "get",
-                handler: handleWeatherCityName
+                handler: handleWeatherForecastZipCode
             }
         ];
 
@@ -29,9 +29,9 @@ function handleWeatherZipCode(req, res, next) {
     }
 }
 
-function handleWeatherCityName(req, res, next) {
+function handleWeatherForecastZipCode(req, res, next) {
     if (req.params.name) {
-        let url = "http://api.openweathermap.org/data/2.5/weather?q=" + req.params.name + " &appid=" + this.config.weatherapikey;
+        let url = "http://api.openweathermap.org/data/2.5/forecast?q=" + req.params.name + " &appid=" + this.config.weatherapikey;
         this.request.get(url).pipe(res);
     } else {
         res.send(400);
