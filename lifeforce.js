@@ -6,6 +6,7 @@ const corsMiddleware = require("restify-cors-middleware");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const geoip = require("geoip-country");
 
 /**
  * Set up imports from local files
@@ -80,13 +81,13 @@ server.pre(function logging(req, res, next) {
     res.send(400, "rate limited");
   }
 
-  const user = { method: req.method, ip: clientip, limit: limit, endpoint: endpoint };
-  log.debug(">>> " + JSON.stringify(user) + " <<<", logName);
+  const user = { method: req.method, ip: clientip, country: iplookup(clientip), endpoint: endpoint };
 
   if (limit) {
     return next(false);
   }
 
+  log.debug(">>> " + JSON.stringify(user) + " <<<", logName);
   return next();
 });
 
@@ -157,3 +158,13 @@ log.info("Starting Restify Server...", logName);
 server.listen(16001, () => {
   log.info(server.name + " listening at " + server.url, logName);
 });
+
+function iplookup(ipaddr) {
+  try {
+    const geo = geoip.lookup(clientip);
+    return geo;
+  } catch (err) {
+    log.error("Unable to get geoip lookup for " + ipaddr + " " + err.message);
+    return "unknown";
+  }
+}
