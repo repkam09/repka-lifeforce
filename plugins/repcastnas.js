@@ -159,6 +159,23 @@ function dirlist(filepath) {
     // get the list of files in this directory:
     let files = fs.readdirSync(filepath);
 
+    // Strip bad files from the list before even processing them
+    files = files.filter((file) => {
+
+        if (file.startsWith(".")) {
+            console.log("Skipping dotfile " + file);
+            return false;
+        }
+
+        if (file.startsWith("@eaDir")) {
+            console.log("Skipping @eaDir " + file);
+            return false;
+        }
+
+        return true;
+    })
+
+
     files.sort(function (a, b) {
         return fs.statSync(filepath + b).mtime.getTime() - fs.statSync(filepath + a).mtime.getTime();
     });
