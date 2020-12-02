@@ -29,7 +29,7 @@ log.info("Creating Restify Server...", logName);
 const server = restify.createServer({
   name: "api.repkam09.com",
   version: "1.1.0",
-  maxParamLength: 2048
+  maxParamLength: 2048,
 });
 
 const cors = corsMiddleware({
@@ -39,9 +39,9 @@ const cors = corsMiddleware({
     "http://localhost:8000",
     "http://localhost",
     "https://demo.kaspe.net",
-    "http://localhost:3000"
+    "http://localhost:3000",
   ],
-  allowHeaders: ["cache-control", "repka-repcast-token", "repka-verify"]
+  allowHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
 });
 
 server.pre(cors.preflight);
@@ -55,7 +55,7 @@ server.use(
     keepExtensions: true,
     uploadDir: tempdir,
     multiples: true,
-    hash: "md5"
+    hash: "md5",
   })
 );
 
@@ -81,13 +81,25 @@ server.pre(function logging(req, res, next) {
     res.send(400, "rate limited");
   }
 
-  const user = { method: req.method, ip: clientip, country: iplookup(clientip), endpoint: endpoint };
+  const user = {
+    method: req.method,
+    ip: clientip,
+    country: iplookup(clientip),
+    endpoint: endpoint,
+  };
 
   if (limit) {
     return next(false);
   }
 
   log.debug(">>> " + JSON.stringify(user) + " <<<", logName);
+
+  let block = blacklist(user);
+  if (block) {
+    res.send(401, "bl");
+    return next(false);
+  }
+
   return next();
 });
 
@@ -101,20 +113,28 @@ function ratelimit(ip) {
   return false;
 }
 
+function blacklist(user) {
+  let blacklist = ["RU"];
+  if (blacklist.indexOf(user.country) !== -1) {
+    return true;
+  }
+
+  return false;
+}
+
 const endpoints = [];
 server.updateAbout = (entry) => {
   endpoints.push(entry);
-}
+};
 
 server.getAbout = () => {
   return endpoints;
-}
-
+};
 
 // Go out and check the plugins list for endpoints to listen on
 const pluginList = [];
 fs.readdir(pluginpath, (err, files) => {
-  files.forEach(file => {
+  files.forEach((file) => {
     fs.stat(pluginpath + "/" + file, (err, stats) => {
       if (!stats.isDirectory()) {
         let type = path.extname(file);
@@ -125,8 +145,8 @@ fs.readdir(pluginpath, (err, files) => {
           if (!status) {
             log.debug(
               "Skipping " +
-              plugin.name +
-              " plugin because it does not have an entry in config",
+                plugin.name +
+                " plugin because it does not have an entry in config",
               logName
             );
           } else {
@@ -151,7 +171,6 @@ fs.readdir(pluginpath, (err, files) => {
     });
   });
 });
-
 
 // Startup the server
 log.info("Starting Restify Server...", logName);
