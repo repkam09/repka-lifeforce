@@ -78,7 +78,7 @@ server.pre(function logging(req, res, next) {
   let limit = ratelimit(clientip);
 
   if (limit) {
-    res.send(400, "rate limited");
+    res.send(429, "rate limited");
   }
 
   const user = {
@@ -89,6 +89,7 @@ server.pre(function logging(req, res, next) {
   };
 
   if (limit) {
+    log.debug("Ratelimited - returning 429 Too Many Requests");
     return next(false);
   }
 
@@ -96,6 +97,7 @@ server.pre(function logging(req, res, next) {
 
   let block = blacklist(user);
   if (block) {
+    log.debug("Blacklisted - returning 401 Unauthorized");
     res.send(401, "bl");
     return next(false);
   }
