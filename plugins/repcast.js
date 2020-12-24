@@ -38,7 +38,7 @@ function handleRepcastTorAdd(req, res, next) {
         const instance = new Transmission({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
         instance.addUrl(magnet, {}, function (err, result) {
             if (err) {
-                console.log(err);
+                this.log.error("Error adding torrent: " + err.message);
                 res.send(400, err);
             } else {
                 res.send(200, result);
@@ -59,13 +59,14 @@ function handleRepcastTorAddFile(req, res, next) {
         const instance = new Transmission({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
         instance.addFile(tempfile, {}, function (err, result) {
             if (err) {
-                //fs.unlink(tempfile, () => { });
-                console.log(err);
                 res.send(400, err);
+                this.log.error("Error adding torrent: " + err.message);
             } else {
-                //fs.unlink(tempfile, () => { });
                 res.send(200, result);
+                this.log.verbose("Added torrent: " + result.name);
             }
+
+            fs.unlink(tempfile, (err) => { if (err) { this.log.error("Unable to clean up file: " + tempfile) } });
         });
     } catch (err) {
         res.send(500, err.message);
