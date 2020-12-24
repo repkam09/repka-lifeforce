@@ -163,12 +163,10 @@ function dirlist(filepath) {
     files = files.filter((file) => {
 
         if (file.startsWith(".")) {
-            console.log("Skipping dotfile " + file);
             return false;
         }
 
         if (file.startsWith("@eaDir")) {
-            console.log("Skipping @eaDir " + file);
             return false;
         }
 
