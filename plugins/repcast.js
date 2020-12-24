@@ -55,15 +55,16 @@ function handleRepcastTorAddFile(req, res, next) {
     try {
         const tempfile = os.tmpdir() + "/" + uuid.v1() + ".torrent";
         fs.writeFileSync(tempfile, req.body);
+        console.log("Torrent File: " + tempfile);
 
         const instance = new Transmission({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
         instance.addFile(tempfile, {}, function (err, result) {
             if (err) {
-                fs.unlink(tempfile, () => { });
+                //fs.unlink(tempfile, () => { });
                 console.log(err);
                 res.send(400, err);
             } else {
-                fs.unlink(tempfile, () => { });
+                //fs.unlink(tempfile, () => { });
                 res.send(200, result);
             }
         });
