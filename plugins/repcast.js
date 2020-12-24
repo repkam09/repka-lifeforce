@@ -4,6 +4,8 @@ const fs = require('fs');
 const os = require("os");
 const uuid = require("uuid");
 
+let log = null;
+
 String.prototype.replaceAll = function (search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
@@ -26,6 +28,7 @@ class RepCast extends LifeforcePlugin {
         ];
 
         this.settings = this.config.torrent;
+        log = logger;
     }
 }
 
@@ -33,12 +36,12 @@ class RepCast extends LifeforcePlugin {
 function handleRepcastTorAdd(req, res, next) {
     try {
         var magnet = Buffer.from(req.params.magnet, 'base64').toString();
-        this.log.verbose("Request on toradd for " + magnet);
+        log.verbose("Request on toradd for " + magnet);
 
         const instance = new Transmission({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
         instance.addUrl(magnet, {}, function (err, result) {
             if (err) {
-                this.log.error("Error adding torrent: " + err.message);
+                log.error("Error adding torrent: " + err.message);
                 res.send(400, err);
             } else {
                 res.send(200, result);
@@ -60,13 +63,13 @@ function handleRepcastTorAddFile(req, res, next) {
         instance.addFile(tempfile, {}, function (err, result) {
             if (err) {
                 res.send(400, err);
-                this.log.error("Error adding torrent: " + err.message);
+                log.error("Error adding torrent: " + err.message);
             } else {
                 res.send(200, result);
-                this.log.verbose("Added torrent: " + result.name);
+                log.verbose("Added torrent: " + result.name);
             }
 
-            fs.unlink(tempfile, (err) => { if (err) { this.log.error("Unable to clean up file: " + tempfile) } });
+            fs.unlink(tempfile, (err) => { if (err) { log.error("Unable to clean up file: " + tempfile) } });
         });
     } catch (err) {
         res.send(500, err.message);
