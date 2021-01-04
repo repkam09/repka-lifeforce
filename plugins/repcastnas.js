@@ -174,9 +174,13 @@ function dirlist(filepath) {
     })
 
 
-    //files.sort(function (a, b) {
-    //    return fs.statSync(filepath + b).mtime.getTime() - fs.statSync(filepath + a).mtime.getTime();
-    //});
+    files.sort(function (a, b) {
+        return a.localeCompare(b, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+        });
+        //return fs.statSync(filepath + b).mtime.getTime() - fs.statSync(filepath + a).mtime.getTime();
+    });
 
     let filelist = [];
 
