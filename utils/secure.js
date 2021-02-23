@@ -1,4 +1,4 @@
-const log = require("./logger.js")
+const log = require("./logger2.js")("SecureMiddleware")
 const config = require("../config.json");
 
 function hasSecureHeader(req, res) {

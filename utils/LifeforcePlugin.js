@@ -19,6 +19,14 @@ class LifeforcePlugin {
             this.restifyserver.updateAbout({ method: type, path: "https://api.repkam09.com" + path, plugin: pluginname });
         }
     }
+
+    addSocketHandler(pluginname) {
+        if (!this.ws) {
+            return () => { };
+        }
+
+        return this.ws;
+    }
 }
 
 module.exports = LifeforcePlugin;

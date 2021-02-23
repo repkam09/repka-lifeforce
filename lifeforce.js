@@ -11,26 +11,32 @@ const geoip = require("geoip-country");
 /**
  * Set up imports from local files
  */
-const log = require("./utils/logger.js");
+const logMiddleware = require("./utils/logger2.js");
 const logName = "Lifeforce";
+const log = logMiddleware(logName);
 
 // Set the app name and some other helpful variables
 const tempdir = os.tmpdir();
 const pluginpath = "./plugins/";
 
 // This variable will contain settings and api keys that are not public
-log.info("Loading settings from config.json...", logName);
+log.info("Loading settings from config.json...");
 const settings = require("./config.json");
 
-log.info("loading enabled list from enabled.json", logName);
+log.info("loading enabled list from enabled.json");
 const enabledPlugins = require("./enabled.json");
 
-log.info("Creating Restify Server...", logName);
+log.info("Creating Restify Server...");
 const server = restify.createServer({
   name: "api.repkam09.com",
   version: "1.1.0",
   maxParamLength: 2048,
+  handleUpgrades: true
 });
+
+server.websocket = {
+  handlers: []
+};
 
 const cors = corsMiddleware({
   origins: [
@@ -93,7 +99,7 @@ server.pre(function logging(req, res, next) {
     return next(false);
   }
 
-  log.debug(">>> " + JSON.stringify(user) + " <<<", logName);
+  log.debug(">>> " + JSON.stringify(user) + " <<<");
 
   let block = blacklist(user);
   if (block) {
@@ -147,24 +153,27 @@ fs.readdir(pluginpath, (err, files) => {
           if (!status) {
             log.debug(
               "Skipping " +
-                plugin.name +
-                " plugin because it does not have an entry in config",
+              plugin.name +
+              " plugin because it does not have an entry in config",
               logName
             );
           } else {
             if (status && status.enabled) {
               // Call the plugins start method to attach the various get/post/etc
-              let temp = new plugin(server, log, plugin.name);
+              let temp = new plugin(server, logMiddleware(plugin.name), plugin.name);
 
               // Attach the handlers to restify
               temp.addHandlers(plugin.name);
+
+              // Attach socket handlers
+              const socketHandler = temp.addSocketHandler(plugin.name);
+              server.websocket.handlers.push(socketHandler);
 
               // Add this plugin to the list of plugins
               pluginList.push(temp);
             } else {
               log.debug(
-                "Skipping " + plugin.name + " plugin because it is disabled",
-                logName
+                "Skipping " + plugin.name + " plugin because it is disabled"
               );
             }
           }
@@ -175,9 +184,9 @@ fs.readdir(pluginpath, (err, files) => {
 });
 
 // Startup the server
-log.info("Starting Restify Server...", logName);
+log.info("Starting Restify Server...");
 server.listen(16001, () => {
-  log.info(server.name + " listening at " + server.url, logName);
+  log.info(server.name + " listening at " + server.url);
 });
 
 function iplookup(ipaddr) {

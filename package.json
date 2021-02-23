@@ -19,6 +19,7 @@
     "restify": "^8.5.1",
     "restify-cors-middleware": "1.1.1",
     "transmission": "^0.4.10",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "ws": "^7.4.3"
   }
 }
