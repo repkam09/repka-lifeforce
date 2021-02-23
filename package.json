@@ -8,7 +8,7 @@
   "dependencies": {
     "@auth0/s3": "^1.0.0",
     "aws-sdk": "^2.485.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "geoip-country": "^4.0.6",
     "mime-types": "^2.1.26",
     "mongodb": "^3.1.12",
