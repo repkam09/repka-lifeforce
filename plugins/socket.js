@@ -10,7 +10,7 @@ class Websocket extends LifeforcePlugin {
         super(restifyserver, logger, name);
         this.apiMap = [
             {
-                path: "/socket/ws",
+                path: "/socket/ws/:scope",
                 type: "get",
                 handler: handleSocketRegister
             },
@@ -34,26 +34,49 @@ class Websocket extends LifeforcePlugin {
         restifyserver.websocket.wss = wss;
         restifyserver.websocket.clients = new Map();
 
-        const that = this;
-
-        wss.on('connection', function connection(ws, sreq) {
+        wss.on('connection', function connection(ws, scope) {
             ws.uuid = uuid.v4();
-            log.info("Socket: Connected client " + ws.uuid);
+            ws.scope = scope;
+
+            log.info("Socket: Connected client " + ws.uuid + " on scope " + scope);
             restifyserver.websocket.clients.set(ws.uuid, { ws });
 
+            updateWebsocketPeers(restifyserver.websocket.clients, scope);
+
             restifyserver.websocket.handlers.forEach((handler) => {
-                handler.call(that, ws);
+                if (!handler.scope) {
+                    return;
+                }
+
+                if (ws.scope === handler.scope) {
+                    handler.func(ws);
+                }
             });
 
             ws.on('close', () => {
-                log.info("Socket: Disconnected client " + ws.uuid);
+                log.info("Socket: Disconnected client " + ws.uuid + " from scope " + scope);
                 restifyserver.websocket.clients.delete(ws.uuid)
+                updateWebsocketPeers(restifyserver.websocket.clients, scope);
             });
         });
 
         this.restifyserver = restifyserver;
-        this.ws = handleSocketConnection;
+        this.wsconfig = { func: handleSocketConnection, scope: "global" }
     }
+}
+
+function updateWebsocketPeers(peers, scope) {
+    const peerList = Array.from(peers.values()).filter((peer) => {
+        return (peer.ws.scope === scope);
+    });
+
+    const clients = peerList.map((peer) => {
+        return peer.ws.uuid;
+    });
+
+    peerList.forEach((peer) => {
+        peer.ws.send(JSON.stringify({ scope: scope, type: "peers", clients: clients }))
+    });
 }
 
 function handleSocketListClients(req, res, next) {
@@ -69,7 +92,7 @@ function handleSocketRegister(req, res, next) {
 
     const upgrade = res.claimUpgrade();
     wss.handleUpgrade(req, upgrade.socket, upgrade.head, (ws) => {
-        wss.emit('connection', ws, req);
+        wss.emit('connection', ws, req.params.scope);
     });
 
     next(false);
@@ -78,11 +101,8 @@ function handleSocketRegister(req, res, next) {
 
 function handleSocketConnection(socket) {
     socket.on('message', (data) => {
-        log.verbose("Socket Message Payload: " + data);
+        log.info("Socket Message Payload: " + data);
     });
-
-    const clients = Array.from(this.restifyserver.websocket.clients.keys());
-    socket.send(JSON.stringify({ type: "peers", message: "Connected Clients", clients: clients }));
 }
 
 

@@ -21,11 +21,19 @@ class LifeforcePlugin {
     }
 
     addSocketHandler(pluginname) {
-        if (!this.ws) {
-            return () => { };
+        if (!this.wsconfig) {
+            return { func: () => { }, scope: null }
         }
 
-        return this.ws;
+        if (!this.wsconfig.func) {
+            throw new Error("Plugins with a websocket config must have a handler function")
+        }
+
+        if (!this.wsconfig.scope) {
+            throw new Error("Plugins with a websocket config must have a scope defined")
+        }
+
+        return this.wsconfig;
     }
 }
 
