@@ -206,6 +206,7 @@ function dirlist(filepath) {
             jsonstruct.original = file;
             jsonstruct.mimetype = mimetype.lookup(ext);
             jsonstruct.filetype = ext;
+            jsonstruct.key = "";
 
             try {
                 jsonstruct.date = timeSince(stats.mtimeMs);
