@@ -53,7 +53,7 @@ class TelegramBot extends LifeforcePlugin {
     });
 
     if (this.config.telegram.logger) {
-      var messageSend = function(message) {
+      var messageSend = function (message) {
         messageQueue.push(message);
       };
 
@@ -61,10 +61,15 @@ class TelegramBot extends LifeforcePlugin {
 
       readyTimer = setInterval(() => {
         if (messageQueue.length > 0) {
-          this.bot.sendMessage(
-            this.config.telegram.chatid,
-            messageQueue.join("\n")
-          );
+          try {
+            this.bot.sendMessage(
+              this.config.telegram.chatid,
+              messageQueue.join("\n")
+            );
+          } catch (err) {
+            // Hopefully avoid crashing...
+            console.err("Unable to log to telegram: ", err.message);
+          }
           messageQueue = [];
         }
       }, 10000);
