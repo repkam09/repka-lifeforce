@@ -91,7 +91,11 @@ function handleTempCheckinNew(req, res, next) {
             // Check which emails if any should be triggered
             if (hasError) {
                 // Temp has dropped below threshold! Sent alert email!
-                handleColdTemp(temp, clientid);
+                try {
+                    handleColdTemp(temp, clientid);
+                } catch (err) {
+                    log.info("Unable to handleColdTeam function", err.message);
+                }
             }
 
             // Check which emails if any should be triggered
@@ -104,12 +108,17 @@ function handleTempCheckinNew(req, res, next) {
             // Update the information for the next checkin
             tempCheckinLists[clientid] = { temp: temp, error: hasError };
 
-            // Update the mongodb database with this information
-            writeTempToMongo(clientid, temp, threshold).then((resu) => {
-                log.info("Finished database update for checkin. [" + clientid + "," + temp + "]");
-            }).catch((err) => {
-                log.info("Unable to update database for checkin! [" + clientid + "," + temp + "]");
-            });
+            try {
+                // Update the mongodb database with this information
+                log.info("Starting database update. [" + clientid + "," + temp + "]");
+                writeTempToMongo(clientid, temp, threshold).then((resu) => {
+                    log.info("Finished database update for checkin. [" + clientid + "," + temp + "]");
+                }).catch((err) => {
+                    log.info("Unable to update database for checkin! [" + clientid + "," + temp + "]");
+                });
+            } catch (err) {
+                log.info("Unable to update database for checkin! Threw [" + clientid + "," + temp + "]", err.message);
+            }
 
             // Start the timer for the next checkin test
             tempCheckinTimers[clientid] = setTimeout(serverTempTimeoutNew.bind(this), timertime, clientid);
