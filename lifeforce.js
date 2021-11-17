@@ -203,7 +203,6 @@ function iplookup(ipaddr) {
     const geo = geoip.lookup(ipaddr);
     return geo.country;
   } catch (err) {
-    log.error("Unable to get geoip lookup for " + ipaddr + " " + err.message);
     return "unknown";
   }
 }
