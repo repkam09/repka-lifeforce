@@ -191,8 +191,12 @@ server.listen(16001, () => {
 
 function iplookup(ipaddr) {
   try {
-    
+
     if (ipaddr.startsWith("10.0.4.")) {
+      return "RepFi Local"
+    }
+
+    if (ipaddr.startsWith("::ffff:10.0.4")) {
       return "RepFi Local"
     }
 
