@@ -191,6 +191,11 @@ server.listen(16001, () => {
 
 function iplookup(ipaddr) {
   try {
+    
+    if (ipaddr.startsWith("10.0.4.")) {
+      return "RepFi Local"
+    }
+
     const geo = geoip.lookup(ipaddr);
     return geo.country;
   } catch (err) {
