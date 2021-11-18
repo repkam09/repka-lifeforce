@@ -20,19 +20,19 @@ function handleRsMetericsPlayerInfo(req, res, next) {
     let url = "https://apps.runescape.com/runemetrics/profile/profile?user=" + req.params.username + "&activities=20";
     this.request.get(url, (err, response, body) => {
       if (err) {
-        return this.setResponse(res, next, 500, err.message);
+        return this.setResponse(req, next, 500, err.message);
       }
 
       let parsed = JSON.parse(body);
 
       if (response.statusCode === 200) {
-        return this.setResponse(res, next, 200, parsed);
+        return this.setResponse(req, next, 200, parsed);
       }
 
-      return this.setResponse(res, next, 500, "Unexpected Response");
+      return this.setResponse(req, next, 500, "Unexpected Response");
     });
   } else {
-    return this.setResponse(res, next, 400, "Bad Request");
+    return this.setResponse(req, next, 400, "Bad Request");
   }
 }
 

@@ -106,7 +106,7 @@ function handleRepcastStats(req, res, next) {
         }
     });
 
-    return this.setResponse(res, next, 200, response.join("\n"));
+    return this.setResponse(req, next, 200, response.join("\n"));
 }
 
 function timeSince(date) {
@@ -161,9 +161,9 @@ function handleRepcastDirGet(req, res, next) {
 
     try {
         const result = dirlist(filepath);
-        return this.setResponse(res, next, 200, { error: false, status: "live", count: result.length, info: result });
+        return this.setResponse(req, next, 200, { error: false, status: "live", count: result.length, info: result });
     } catch (err) {
-        return this.setResponse(res, next, 500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
+        return this.setResponse(req, next, 500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
     }
 }
 

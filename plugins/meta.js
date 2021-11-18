@@ -69,7 +69,7 @@ function getGeoIpCountry(req, res, next) {
 }
 
 function handleAboutApi(req, res, next) {
-  return this.setResponse(res, next, 200, this.restifyserver.getAbout());
+  return this.setResponse(req, next, 200, this.restifyserver.getAbout());
 }
 
 function handleGetTest(req, res, next) {

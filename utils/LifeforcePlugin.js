@@ -10,9 +10,9 @@ class LifeforcePlugin {
         this.hasSecureHeader = hasSecureHeader;
     }
 
-    setResponse(res, callback, status, response) {
-        res.set("status", status);
-        res.set("response", response)
+    setResponse(req, callback, status, response) {
+        req.set("status", status);
+        req.set("response", response)
 
         return callback();
     }
@@ -89,8 +89,8 @@ function updateRedisCacheMiddleware(ttl) {
     return function updateRedisCache(req, res, next) {
         const key = buildKey(req);
 
-        const response = res.get("response")
-        const status = res.get("status")
+        const response = req.get("response")
+        const status = req.get("status")
 
         cache.writeCache(key, status, response, ttl).then(() => {
             return next()
@@ -99,9 +99,9 @@ function updateRedisCacheMiddleware(ttl) {
 }
 
 function sendResponseMiddleware() {
-    return function sendResponse(_req, res, _next) {
-        const response = res.get("response")
-        const status = res.get("status")
+    return function sendResponse(req, res, _next) {
+        const response = req.get("response")
+        const status = req.get("status")
         res.send(status, response);
     }
 }
