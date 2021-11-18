@@ -90,9 +90,8 @@ function handleRepcastStats(req, res, next) {
     }
 
     const commands = ["df -h", "docker ps", "who"];
-    const response = [];
 
-    commands.map((cmd) => {
+    const response = commands.map((cmd) => {
         const stdout = execSync(cmd);
 
         const output = []
