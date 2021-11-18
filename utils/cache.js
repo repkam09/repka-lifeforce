@@ -11,7 +11,7 @@ redis.on("close", () => {
     cacheReady = false;
 });
 
-function writeCache(key, status, response, ttl = 10) {
+function writeCache(key, status, response, content, ttl = 10) {
     if (!cacheReady) {
         return Promise.resolve();
     }
@@ -19,7 +19,8 @@ function writeCache(key, status, response, ttl = 10) {
     return new Promise((resolve) => {
         const data = JSON.stringify({
             status: status,
-            response: response
+            response: response,
+            content: content
         });
 
         redis.setex(key, ttl, data).then(() => {
