@@ -80,6 +80,11 @@ function checkRedisCacheMiddleware(logger) {
             }
 
             logger.info("Cache: " + key);
+
+            if (result.content) {
+                res.set("content-type", result.content);
+            }
+
             res.send(result.status, result.response);
             return;
         })

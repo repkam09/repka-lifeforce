@@ -88,7 +88,7 @@ function readCache(key) {
 
             try {
                 const json = JSON.parse(result);
-                return resolve({ hasCache: true, status: json.status, response: json.response });
+                return resolve({ hasCache: true, status: json.status, response: json.response, content: json.content });
             } catch (err) {
                 console.err("Error parsing response for ", key, err.message);
                 return resolve({ hasCache: false })
