@@ -106,6 +106,7 @@ function handleRepcastStats(req, res, next) {
         }
     });
 
+    res.set("content-type", "plain/text");
     return this.setResponse(req, next, 200, response.join("\n"));
 }
 
