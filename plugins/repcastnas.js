@@ -6,6 +6,7 @@ const fs = require("fs");
 const querystring = require("querystring");
 const mimetype = require("mime-types");
 const path = require("path");
+const { execSync } = require('child_process');
 
 let pathfix = "";
 let pathprefix = "";
@@ -25,6 +26,12 @@ class RepCastNAS extends LifeforcePlugin {
                 path: "/repcast/clearcache",
                 type: "get",
                 handler: handleResetCache
+            },
+            {
+                path: "/repcast/stats",
+                type: "get",
+                handler: handleRepcastStats,
+                cacheTTL: 120
             },
             {
                 path: "/repcast/nas/getfiles",
@@ -73,6 +80,30 @@ function handleResetCache(req, res, next) {
     cache.deleteCacheKeysByPrefix("/repcast/nas/getfiles/*").then(() => {
         res.send(200, "OK");
     })
+}
+
+function handleRepcastStats(req, res, next) {
+    const header = req.headers["repka-repcast-token"];
+    if (!header || (header !== authkey)) {
+        res.send(401, "Bad Auth");
+        return;
+    }
+
+    const commands = ["df -h", "docker ps", "who"];
+    const response = [];
+
+    commands.map((cmd) => {
+        const stdout = execSync(cmd);
+
+        const output = []
+        output.push(">>>" + cmd);
+        output.push(stdout);
+        output.push("\n");
+
+        return output.join("\n");
+    });
+
+    return this.setResponse(res, next, 200, response.join("\n"));
 }
 
 function timeSince(date) {
