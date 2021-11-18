@@ -14,7 +14,7 @@
     "mime-types": "^2.1.26",
     "mongodb": "^3.1.12",
     "node-telegram-bot-api": "^0.40.0",
-    "nodemailer": "^4.1.2",
+    "nodemailer": "^6.4.16",
     "nodemon": "^2.0.15",
     "path": "^0.12.7",
     "request": "^2.88.2",
