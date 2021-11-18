@@ -85,6 +85,7 @@ function checkRedisCacheMiddleware(logger) {
                 res.set("content-type", result.content);
             }
 
+            res.set("x-lifeforce-cache", "true");
             res.send(result.status, result.response);
             return;
         })
