@@ -1,6 +1,7 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
 const exampleRepcast = require("../static/example_repcast.json");
 const restify = require("restify");
+const cache = require("../utils/cache");
 const fs = require("fs");
 const querystring = require("querystring");
 const mimetype = require("mime-types");
@@ -10,8 +11,6 @@ let pathfix = "";
 let pathprefix = "";
 let authkey = null;
 
-let ResultCache = new Map();
-
 class RepCastNAS extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -19,7 +18,8 @@ class RepCastNAS extends LifeforcePlugin {
             {
                 path: "/repcast/nas/getfiles/:filepath",
                 type: "get",
-                handler: handleRepcastDirGet
+                handler: handleRepcastDirGet,
+                cacheTTL: 86400
             },
             {
                 path: "/repcast/clearcache",
@@ -29,17 +29,20 @@ class RepCastNAS extends LifeforcePlugin {
             {
                 path: "/repcast/nas/getfiles",
                 type: "get",
-                handler: handleRepcastDirGet
+                handler: handleRepcastDirGet,
+                cacheTTL: 86400
             },
             {
                 path: "/repcast/spaces/getfiles",
                 type: "get",
-                handler: handleRepcastDirGet
+                handler: handleRepcastDirGet,
+                cacheTTL: 86400
             },
             {
                 path: "/repcast/spaces/getfiles/:filepath",
                 type: "get",
-                handler: handleRepcastDirGet
+                handler: handleRepcastDirGet,
+                cacheTTL: 86400
             }
         ];
 
@@ -67,9 +70,9 @@ class RepCastNAS extends LifeforcePlugin {
 }
 
 function handleResetCache(req, res, next) {
-    this.log.info("Clearing file cache");
-    ResultCache = new Map();
-    res.send(200, "OK");
+    cache.deleteCacheKeysByPrefix("/repcast/nas/getfiles/*").then(() => {
+        res.send(200, "OK");
+    })
 }
 
 function timeSince(date) {
@@ -120,26 +123,14 @@ function handleRepcastDirGet(req, res, next) {
     }
 
     let filepath = pathfix + getpath;
-
-    // Check if we have the result of this already in cache...
-    if (ResultCache.has(filepath)) {
-        this.log.info("Requested directory listing for " + filepath + ", getting from cache");
-        let result = ResultCache.get(filepath);
-        res.send(200, { error: false, status: "cache", count: result.length, info: result });
-        return next();
-    }
-
-
     this.log.info("Requested directory listing for " + filepath + ", getting live data");
+
     try {
         const result = dirlist(filepath);
-        res.send(200, { error: false, status: "live", count: result.length, info: result });
-        ResultCache.set(filepath, result);
+        return this.setResponse(res, next, 200, { error: false, status: "live", count: result.length, info: result });
     } catch (err) {
-        res.send(500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
+        return this.setResponse(res, next, 500, { error: true, status: "error", count: 0, info: [], details: "Error while getting file list" });
     }
-
-    return next();
 }
 
 const walk = (dir) => {

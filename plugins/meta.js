@@ -11,12 +11,14 @@ class MetaEndpoints extends LifeforcePlugin {
       {
         path: "/api/about",
         type: "get",
-        handler: handleAboutApi
+        handler: handleAboutApi,
+        cacheTTL: 86400
       },
       {
         path: "/",
         type: "get",
-        handler: handleAboutApi
+        handler: handleAboutApi,
+        cacheTTL: 86400
       },
       {
         path: "/api/gettest",
@@ -50,7 +52,7 @@ function handleGetIp(req, res, next) {
     clientip = req.connection.remoteAddress;
   }
   res.send(200, { ip: clientip });
-  next();
+  return next();
 }
 
 function getGeoIpCountry(req, res, next) {
@@ -63,11 +65,11 @@ function getGeoIpCountry(req, res, next) {
 
   var geo = geoip.lookup(clientip);
   res.send(200, { geodata: geo });
-  next();
+  return next();
 }
 
 function handleAboutApi(req, res, next) {
-  res.send(200, this.restifyserver.getAbout());
+  return this.setResponse(res, next, 200, this.restifyserver.getAbout());
 }
 
 function handleGetTest(req, res, next) {

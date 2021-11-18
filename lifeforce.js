@@ -52,6 +52,7 @@ const cors = corsMiddleware({
 
 server.pre(cors.preflight);
 server.use(cors.actual);
+server.pre(restify.plugins.pre.context());
 server.use(restify.plugins.authorizationParser());
 server.use(
   restify.plugins.bodyParser({
@@ -103,7 +104,6 @@ server.pre(function logging(req, res, next) {
 
   let block = blacklist(user);
   if (block) {
-    log.debug("Blacklisted - returning 401 Unauthorized");
     res.send(401, "bl");
     return next(false);
   }
