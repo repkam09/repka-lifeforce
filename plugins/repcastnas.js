@@ -92,14 +92,18 @@ function handleRepcastStats(req, res, next) {
     const commands = ["df -h", "docker ps", "who"];
 
     const response = commands.map((cmd) => {
-        const stdout = execSync(cmd);
+        try {
+            const stdout = execSync(cmd);
 
-        const output = []
-        output.push(">>>" + cmd);
-        output.push(stdout);
-        output.push("\n");
+            const output = []
+            output.push(">>>" + cmd);
+            output.push(stdout);
+            output.push("\n");
 
-        return output.join("\n");
+            return output.join("\n");
+        } catch (err) {
+            return "Error: " + cmd + ": " + err.message;
+        }
     });
 
     return this.setResponse(res, next, 200, response.join("\n"));
