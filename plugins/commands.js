@@ -12,6 +12,8 @@ const commands = {
     }
 }
 
+let authkey = null;
+
 class Commands extends LifeforcePlugin {
     constructor(restifyserver, logger, name) {
         super(restifyserver, logger, name);
@@ -24,6 +26,7 @@ class Commands extends LifeforcePlugin {
             }
         ];
 
+        authkey = this.config.authkey.REPCAST_APP_KEY;
     }
 }
 
