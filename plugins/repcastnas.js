@@ -195,6 +195,14 @@ function dirlist(filepath) {
             return false;
         }
 
+        if (file.endsWith(".bak")) {
+            return false;
+        }
+
+        if (file.endsWith(".nfo")) {
+            return false;
+        }
+
         return true;
     })
 
