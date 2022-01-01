@@ -78,12 +78,15 @@ class RepCastNAS extends LifeforcePlugin {
 
 function handleResetCache(req, res, next) {
     cache.deleteCacheKeysByPrefix("/repcast/nas/getfiles/*").then(() => {
-        res.send(200, "OK");
+        console.log("Cleared /repcast/nas/getfiles/*")
     })
 
     cache.deleteCacheKeysByPrefix("/repcast/spaces/getfiles/*").then(() => {
-        res.send(200, "OK");
+        console.log("Cleared /repcast/spaces/getfiles/*")
     })
+
+
+    res.send(200, "OK")
 }
 
 function handleRepcastStats(req, res, next) {
