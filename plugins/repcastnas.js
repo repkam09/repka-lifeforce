@@ -80,6 +80,10 @@ function handleResetCache(req, res, next) {
     cache.deleteCacheKeysByPrefix("/repcast/nas/getfiles/*").then(() => {
         res.send(200, "OK");
     })
+
+    cache.deleteCacheKeysByPrefix("/repcast/spaces/getfiles/*").then(() => {
+        res.send(200, "OK");
+    })
 }
 
 function handleRepcastStats(req, res, next) {
