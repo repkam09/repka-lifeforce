@@ -15,7 +15,7 @@
     "enabled": true,
     "token": "",
     "chatid": "",
-    "logger": true,
+    "logger": false,
     "filepath": ""
   },
   "authkey": {
@@ -23,7 +23,10 @@
     "repka-repcast-token": ""
   },
   "tempmonitor": {
-    "emailstringrepka": "example@repkam09.com",
-    "emailstring": "example@repkam09.com"
+    "emailstring": "example@repkam09.com",
+    "account": {
+      "username": "example@repkam09.com",
+      "password": ""
+    }
   }
 }

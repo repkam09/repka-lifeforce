@@ -1,10 +1,12 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
+const nodemailer = require("nodemailer");
 
 const threshold = 45;
 const timertime = 2000000;
 
 let settings = null;
 let log = null;
+let transport = null;
 
 let tempCheckinLists = {};
 let tempCheckinTimers = {};
@@ -36,6 +38,16 @@ class RaspiTempMonitor extends LifeforcePlugin {
         // Grab the subset of settings we actually want
         settings = this.config.tempmonitor;
         this.timerfunc = null;
+
+        transport = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: settings.account.username,
+                pass: settings.account.password,
+            },
+        });
+
+
     }
 }
 
@@ -198,10 +210,19 @@ function serverTempTimeoutNew(clientid) {
     var currentTime = new Date();
 
     var powerInternetMail = {
-        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstringrepka, // list of receivers
+        from: 'Mark Repka <repkam09@gmail.com>', // sender address
+        to: settings.emailstring, // list of receivers
         subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
-        text: 'Hello! \nThis is an alert that the tempreature monitoring system for ' + clientid + ' has missed a status report.\nThis might mean that the system cannot access the internet or has powered off unexpectedly'
+        text: `Tempreature Monitor Alert! 
+
+        Name: ${clientid}
+        Time: ${currentTime}
+
+        This is an alert that the client ${clientid} missed a scheduled checkin. This might mean that the system cannot access the internet or has powered off unexpectedly!
+        Please try and verify this. 
+        
+        This is an automated message
+        `
     };
 
     sendMailMessage(powerInternetMail);
@@ -212,25 +233,34 @@ function handleColdTemp(temp, clientid) {
     var currentTime = new Date();
 
     var emailoptions = {
-        from: 'Temp Monitor <raspitempmon@gmail.com>', // sender address
-        to: settings.emailstringrepka, // list of receivers
+        from: 'Mark Repka <repkam09@gmail.com>', // sender address
+        to: settings.emailstring, // list of receivers
         subject: `Cold Temp Alert - ${clientid} - ${currentTime}`,
-        text: `Alert! 
+        text: `Tempreature Monitor Alert! 
 
         Name: ${clientid}
         Temp: ${temp}
         Time: ${currentTime}
 
         This is an alert that the checkin for ${clientid} was ${temp}. This is below the warning threshold of ${threshold}! 
-        Please try and verify that this reading is correct!`
+        Please try and verify that this reading is correct!
+        
+        This is an automated message
+        `
     };
 
     sendMailMessage(emailoptions);
 }
 
 function sendMailMessage(options) {
-    // Actually just send this to Telegram for now. Dont bother with email.
-    log.info("@repkam09: Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
+    log.info("Sending email message to " + settings.emailstring + " with " + JSON.stringify(options));
+    try {
+        transport.sendMail(options).then((info) => {
+            log.info("Mail Response: " + JSON.stringify(info));
+        })
+    } catch (err) {
+        log.info("Mail Response Error: " + JSON.stringify(err.message));
+    }
 }
 
 module.exports = RaspiTempMonitor;
