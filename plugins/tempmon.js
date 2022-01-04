@@ -27,6 +27,11 @@ class RaspiTempMonitor extends LifeforcePlugin {
                 handler: handleGetTempHistory
             },
             {
+                path: "/api/temp/remove/:clientid",
+                type: "get",
+                handler: handleRemoveClient
+            },
+            {
                 path: "/api/temp/clients",
                 type: "get",
                 handler: handleGetClients
@@ -63,6 +68,42 @@ function handleGetTempHistory(req, res, next) {
             res.send(200, result);
             return next();
         });
+    } else {
+        res.send(400, "Bad Request");
+        return next();
+    }
+}
+
+function handleRemoveClient(req, res, next) {
+    if (req.params && req.params.clientid) {
+        const clientId = req.params.clientid;
+        this.log.info("Requesting removal for clientId: " + clientId);
+
+        try {
+
+            if (tempCheckinLists[clientId]) {
+                // Remove the last entry
+                delete tempCheckinLists[clientId];
+            } else {
+                this.log.info("Requested client " + clientId + " does not exist");
+                res.send(400, "Bad Request");
+                return next();
+            }
+
+            if (tempCheckinTimers[clientId]) {
+                clearTimeout(tempCheckinTimers[clientId]);
+                delete tempCheckinTimers[clientId];
+            }
+
+            this.log.info("Removed entries for client: " + clientId);
+            res.send(200, { error: false, data: "Removed tracking for " + clientId });
+            return next();
+
+        } catch (err) {
+            res.send(500, { error: true, details: err.message });
+            return next();
+        }
+
     } else {
         res.send(400, "Bad Request");
         return next();
@@ -156,23 +197,27 @@ function writeTempToMongo(clientid, temp, threshold) {
     log.info("Starting writeTempToMongo for " + clientid);
 
     return new Promise((resolve, reject) => {
-        mongoClient.connect(mongoConnect, { useNewUrlParser: true }, (err, db) => {
-            if (err) {
-                reject(err);
-            }
-
-            let dbo = db.db("tempmon");
-            let payload = { clientid, temp, threshold, checkinTime: new Date() };
-
-            dbo.collection("temphistory").insertOne(payload, (err, res) => {
+        try {
+            mongoClient.connect(mongoConnect, { useNewUrlParser: true }, (err, db) => {
                 if (err) {
-                    reject(err);
+                    return reject(err);
                 }
 
-                db.close();
-                resolve(res);
+                let dbo = db.db("tempmon");
+                let payload = { clientid, temp, threshold, checkinTime: new Date() };
+
+                dbo.collection("temphistory").insertOne(payload, (err, res) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    db.close();
+                    return resolve(res);
+                });
             });
-        });
+        } catch (err) {
+            return reject(err);
+        }
     });
 }
 
