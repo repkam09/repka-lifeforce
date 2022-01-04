@@ -251,7 +251,7 @@ function getDataFromMongo(clientid) {
 
 
 function serverTempTimeoutNew(clientid) {
-    this.log.info("Error: client " + clientid + " timeout passed");
+    log.info("[" + clientid + "] Error: Timeout Alert");
     var currentTime = new Date();
 
     var powerInternetMail = {
