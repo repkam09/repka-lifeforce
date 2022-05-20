@@ -1,7 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
-
-var fs = require('fs');
-var pdf = require('html-pdf');
+const pdf = require('html-pdf');
 
 class FileConverter extends LifeforcePlugin {
   constructor(restifyserver, logger, name) {
@@ -20,15 +18,19 @@ function handleHtmlToPDF(req, res, next) {
   var html = req.body;
   var options = { format: 'Letter' };
 
-  pdf.create(html, options).toStream(function (err, stream) {
-    if (err) {
-      res.send(err.message);
-      return next();
-    }
+  try {
+    pdf.create(html, options).toStream(function (err, stream) {
+      if (err) {
+        res.send(err.message);
+        return next();
+      }
 
-    stream.pipe(res);
-    return next()
-  });
+      stream.pipe(res);
+      return next();
+    });
+  } catch (err) {
+    return next(err);
+  }
 
 }
 
