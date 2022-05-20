@@ -21,14 +21,16 @@ function handleHtmlToPDF(req, res, next) {
   try {
     pdf.create(html, options).toStream(function (err, stream) {
       if (err) {
-        res.send(err.message);
-        return next();
+        console.log("Got to here bad")
+        return next(err);
       }
 
+      console.log("Got to here good")
       stream.pipe(res);
       return next();
     });
   } catch (err) {
+    console.log("Got to here extra bad")
     return next(err);
   }
 
