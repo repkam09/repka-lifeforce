@@ -19,7 +19,7 @@ function handleHtmlToPDF(req, res, next) {
   var options = { format: 'Letter' };
 
   try {
-    pdf.create(html, options).toStream(function (err, stream) {
+    pdf.create(html, options).toStream((err, stream) => {
       if (err) {
         console.log("Got to here bad")
         return next(err);
@@ -27,7 +27,6 @@ function handleHtmlToPDF(req, res, next) {
 
       console.log("Got to here good")
       stream.pipe(res);
-      return next();
     });
   } catch (err) {
     console.log("Got to here extra bad")
