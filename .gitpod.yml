@@ -3,16 +3,7 @@
 # and commit this file to your remote git repository to share the goodness with others.
 
 tasks:
-  - name: Setup Config
-    init: yarn run gitpod:default-config
-
-  - name: Setup Enabled
-    init: yarn run gitpod:default-enabled
-
-  - name: Yarn Install
-    init: yarn install
-    
-  - name: Start Lifeforce
+  - init: yarn run gitpod:default-config && yarn run gitpod:default-enabled && yarn install
     command: yarn run start
 ports:
   - port: 16001
