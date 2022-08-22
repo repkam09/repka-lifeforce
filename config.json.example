@@ -4,6 +4,7 @@
   "mediamount": "",
   "mediaprefix": "",
   "uploadpath": "",
+  "redis": false,
   "torrent": {
     "host": "localhost",
     "username": "",

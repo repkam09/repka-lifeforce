@@ -1,15 +1,19 @@
 const Redis = require("ioredis");
-const redis = new Redis();
-
 let cacheReady = false;
 
-redis.on("ready", () => {
-    cacheReady = true;
-});
+function cacheInit() {
+    const redis = new Redis();
 
-redis.on("close", () => {
-    cacheReady = false;
-});
+    
+    redis.on("ready", () => {
+        cacheReady = true;
+    });
+    
+    redis.on("close", () => {
+        cacheReady = false;
+    });z
+}
+
 
 function writeCache(key, status, response, content, ttl = 10) {
     if (!cacheReady) {
@@ -106,5 +110,6 @@ module.exports = {
     readCache,
     writeCache,
     deleteCacheKey,
-    deleteCacheKeysByPrefix
+    deleteCacheKeysByPrefix,
+    cacheInit
 }
