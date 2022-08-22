@@ -16,4 +16,4 @@ tasks:
     command: yarn run start
 ports:
   - port: 16001
-    visibility: private
+    visibility: public
