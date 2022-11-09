@@ -12,6 +12,7 @@ const geoip = require("geoip-country");
  * Set up imports from local files
  */
 const logMiddleware = require("./utils/logger2.js");
+const cache = require("./utils/cache");
 const logName = "Lifeforce";
 const log = logMiddleware(logName);
 
@@ -25,6 +26,13 @@ const settings = require("./config.json");
 
 log.info("loading enabled list from enabled.json");
 const enabledPlugins = require("./enabled.json");
+
+if (settings.redis) {
+  log.info("redis cache enabled");
+  cache.cacheInit()
+} else {
+  log.info("redis cache disabled");
+}
 
 log.info("Creating Restify Server...");
 const server = restify.createServer({

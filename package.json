@@ -10,6 +10,7 @@
     "aws-sdk": "^2.485.0",
     "axios": "^0.19.2",
     "geoip-country": "^4.0.6",
+    "html-pdf": "^3.0.1",
     "ioredis": "^4.28.0",
     "mime-types": "^2.1.26",
     "mongodb": "^3.1.12",
@@ -17,7 +18,7 @@
     "nodemailer": "^4.1.2",
     "path": "^0.12.7",
     "request": "^2.88.2",
-    "restify": "^8.5.1",
+    "restify": "^8.6.1",
     "restify-cors-middleware": "1.1.1",
     "transmission": "^0.4.10",
     "uuid": "^8.3.2",
@@ -25,9 +26,12 @@
   },
   "scripts": {
     "geoupdate": "node ./node_modules/geoip-country/scripts/updatedb.js",
-    "start": "nodemon lifeforce.js"
+    "start": "nodemon lifeforce.js",
+    "gitpod:default-config": "cp config.json.example config.json",
+    "gitpod:default-enabled": "cp enabled.json.example enabled.json"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
-  }
+  },
+  "packageManager": "yarn@3.2.4"
 }

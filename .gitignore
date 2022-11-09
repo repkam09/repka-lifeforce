@@ -6,3 +6,4 @@ config.json
 /temp/*
 enabled.json
 proxy.json
+.yarn/*
