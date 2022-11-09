@@ -7,12 +7,14 @@ class Weather extends LifeforcePlugin {
             {
                 path: "/api/weather/current/zip/:zip",
                 type: "get",
-                handler: handleWeatherZipCode
+                handler: handleWeatherZipCode,
+                cacheTTL: 120
             },
             {
                 path: "/api/weather/forecast/zip/:zip",
                 type: "get",
-                handler: handleWeatherForecastZipCode
+                handler: handleWeatherForecastZipCode,
+                cacheTTL: 1200
             }
         ];
 
