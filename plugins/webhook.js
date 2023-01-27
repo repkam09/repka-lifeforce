@@ -11,12 +11,27 @@ class Webhook extends LifeforcePlugin {
                 path: "/api/github",
                 type: "post",
                 handler: handleWebhookGithub
-            }
+            },
+            {
+              path: "/api/twilio",
+              type: "post",
+              handler: handleWebhookTwilio
+          }
         ];
 
         this.updaters = this.config.webhooks;
         log = logger;
     }
+}
+
+function handleWebhookTwilio(req, res, next) {
+  if (req.body) {
+      var webhook = req.body;
+      console.log("Raw Twilio Webhook: " + JSON.stringify(webhook));
+      res.send(200);
+  } else {
+      res.send(400);
+  }
 }
 
 function handleWebhookGithub(req, res, next) {
