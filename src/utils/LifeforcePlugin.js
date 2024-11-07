@@ -12,8 +12,8 @@ class LifeforcePlugin {
 
     setResponse(req, callback, status, response, content) {
         req.set("status", status);
-        req.set("response", response)
-        req.set("content", content)
+        req.set("response", response);
+        req.set("content", content);
 
         return callback();
     }
@@ -45,15 +45,15 @@ class LifeforcePlugin {
 
     addSocketHandler(pluginname) {
         if (!this.wsconfig) {
-            return { func: () => { }, scope: null }
+            return { func: () => { }, scope: null };
         }
 
         if (!this.wsconfig.func) {
-            throw new Error("Plugins with a websocket config must have a handler function")
+            throw new Error("Plugins with a websocket config must have a handler function");
         }
 
         if (!this.wsconfig.scope) {
-            throw new Error("Plugins with a websocket config must have a scope defined")
+            throw new Error("Plugins with a websocket config must have a scope defined");
         }
 
         return this.wsconfig;
@@ -61,7 +61,7 @@ class LifeforcePlugin {
 }
 
 function buildKey(req) {
-    const header = req.headers["repka-repcast-token"] || "null"
+    const header = req.headers["repka-repcast-token"] || "null";
     const path = req.getPath();
     const query = req.getQuery() || "null";
 
@@ -88,33 +88,33 @@ function checkRedisCacheMiddleware(logger) {
             res.set("x-lifeforce-cache", "true");
             res.send(result.status, result.response);
             return;
-        })
-    }
+        });
+    };
 }
 
 function updateRedisCacheMiddleware(ttl) {
     return function updateRedisCache(req, res, next) {
         const key = buildKey(req);
 
-        const response = req.get("response")
-        const status = req.get("status")
+        const response = req.get("response");
+        const status = req.get("status");
         const content = req.get("content") || "application/json";
 
         cache.writeCache(key, status, response, content, ttl).then(() => {
-            return next()
+            return next();
         });
-    }
+    };
 }
 
 function sendResponseMiddleware() {
     return function sendResponse(req, res, _next) {
-        const response = req.get("response")
-        const status = req.get("status")
+        const response = req.get("response");
+        const status = req.get("status");
         const content = req.get("content") || "application/json";
 
         res.set("content-type", content);
         res.send(status, response);
-    }
+    };
 }
 
 module.exports = LifeforcePlugin;

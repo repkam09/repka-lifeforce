@@ -45,7 +45,7 @@ class RaspiTempMonitor extends LifeforcePlugin {
         this.timerfunc = null;
 
         transport = nodemailer.createTransport({
-            service: 'gmail',
+            service: "gmail",
             auth: {
                 user: settings.account.username,
                 pass: settings.account.password,
@@ -180,11 +180,11 @@ function handleTempCheckinNew(req, res, next) {
             log.info("Finished processing checkin. [" + clientid + "," + temp + "]");
             res.send(200, { checkin: "OK!", clientid: clientid, temp: temp, hasError: hasError });
         } else {
-            log.warn("Temp checkin attempted, missing clientid or temp field, bad request!")
+            log.warn("Temp checkin attempted, missing clientid or temp field, bad request!");
             res.send(400, "Bad Request");
         }
     } else {
-        log.warn("Temp checkin attempted, missing body, bad request!")
+        log.warn("Temp checkin attempted, missing body, bad request!");
         res.send(400, "Bad Request");
     }
     return next();
@@ -236,7 +236,7 @@ function getDataFromMongo(clientid) {
                 log.info("Mongo: Connected to mongodb instance");
                 try {
                     const db = client.db("tempmon");
-                    db.collection('temphistory').find({ clientid: clientid }).sort({ $natural: -1 }).limit(resultlimit).toArray((err, result) => {
+                    db.collection("temphistory").find({ clientid: clientid }).sort({ $natural: -1 }).limit(resultlimit).toArray((err, result) => {
                         log.info("Mongo: Returning results to client");
                         resolve(result);
                     });
@@ -255,9 +255,9 @@ function serverTempTimeoutNew(clientid) {
     var currentTime = new Date();
 
     var powerInternetMail = {
-        from: 'Mark Repka <repkam09@gmail.com>', // sender address
+        from: "Mark Repka <repkam09@gmail.com>", // sender address
         to: settings.emailstring, // list of receivers
-        subject: 'Possible Power or Internet Failure - pitempmon - ' + currentTime, // Subject line
+        subject: "Possible Power or Internet Failure - pitempmon - " + currentTime, // Subject line
         text: `Tempreature Monitor Alert! 
 
         Name: ${clientid}
@@ -278,7 +278,7 @@ function handleColdTemp(temp, clientid) {
     var currentTime = new Date();
 
     var emailoptions = {
-        from: 'Mark Repka <repkam09@gmail.com>', // sender address
+        from: "Mark Repka <repkam09@gmail.com>", // sender address
         to: settings.emailstring, // list of receivers
         subject: `Cold Temp Alert - ${clientid} - ${currentTime}`,
         text: `Tempreature Monitor Alert! 
@@ -302,7 +302,7 @@ function sendMailMessage(options) {
     try {
         transport.sendMail(options).then((info) => {
             log.info("Mail Response: " + JSON.stringify(info));
-        })
+        });
     } catch (err) {
         log.info("Mail Response Error: " + JSON.stringify(err.message));
     }

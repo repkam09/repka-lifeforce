@@ -1,4 +1,4 @@
-const config = require('../config.json');
+const config = require("../config.json");
 
 let callbacks = [];
 
@@ -33,8 +33,8 @@ module.exports = function CreateLoggerMiddleware(prefix = "") {
         registerCallback: (newFunction) => {
             callbacks.push(newFunction);
         }
-    }
-}
+    };
+};
 
 function printer(message) {
     console.log(message);

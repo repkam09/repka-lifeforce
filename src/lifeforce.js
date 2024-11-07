@@ -29,7 +29,7 @@ const enabledPlugins = require("./enabled.json");
 
 if (settings.redis) {
   log.info("redis cache enabled");
-  cache.cacheInit()
+  cache.cacheInit();
 } else {
   log.info("redis cache disabled");
 }
@@ -52,7 +52,6 @@ const cors = corsMiddleware({
     "http://localhost:8080",
     "http://localhost:8000",
     "http://localhost",
-    "https://demo.kaspe.net",
     "http://localhost:3000",
   ],
   allowHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
@@ -201,11 +200,11 @@ function iplookup(ipaddr) {
   try {
 
     if (ipaddr.startsWith("10.0.4.")) {
-      return "RepFi Local"
+      return "RepFi Local";
     }
 
     if (ipaddr.startsWith("::ffff:10.0.4")) {
-      return "RepFi Local"
+      return "RepFi Local";
     }
 
     const geo = geoip.lookup(ipaddr);

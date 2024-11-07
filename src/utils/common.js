@@ -6,7 +6,7 @@ const createResponses = {
         tempObjectResponse.error = { status: false, message: null };
         tempObjectResponse.payload = payload;
         tempObjectResponse.service = service;
-        return tempObjectResponse
+        return tempObjectResponse;
     },
 
     createCommonErrorResponse: function (payload, service, errorMessage) {
@@ -14,8 +14,8 @@ const createResponses = {
         tempObjectResponse.error = { status: true, message: errorMessage };
         tempObjectResponse.payload = payload;
         tempObjectResponse.service = service;
-        return tempObjectResponse
+        return tempObjectResponse;
     }
-}
+};
 
 module.exports = createResponses;

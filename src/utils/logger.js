@@ -1,5 +1,5 @@
-const config = require('../config.json');
-const fs = require('fs');
+const config = require("../config.json");
+const fs = require("fs");
 
 let callbacks = [];
 
@@ -33,7 +33,7 @@ let MyLogger = {
     registerCallback: (newFunction) => {
         callbacks.push(newFunction);
     }
-}
+};
 
 module.exports = MyLogger;
 

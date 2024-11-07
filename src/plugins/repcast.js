@@ -1,6 +1,6 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
-const Transmission = require('transmission');
-const fs = require('fs');
+const Transmission = require("transmission");
+const fs = require("fs");
 const os = require("os");
 const uuid = require("uuid");
 
@@ -35,7 +35,7 @@ class RepCast extends LifeforcePlugin {
 
 function handleRepcastTorAdd(req, res, next) {
     try {
-        var magnet = Buffer.from(req.params.magnet, 'base64').toString();
+        var magnet = Buffer.from(req.params.magnet, "base64").toString();
         log.verbose("Request on toradd for " + magnet);
 
         const instance = new Transmission({ port: this.settings.port, host: this.settings.host, username: this.settings.username, password: this.settings.password });
@@ -69,7 +69,7 @@ function handleRepcastTorAddFile(req, res, next) {
                 log.verbose("Added torrent: " + result.name);
             }
 
-            fs.unlink(tempfile, (err) => { if (err) { log.error("Unable to clean up file: " + tempfile) } });
+            fs.unlink(tempfile, (err) => { if (err) { log.error("Unable to clean up file: " + tempfile); } });
         });
     } catch (err) {
         res.send(500, err.message);

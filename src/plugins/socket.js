@@ -1,5 +1,5 @@
 const LifeforcePlugin = require("../utils/LifeforcePlugin.js");
-const WebSocket = require('ws');
+const WebSocket = require("ws");
 const uuid = require("uuid");
 
 let wss = null;
@@ -34,7 +34,7 @@ class Websocket extends LifeforcePlugin {
         restifyserver.websocket.wss = wss;
         restifyserver.websocket.clients = new Map();
 
-        wss.on('connection', function connection(ws, scope) {
+        wss.on("connection", function connection(ws, scope) {
             ws.uuid = uuid.v4();
             ws.scope = scope;
 
@@ -53,15 +53,15 @@ class Websocket extends LifeforcePlugin {
                 }
             });
 
-            ws.on('close', () => {
+            ws.on("close", () => {
                 log.info("Socket: Disconnected client " + ws.uuid + " from scope " + scope);
-                restifyserver.websocket.clients.delete(ws.uuid)
+                restifyserver.websocket.clients.delete(ws.uuid);
                 updateWebsocketPeers(restifyserver.websocket.clients, scope);
             });
         });
 
         this.restifyserver = restifyserver;
-        this.wsconfig = { func: handleSocketConnection, scope: "global" }
+        this.wsconfig = { func: handleSocketConnection, scope: "global" };
     }
 }
 
@@ -75,7 +75,7 @@ function updateWebsocketPeers(peers, scope) {
     });
 
     peerList.forEach((peer) => {
-        peer.ws.send(JSON.stringify({ scope: scope, type: "peers", clients: clients }))
+        peer.ws.send(JSON.stringify({ scope: scope, type: "peers", clients: clients }));
     });
 }
 
@@ -92,7 +92,7 @@ function handleSocketRegister(req, res, next) {
 
     const upgrade = res.claimUpgrade();
     wss.handleUpgrade(req, upgrade.socket, upgrade.head, (ws) => {
-        wss.emit('connection', ws, req.params.scope);
+        wss.emit("connection", ws, req.params.scope);
     });
 
     next(false);
@@ -100,7 +100,7 @@ function handleSocketRegister(req, res, next) {
 
 
 function handleSocketConnection(socket) {
-    socket.on('message', (data) => {
+    socket.on("message", (data) => {
         log.info("Socket Message Payload: " + data);
     });
 }

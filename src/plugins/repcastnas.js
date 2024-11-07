@@ -6,7 +6,7 @@ const fs = require("fs");
 const querystring = require("querystring");
 const mimetype = require("mime-types");
 const path = require("path");
-const { execSync } = require('child_process');
+const { execSync } = require("child_process");
 
 let pathfix = "";
 let pathprefix = "";
@@ -72,21 +72,21 @@ class RepCastNAS extends LifeforcePlugin {
 
         });
 
-        restifyserver.get("/repcast/filesrv/*", restify.plugins.serveStaticFiles(this.config.mediamount))
+        restifyserver.get("/repcast/filesrv/*", restify.plugins.serveStaticFiles(this.config.mediamount));
     }
 }
 
 function handleResetCache(req, res, next) {
     cache.deleteCacheKeysByPrefix("/repcast/nas/getfiles/*").then(() => {
-        console.log("Cleared /repcast/nas/getfiles/*")
-    })
+        console.log("Cleared /repcast/nas/getfiles/*");
+    });
 
     cache.deleteCacheKeysByPrefix("/repcast/spaces/getfiles/*").then(() => {
-        console.log("Cleared /repcast/spaces/getfiles/*")
-    })
+        console.log("Cleared /repcast/spaces/getfiles/*");
+    });
 
 
-    res.send(200, "OK")
+    res.send(200, "OK");
 }
 
 function handleRepcastStats(req, res, next) {
@@ -102,7 +102,7 @@ function handleRepcastStats(req, res, next) {
         try {
             const stdout = execSync(cmd);
 
-            const output = []
+            const output = [];
             output.push(">>>" + cmd);
             output.push(stdout);
             output.push("\n");
@@ -159,7 +159,7 @@ function handleRepcastDirGet(req, res, next) {
 
     let getpath = "";
     if (req.params.filepath) {
-        getpath = Buffer.from(req.params.filepath, 'base64').toString();
+        getpath = Buffer.from(req.params.filepath, "base64").toString();
         getpath = getpath.replace(pathfix, "");
     }
 
@@ -175,17 +175,17 @@ function handleRepcastDirGet(req, res, next) {
 }
 
 const walk = (dir) => {
-    let results = []
-    let list = fs.readdirSync(dir)
+    let results = [];
+    let list = fs.readdirSync(dir);
     list.forEach((file) => {
-        file = dir + '/' + file
-        let stat = fs.statSync(file)
-        if (stat && stat.isDirectory()) results = results.concat(walk(file))
-        else results.push(file)
+        file = dir + "/" + file;
+        let stat = fs.statSync(file);
+        if (stat && stat.isDirectory()) results = results.concat(walk(file));
+        else results.push(file);
     });
 
-    return results
-}
+    return results;
+};
 
 function dirlist(filepath) {
     // get the list of files in this directory:
@@ -211,13 +211,13 @@ function dirlist(filepath) {
         }
 
         return true;
-    })
+    });
 
 
     files.sort(function (a, b) {
         return a.localeCompare(b, undefined, {
             numeric: true,
-            sensitivity: 'base'
+            sensitivity: "base"
         });
         //return fs.statSync(filepath + b).mtime.getTime() - fs.statSync(filepath + a).mtime.getTime();
     });
@@ -237,7 +237,7 @@ function dirlist(filepath) {
         // If something is a directory do some extra operations, and include it
         if (stats.isDirectory()) {
             jsonstruct.type = "dir";
-            jsonstruct.key = Buffer.from(fixpath + file + "/").toString('base64');
+            jsonstruct.key = Buffer.from(fixpath + file + "/").toString("base64");
         } else {
             let ext = path.extname(fixpath + file).replace(".", "");
             let fullpath = pathprefix + querystring.escape(fixpath + file) + "?auth=" + authkey;

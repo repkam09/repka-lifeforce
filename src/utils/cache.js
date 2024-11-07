@@ -11,7 +11,7 @@ function cacheInit() {
     
     redis.on("close", () => {
         cacheReady = false;
-    });z
+    });
 }
 
 
@@ -31,9 +31,9 @@ function writeCache(key, status, response, content, ttl = 10) {
             return resolve();
         }).catch((err) => {
             console.error("Error updating cache for ", key, err.message);
-            return resolve()
-        })
-    })
+            return resolve();
+        });
+    });
 }
 
 function deleteCacheKeysByPrefix(prefix) {
@@ -55,11 +55,11 @@ function deleteCacheKeysByPrefix(prefix) {
             }).catch((err) => {
                 console.err("Error bulk removing keys", err.message);
                 return resolve();
-            })
+            });
         }).catch((err) => {
             console.err("Error bulk fetching keys", err.message);
             return resolve();
-        })
+        });
     });
 }
 
@@ -71,11 +71,11 @@ function deleteCacheKey(key) {
 
     return new Promise((resolve) => {
         redis.del(key).then(() => {
-            return resolve()
+            return resolve();
         }).catch((err) => {
             console.err("Error remove cache for ", key, err.message);
             return resolve();
-        })
+        });
     });
 }
 
@@ -95,13 +95,13 @@ function readCache(key) {
                 return resolve({ hasCache: true, status: json.status, response: json.response, content: json.content });
             } catch (err) {
                 console.err("Error parsing response for ", key, err.message);
-                return resolve({ hasCache: false })
+                return resolve({ hasCache: false });
             }
         }).catch((err) => {
             console.err("Error fetching cache for ", key, err.message);
-            return resolve({ hasCache: false })
-        })
-    })
+            return resolve({ hasCache: false });
+        });
+    });
 }
 
 
@@ -112,4 +112,4 @@ module.exports = {
     deleteCacheKey,
     deleteCacheKeysByPrefix,
     cacheInit
-}
+};
