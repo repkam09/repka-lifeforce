@@ -5,7 +5,7 @@ import Transmission from "transmission";
 import { Config } from "../utils/config";
 
 export class RepCast extends LifeforcePlugin {
-  public init(): void {
+  public async init(): Promise<void> {
     console.log("RepCast initialized");
   }
 

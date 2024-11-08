@@ -1,3 +1,5 @@
+import { Config } from "./config";
+
 export class Logger {
   static info(message: string) {
     console.log(`INFO: ${message}`);
@@ -16,6 +18,8 @@ export class Logger {
   }
 
   static verbose(message: string) {
-    console.log(`VERBOSE: ${message}`);
+    if (Config.LIFEFORCE_DEBUG_MODE) {
+      console.log(`VERBOSE: ${message}`);
+    }
   }
 }

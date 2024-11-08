@@ -3,7 +3,7 @@ import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 
 export class Template extends LifeforcePlugin {
-  public init(): void {
+  public async init(): Promise<void> {
     console.log("Template initialized");
   }
 

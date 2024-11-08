@@ -8,17 +8,16 @@ import { Config } from "./utils/config";
 import { MetaEndpoints } from "./plugins/meta";
 import { Music } from "./plugins/music";
 import {
-  blacklistMiddleware,
+  whitelistMiddleware,
   rateLimitMiddleware,
   traceLogMiddleware,
-} from "./utils/secure";
-import { ElectionResults } from "./plugins/election";
+} from "./utils/common";
 import { RepCast } from "./plugins/repcast";
 import { RepCastNAS } from "./plugins/repcastnas";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
 
-function init() {
+async function init() {
   Logger.info("Creating Koa Server...");
 
   const app = new Koa({
@@ -33,28 +32,28 @@ function init() {
       exposeHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
     })
   );
-
-  app.use(KoaBodyParser());
-
-  app.use(blacklistMiddleware);
+  app.use(whitelistMiddleware);
   app.use(rateLimitMiddleware);
   app.use(traceLogMiddleware);
+  app.use(KoaBodyParser());
 
   const router = new KoaRouter();
 
   const plugins = [
     MetaEndpoints,
     Music,
-    ElectionResults,
     RepCast,
     RepCastNAS,
     RaspiTempMonitor,
     Weather,
   ];
-  plugins.forEach((Plugin) => {
+
+  const setup = plugins.map((Plugin) => {
     const temp = new Plugin(router);
-    temp.init();
+    return temp.init();
   });
+
+  await Promise.all(setup);
 
   app.use(router.routes());
 

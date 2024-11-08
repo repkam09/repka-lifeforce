@@ -3,8 +3,19 @@ services:
     container_name: lifeforce
     restart: unless-stopped
     image: repka-lifeforce:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "16001:16001"
     volumes:
       - ".env:/app/lifeforce/.env"
-      - "./data/:/app/lifeforce/data/"
+      - "./data/media/:/app/lifeforce/data/media/"
+  mongodb:
+    container_name: mongodb
+    restart: unless-stopped
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./data/mongodb:/data/db"

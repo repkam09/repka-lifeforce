@@ -25,6 +25,22 @@ export class Config {
     return process.env.LIFEFORCE_PUBLIC_URL;
   }
 
+  static get LIFEFORCE_LOCAL_IPS(): string[] {
+    if (!process.env.LIFEFORCE_LOCAL_IPS) {
+      throw new Error("LIFEFORCE_LOCAL_IPS is not set");
+    }
+
+    return process.env.LIFEFORCE_LOCAL_IPS.split(",").map((ip) => ip.trim());
+  }
+
+  static get LIFEFORCE_DEBUG_MODE(): boolean {
+    if (!process.env.LIFEFORCE_DEBUG_MODE) {
+      return false;
+    }
+
+    return process.env.LIFEFORCE_DEBUG_MODE === "true";
+  }
+
   static get REDIS_ENABLED(): boolean {
     if (!process.env.REDIS_ENABLED) {
       return false;
@@ -71,6 +87,14 @@ export class Config {
     }
 
     return process.env.LIFEFORCE_AUTH_TOKEN;
+  }
+
+  static get LIFEFORCE_REPCAST_TOKEN(): string {
+    if (!process.env.LIFEFORCE_REPCAST_TOKEN) {
+      throw new Error("LIFEFORCE_REPCAST_TOKEN is not set");
+    }
+
+    return process.env.LIFEFORCE_REPCAST_TOKEN;
   }
 
   static get TRANSMISION_PORT(): number {
@@ -129,12 +153,11 @@ export class Config {
     return process.env.LIFEFORCE_EMAIL_PASS;
   }
 
-  static get LIFEFORCE_STORAGE_DIR(): string {
-    if (!process.env.LIFEFORCE_STORAGE_DIR) {
-      const temp = os.tmpdir();
-      return temp;
+  static get MONGO_DB_URL(): string {
+    if (!process.env.MONGO_DB_URL) {
+      throw new Error("MONGO_DB_URL is not set");
     }
 
-    return process.env.LIFEFORCE_STORAGE_DIR;
+    return process.env.MONGO_DB_URL;
   }
 }

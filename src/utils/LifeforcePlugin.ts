@@ -18,9 +18,11 @@ export abstract class LifeforcePlugin {
   public addHandlers(endpoints: LifeforcePluginEndpoint[]): void {
     const router = this.router;
     endpoints.forEach((endpoint) => {
-      router.register(endpoint.path, [endpoint.type], endpoint.handler);
+      router.register(endpoint.path, [endpoint.type], endpoint.handler, {
+        name: this.constructor.name,
+      });
     });
   }
 
-  public abstract init(): void;
+  public abstract init(): Promise<void>;
 }

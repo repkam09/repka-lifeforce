@@ -3,6 +3,7 @@ import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import geoip from "geoip-country";
 import { getClientIP } from "../utils/common";
+import { Config } from "../utils/config";
 
 export class MetaEndpoints extends LifeforcePlugin {
   constructor(router: KoaRouter) {
@@ -44,24 +45,22 @@ export class MetaEndpoints extends LifeforcePlugin {
     ]);
   }
 
-  public init(): void {
+  public async init(): Promise<void> {
     console.log("MetaEndpoints initialized");
   }
 
   private handleAboutApi(ctx: Context, next: Next) {
-    const endpoints: string[] = [];
+    const endpoints: { method: string; path: string; plugin: string }[] = [];
     this.router.stack.forEach((r) => {
-      if (r.path) {
-        endpoints.push(r.path);
-      }
+      endpoints.push({
+        method: r.methods[r.methods.length - 1].toUpperCase(),
+        path: `${Config.LIFEFORCE_PUBLIC_URL}${r.path}`,
+        plugin: r.name,
+      });
     });
 
     ctx.status = 200;
-    ctx.body = {
-      name: "Lifeforce",
-      version: "2.0.0",
-      endpoints: endpoints,
-    };
+    ctx.body = endpoints;
 
     return next();
   }

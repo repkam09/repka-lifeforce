@@ -3,9 +3,10 @@ import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import axios from "axios";
 import { Config } from "../utils/config";
+import { Logger } from "../utils/logger";
 
 export class Weather extends LifeforcePlugin {
-  public init(): void {
+  public async init(): Promise<void> {
     console.log("Weather initialized");
   }
 
@@ -28,7 +29,7 @@ export class Weather extends LifeforcePlugin {
   private async handleWeatherZipCode(ctx: Context, next: Next) {
     const zip = ctx.params.zip;
     if (zip) {
-      console.log(`Looking up weather for ${zip}`);
+      Logger.debug(`Looking up weather for ${zip}`);
       try {
         const url = `http://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${Config.WEATHER_API_KEY}`;
         const response = await axios.get(url);
@@ -36,13 +37,13 @@ export class Weather extends LifeforcePlugin {
         ctx.body = response.data;
       } catch (err: unknown) {
         const error = err as Error;
-        console.error(
+        Logger.error(
           `Unable to get current weather for ${zip}, err: ${error.message}`
         );
         ctx.status = 500;
       }
     } else {
-      console.log("Bad request for current weather");
+      Logger.debug("Bad request for current weather");
       ctx.status = 400;
     }
     return next();
@@ -51,7 +52,7 @@ export class Weather extends LifeforcePlugin {
   private async handleWeatherForecastZipCode(ctx: Context, next: Next) {
     const zip = ctx.params.zip;
     if (zip) {
-      console.log(`Looking up weather forecast for ${zip}`);
+      Logger.debug(`Looking up weather forecast for ${zip}`);
       try {
         const url = `http://api.openweathermap.org/data/2.5/forecast?zip=${zip}&appid=${Config.WEATHER_API_KEY}`;
         const response = await axios.get(url);
@@ -59,13 +60,13 @@ export class Weather extends LifeforcePlugin {
         ctx.body = response.data;
       } catch (err: unknown) {
         const error = err as Error;
-        console.error(
+        Logger.error(
           `Unable to get weather forecast for ${zip}, err: ${error.message}`
         );
         ctx.status = 500;
       }
     } else {
-      console.log("Bad request for weather forecast");
+      Logger.debug("Bad request for weather forecast");
       ctx.status = 400;
     }
     return next();
