@@ -5,11 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
-            "request": "launch",
-            "name": "Lifeforce Local",
-            "program": "${workspaceRoot}/lifeforce.js",
-            "cwd": "${workspaceRoot}"
-        }
+          "type": "node",
+          "runtimeArgs": ["--preserve-symlinks"],
+          "request": "launch",
+          "name": "Launch Lifeforce",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "program": "${workspaceFolder}/build/lifeforce.js",
+          "console": "integratedTerminal",
+          "sourceMaps": true
+      },
     ]
 }
