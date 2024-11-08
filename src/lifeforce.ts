@@ -12,6 +12,11 @@ import {
   rateLimitMiddleware,
   traceLogMiddleware,
 } from "./utils/secure";
+import { ElectionResults } from "./plugins/election";
+import { RepCast } from "./plugins/repcast";
+import { RepCastNAS } from "./plugins/repcastnas";
+import { RaspiTempMonitor } from "./plugins/tempmon";
+import { Weather } from "./plugins/weather";
 
 function init() {
   Logger.info("Creating Koa Server...");
@@ -37,7 +42,15 @@ function init() {
 
   const router = new KoaRouter();
 
-  const plugins = [MetaEndpoints, Music];
+  const plugins = [
+    MetaEndpoints,
+    Music,
+    ElectionResults,
+    RepCast,
+    RepCastNAS,
+    RaspiTempMonitor,
+    Weather,
+  ];
   plugins.forEach((Plugin) => {
     const temp = new Plugin(router);
     temp.init();
@@ -47,9 +60,7 @@ function init() {
 
   Logger.info("Starting Koa Server...");
   app.listen(Config.LIFEFORCE_PORT, () => {
-    Logger.info(
-      `Listening at ${Config.LIFEFORCE_PUBLIC_URL}:${Config.LIFEFORCE_PORT}`
-    );
+    Logger.info(`Listening at ${Config.LIFEFORCE_PUBLIC_URL}`);
   });
 }
 

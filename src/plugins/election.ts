@@ -25,7 +25,7 @@ function handleElectionResults(ctx: Context, next: Next) {
   // This used to be dynamic and updated from CNN website, but since election
   // is now over, use a static file to give results. Faster and more reliable since
   // the information is no longer changing.
-  const filePath = path.join(__dirname, "../static/election_results.json");
+  const filePath = path.join(__dirname, "../../static/election_results.json");
   const electionResults = JSON.parse(fs.readFileSync(filePath, "utf8"));
 
   ctx.status = 200;

@@ -45,7 +45,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
       service: "gmail",
       auth: {
         user: Config.LIFEFORCE_EMAIL_USER,
-        pass: Config.LIFEFOCE_EMAIL_PASS,
+        pass: Config.LIFEFORCE_EMAIL_PASS,
       },
     });
 

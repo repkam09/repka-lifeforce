@@ -121,12 +121,12 @@ export class Config {
     return process.env.LIFEFORCE_EMAIL_USER;
   }
 
-  static get LIFEFOCE_EMAIL_PASS(): string {
-    if (!process.env.LIFEFOCE_EMAIL_PASS) {
-      throw new Error("LIFEFOCE_EMAIL_PASS is not set");
+  static get LIFEFORCE_EMAIL_PASS(): string {
+    if (!process.env.LIFEFORCE_EMAIL_PASS) {
+      throw new Error("LIFEFORCE_EMAIL_PASS is not set");
     }
 
-    return process.env.LIFEFOCE_EMAIL_PASS;
+    return process.env.LIFEFORCE_EMAIL_PASS;
   }
 
   static get LIFEFORCE_STORAGE_DIR(): string {

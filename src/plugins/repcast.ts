@@ -52,5 +52,3 @@ function handleRepcastTorAdd(ctx: Context, next: Next) {
 
   return next();
 }
-
-module.exports = RepCast;

@@ -9,7 +9,7 @@ export type LifeforcePluginEndpoint = {
 };
 
 export abstract class LifeforcePlugin {
-  private router: KoaRouter;
+  public router: KoaRouter;
 
   constructor(router: KoaRouter) {
     this.router = router;

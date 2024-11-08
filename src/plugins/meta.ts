@@ -7,17 +7,18 @@ import { getClientIP } from "../utils/common";
 export class MetaEndpoints extends LifeforcePlugin {
   constructor(router: KoaRouter) {
     super(router);
+
     this.addHandlers([
       {
         path: "/api/about",
         type: "GET",
-        handler: handleAboutApi,
+        handler: this.handleAboutApi.bind(this),
         cacheTTL: 86400,
       },
       {
         path: "/",
         type: "GET",
-        handler: handleAboutApi,
+        handler: this.handleAboutApi.bind(this),
         cacheTTL: 86400,
       },
       {
@@ -46,6 +47,24 @@ export class MetaEndpoints extends LifeforcePlugin {
   public init(): void {
     console.log("MetaEndpoints initialized");
   }
+
+  private handleAboutApi(ctx: Context, next: Next) {
+    const endpoints: string[] = [];
+    this.router.stack.forEach((r) => {
+      if (r.path) {
+        endpoints.push(r.path);
+      }
+    });
+
+    ctx.status = 200;
+    ctx.body = {
+      name: "Lifeforce",
+      version: "2.0.0",
+      endpoints: endpoints,
+    };
+
+    return next();
+  }
 }
 
 function handleGetIp(ctx: Context, next: Next) {
@@ -58,11 +77,6 @@ function getGeoIpCountry(ctx: Context, next: Next) {
   const ip = getClientIP(ctx.req);
   const geo = geoip.lookup(ip);
   ctx.body = { geodata: geo };
-  return next();
-}
-
-function handleAboutApi(ctx: Context, next: Next) {
-  ctx.body = [];
   return next();
 }
 
