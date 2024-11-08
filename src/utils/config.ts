@@ -57,6 +57,22 @@ export class Config {
     return process.env.LIFEFORCE_MEDIA_MOUNT;
   }
 
+  static get LIFEFORCE_MEDIA_PREFIX(): string {
+    if (!process.env.LIFEFORCE_MEDIA_PREFIX) {
+      throw new Error("LIFEFORCE_MEDIA_PREFIX is not set");
+    }
+
+    return process.env.LIFEFORCE_MEDIA_PREFIX;
+  }
+
+  static get LIFEFORCE_AUTH_TOKEN(): string {
+    if (!process.env.LIFEFORCE_AUTH_TOKEN) {
+      throw new Error("LIFEFORCE_AUTH_TOKEN is not set");
+    }
+
+    return process.env.LIFEFORCE_AUTH_TOKEN;
+  }
+
   static get TRANSMISION_PORT(): number {
     if (!process.env.TRANSMISION_PORT) {
       throw new Error("TRANSMISION_PORT is not set");
