@@ -11,7 +11,7 @@ import mimetype from "mime-types";
 import * as KoaSend from "@koa/send";
 import { v4 } from "uuid";
 
-const TOKEN_ROTATION = 1000 * 60 * 60; // 1 hour
+const TOKEN_ROTATION = 1000 * 60 * 60 * 10; // 10 hour
 
 export class RepCastNAS extends LifeforcePlugin {
   private sample: object = {};
