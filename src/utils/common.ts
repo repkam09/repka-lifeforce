@@ -45,7 +45,7 @@ export function whitelistMiddleware(ctx: Context, next: Next) {
 
   const country = lookup(clientip);
   if (whitelist.indexOf(country) === -1) {
-    Logger.debug(`whitelistMiddleware: ${clientip} is not whitelisted`);
+    Logger.debug(`clientip ${clientip} blocked from ${country} country`);
     ctx.status = 401;
     ctx.body = "Unauthorized";
     return;

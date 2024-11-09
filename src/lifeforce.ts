@@ -32,9 +32,10 @@ async function init() {
       exposeHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
     })
   );
+
+  app.use(traceLogMiddleware);
   app.use(whitelistMiddleware);
   app.use(rateLimitMiddleware);
-  app.use(traceLogMiddleware);
   app.use(KoaBodyParser());
 
   const router = new KoaRouter();
