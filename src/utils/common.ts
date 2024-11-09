@@ -39,7 +39,7 @@ export function traceLogMiddleware(ctx: Context, next: Next) {
 }
 
 export function whitelistMiddleware(ctx: Context, next: Next) {
-  const whitelist = ["US", "Local"];
+  const whitelist = ["US", "NL", "Local"];
 
   const clientip = getClientIP(ctx.req);
 
