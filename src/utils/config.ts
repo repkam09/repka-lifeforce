@@ -180,4 +180,33 @@ export class Config {
 
     return int;
   }
+
+  static get WS_SERVER_HOST(): string {
+    if (!process.env.WS_SERVER_HOST) {
+      throw new Error("WS_SERVER_HOST is not set");
+    }
+
+    return process.env.WS_SERVER_HOST;
+  }
+
+  static get WS_SERVER_PORT(): number {
+    if (!process.env.WS_SERVER_PORT) {
+      throw new Error("WS_SERVER_PORT is not set");
+    }
+
+    const int = parseInt(process.env.WS_SERVER_PORT, 10);
+    if (isNaN(int)) {
+      throw new Error("WS_SERVER_PORT is not a number");
+    }
+
+    return int;
+  }
+
+  static get WS_SERVER_TOKEN(): string {
+    if (!process.env.WS_SERVER_TOKEN) {
+      throw new Error("WS_SERVER_TOKEN is not set");
+    }
+
+    return process.env.WS_SERVER_TOKEN;
+  }
 }

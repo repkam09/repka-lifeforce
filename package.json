@@ -30,7 +30,8 @@
     "clean": "rimraf ./build",
     "lint": "eslint --fix .",
     "geoupdate": "node ./node_modules/geoip-country/scripts/updatedb.js",
-    "start": "node build/lifeforce.js"
+    "start": "node build/lifeforce.js",
+    "dev": "docker compose up --build"
   },
   "devDependencies": {
     "@types/geoip-country": "^4.0.2",
@@ -43,6 +44,7 @@
     "@types/koa-router": "^7.4.8",
     "@types/node": "^22.9.0",
     "@types/nodemailer": "^6.4.16",
+    "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
     "eslint": "^8.39.0",

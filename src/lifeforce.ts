@@ -16,6 +16,7 @@ import { RepCast } from "./plugins/repcast";
 import { RepCastNAS } from "./plugins/repcastnas";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
+import { Hennos } from "./plugins/hennos";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -47,6 +48,7 @@ async function init() {
     RepCastNAS,
     RaspiTempMonitor,
     Weather,
+    Hennos,
   ];
 
   const setup = plugins.map((Plugin) => {
