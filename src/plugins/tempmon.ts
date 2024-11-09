@@ -12,6 +12,9 @@ const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
 export class RaspiTempMonitor extends LifeforcePlugin {
   public async init(): Promise<void> {
     console.log("Temp Monitor initialized");
+
+    const mongo = await this.mongo.connect();
+    await mongo.close();
   }
 
   private transport: Transporter;
@@ -52,7 +55,10 @@ export class RaspiTempMonitor extends LifeforcePlugin {
       },
     });
 
-    this.mongo = new MongoClient(Config.MONGO_DB_URL, {});
+    this.mongo = new MongoClient(
+      `mongodb://${Config.MONGO_DB_HOST}:${Config.MONGO_DB_PORT}`,
+      {}
+    );
   }
 
   private handleGetClients(ctx: Context, next: Next) {

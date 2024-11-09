@@ -1,4 +1,3 @@
-import os from "node:os";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -159,5 +158,26 @@ export class Config {
     }
 
     return process.env.MONGO_DB_URL;
+  }
+
+  static get MONGO_DB_HOST(): string {
+    if (!process.env.MONGO_DB_HOST) {
+      throw new Error("MONGO_DB_HOST is not set");
+    }
+
+    return process.env.MONGO_DB_HOST;
+  }
+
+  static get MONGO_DB_PORT(): number {
+    if (!process.env.MONGO_DB_PORT) {
+      throw new Error("MONGO_DB_PORT is not set");
+    }
+
+    const int = parseInt(process.env.MONGO_DB_PORT, 10);
+    if (isNaN(int)) {
+      throw new Error("MONGO_DB_PORT is not a number");
+    }
+
+    return int;
   }
 }

@@ -10,7 +10,7 @@ COPY tsconfig.json tsconfig.json
 COPY .eslintrc.json .eslintrc.json
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the rest of the application code
 COPY src src

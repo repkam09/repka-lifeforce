@@ -9,13 +9,24 @@ services:
     ports:
       - "16001:16001"
     volumes:
-      - ".env:/app/lifeforce/.env"
-      - "./data/media/:/app/lifeforce/data/media/"
+      - ".env:/app/lifeforce/.env:ro"
+      - "./data/media/:/app/lifeforce/data/media:ro"
+    networks:
+      - lifeforce_network
   mongodb:
-    container_name: mongodb
+    container_name: lifeforce-mongodb
     restart: unless-stopped
     image: mongo:latest
-    ports:
-      - "27017:27017"
     volumes:
       - "./data/mongodb:/data/db"
+    networks:
+      - lifeforce_network
+  redis:
+    container_name: lifeforce-redis
+    restart: unless-stopped
+    image: redis:latest
+    networks:
+      - lifeforce_network
+networks:
+  lifeforce_network:
+    driver: bridge
