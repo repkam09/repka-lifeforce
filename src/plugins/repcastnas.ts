@@ -56,6 +56,12 @@ export class RepCastNAS extends LifeforcePlugin {
         cacheTTL: 86400,
       },
       {
+        path: "/repcast/spaces/getfiles/:filepath",
+        type: "GET",
+        handler: this.handleRepcastDirGet.bind(this),
+        cacheTTL: 86400,
+      },
+      {
         path: "/repcast/filesrv/:filepath",
         type: "GET",
         handler: this.handleRepcastFileSrv.bind(this),
