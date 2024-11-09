@@ -5,13 +5,14 @@ import { MongoClient } from "mongodb";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import nodemailer, { Transporter } from "nodemailer";
 import { Config } from "../utils/config";
+import { Logger } from "../utils/logger";
 
 const TEMP_THRESHOLD = 45;
 const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
 
 export class RaspiTempMonitor extends LifeforcePlugin {
   public async init(): Promise<void> {
-    console.log("Temp Monitor initialized");
+    Logger.info("Temp Monitor initialized");
 
     const mongo = await this.mongo.connect();
     await mongo.close();
@@ -191,7 +192,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
 
   private async sendMailMessage(subject: string, message: string) {
     if (Config.LIFEFORCE_DEBUG_MODE) {
-      console.log("DEBUG: Would have sent email: ", subject, message);
+      Logger.debug(`Would have sent email: \n${subject} \n\n ${message}`);
       return;
     }
 
@@ -203,7 +204,8 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         text: message,
       });
     } catch (err: unknown) {
-      console.error(err);
+      const error = err as Error;
+      Logger.error(`Error sending email: ${error.message}`);
     }
   }
 }

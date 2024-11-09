@@ -7,7 +7,7 @@ import { Logger } from "../utils/logger";
 
 export class Music extends LifeforcePlugin {
   public async init(): Promise<void> {
-    console.log("Music initialized");
+    Logger.info("Music initialized");
   }
 
   constructor(router: KoaRouter) {

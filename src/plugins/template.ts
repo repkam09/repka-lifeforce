@@ -1,10 +1,11 @@
 import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import { Logger } from "../utils/logger";
 
 export class Template extends LifeforcePlugin {
   public async init(): Promise<void> {
-    console.log("Template initialized");
+    Logger.info("Template initialized");
   }
 
   constructor(router: KoaRouter) {

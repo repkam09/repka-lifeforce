@@ -4,6 +4,7 @@ import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import geoip from "geoip-country";
 import { getClientIP } from "../utils/common";
 import { Config } from "../utils/config";
+import { Logger } from "../utils/logger";
 
 export class MetaEndpoints extends LifeforcePlugin {
   constructor(router: KoaRouter) {
@@ -46,7 +47,7 @@ export class MetaEndpoints extends LifeforcePlugin {
   }
 
   public async init(): Promise<void> {
-    console.log("MetaEndpoints initialized");
+    Logger.info("MetaEndpoints initialized");
   }
 
   private handleAboutApi(ctx: Context, next: Next) {

@@ -3,10 +3,11 @@ import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import Transmission from "transmission";
 import { Config } from "../utils/config";
+import { Logger } from "../utils/logger";
 
 export class RepCast extends LifeforcePlugin {
   public async init(): Promise<void> {
-    console.log("RepCast initialized");
+    Logger.info("RepCast initialized");
   }
 
   constructor(router: KoaRouter) {

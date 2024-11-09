@@ -7,7 +7,7 @@ import { Logger } from "../utils/logger";
 
 export class Weather extends LifeforcePlugin {
   public async init(): Promise<void> {
-    console.log("Weather initialized");
+    Logger.info("Weather initialized");
   }
 
   constructor(router: KoaRouter) {
