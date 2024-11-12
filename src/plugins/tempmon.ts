@@ -83,7 +83,8 @@ export class RaspiTempMonitor extends LifeforcePlugin {
       const clientId = ctx.params.clientid as string;
 
       if (this.tempCheckinTimers[clientId]) {
-        clearTimeout(this.tempCheckinTimers[clientId]);
+        Logger.info(`Clearing timer for ${clientId} due to removal`);
+        clearInterval(this.tempCheckinTimers[clientId]);
       }
 
       this.tempCheckinClients.delete(clientId);
@@ -105,11 +106,15 @@ export class RaspiTempMonitor extends LifeforcePlugin {
       }
 
       // clear the timer
-      clearTimeout(this.tempCheckinTimers[body.clientid]);
+      if (this.tempCheckinTimers[body.clientid]) {
+        Logger.info(`Clearing timer for ${body.clientid} due to checkin`);
+        clearInterval(this.tempCheckinTimers[body.clientid]);
+      }
 
       this.tempCheckinClients.add(body.clientid);
 
       // Set up a new timer
+      Logger.info(`Setting timer for ${body.clientid}`);
       this.tempCheckinTimers[body.clientid] = setInterval(async () => {
         await this.alertTimeoutError(body.clientid);
       }, TEMP_CHECKIN_INTERVAL);
@@ -191,8 +196,8 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   }
 
   private async sendMailMessage(subject: string, message: string) {
-    if (Config.LIFEFORCE_DEBUG_MODE) {
-      Logger.debug(`Would have sent email: \n${subject} \n\n ${message}`);
+    if (Config.LIFEFORCE_DEBUG_MODE || Config.LIFEFORCE_SKIP_EMAIL) {
+      Logger.info(`Skipping email sending: \n${subject} \n\n ${message}`);
       return;
     }
 

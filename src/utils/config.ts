@@ -136,6 +136,10 @@ export class Config {
     );
   }
 
+  static get LIFEFORCE_SKIP_EMAIL(): boolean {
+    return process.env.LIFEFORCE_SKIP_EMAIL === "true";
+  }
+
   static get LIFEFORCE_EMAIL_USER(): string {
     if (!process.env.LIFEFORCE_EMAIL_USER) {
       throw new Error("LIFEFORCE_EMAIL_USER is not set");
