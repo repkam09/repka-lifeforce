@@ -8,30 +8,33 @@
   "dependencies": {
     "@koa/cors": "^5.0.0",
     "@koa/send": "^6.0.0",
+    "@prisma/client": "^6.1.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
-    "geoip-country": "^5.0.202411052341",
+    "geoip-country": "^5.0.202412202341",
     "http-status-codes": "^2.3.0",
-    "ioredis": "^5.4.1",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
     "koa-router": "^13.0.1",
     "mime-types": "^2.1.35",
-    "mongodb": "^6.10.0",
     "nodemailer": "^6.9.16",
     "transmission": "^0.4.10",
     "uuid": "^11.0.2",
     "ws": "^8.18.0"
   },
   "scripts": {
-    "build": "npm-run-all clean tsc:emit",
+    "build": "npm-run-all clean prisma:generate tsc:emit",
     "tsc:emit": "tsc",
     "tsc:validate": "tsc --noEmit",
     "clean": "rimraf ./build",
     "lint": "eslint --fix .",
     "geoupdate": "node ./node_modules/geoip-country/scripts/updatedb.js",
     "start": "node build/lifeforce.js",
-    "dev": "docker compose up --build"
+    "dev": "docker compose up --build",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:reset": "prisma migrate reset",
+    "migrate:new": "prisma migrate dev --create-only",
+    "prisma:generate": "prisma generate"
   },
   "devDependencies": {
     "@types/geoip-country": "^4.0.2",
@@ -50,6 +53,7 @@
     "eslint": "^8.39.0",
     "jest": "^29.7.0",
     "npm-run-all": "^4.1.5",
+    "prisma": "^6.1.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.0.4"
   },

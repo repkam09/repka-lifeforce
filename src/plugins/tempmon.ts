@@ -1,27 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
-import { MongoClient } from "mongodb";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import nodemailer, { Transporter } from "nodemailer";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
+import { PrismaClient } from "@prisma/client";
 
 const TEMP_THRESHOLD = 45;
 const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
 
+type TempResponseEntry = {
+  _id: string;
+  clientid: string;
+  temp: number;
+  threshold: number;
+  checkinTime: string;
+};
+
 export class RaspiTempMonitor extends LifeforcePlugin {
-  public async init(): Promise<void> {
-    Logger.info("Temp Monitor initialized");
-
-    const mongo = await this.mongo.connect();
-    await mongo.close();
-  }
-
   private transport: Transporter;
-  private mongo: MongoClient;
+  private prisma: PrismaClient;
   private tempCheckinTimers: Record<string, NodeJS.Timeout> = {};
-  private tempCheckinClients: Set<string> = new Set();
+
+  public async init(): Promise<void> {
+    Logger.info("Initializing TempMon Plugin");
+  }
 
   constructor(router: KoaRouter) {
     super(router);
@@ -56,15 +60,12 @@ export class RaspiTempMonitor extends LifeforcePlugin {
       },
     });
 
-    this.mongo = new MongoClient(
-      `mongodb://${Config.MONGO_DB_HOST}:${Config.MONGO_DB_PORT}`,
-      {}
-    );
+    this.prisma = new PrismaClient();
   }
 
-  private handleGetClients(ctx: Context, next: Next) {
+  private async handleGetClients(ctx: Context, next: Next) {
     ctx.status = 200;
-    ctx.body = Array.from(this.tempCheckinClients);
+    ctx.body = await this.fetchClientList();
     return next();
   }
 
@@ -87,7 +88,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         clearInterval(this.tempCheckinTimers[clientId]);
       }
 
-      this.tempCheckinClients.delete(clientId);
+      await this.setClientDeleted(clientId);
 
       ctx.status = 200;
       ctx.body = { error: false, removed: clientId };
@@ -111,8 +112,6 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         clearInterval(this.tempCheckinTimers[body.clientid]);
       }
 
-      this.tempCheckinClients.add(body.clientid);
-
       // Set up a new timer
       Logger.info(`Setting timer for ${body.clientid}`);
       this.tempCheckinTimers[body.clientid] = setInterval(async () => {
@@ -132,34 +131,72 @@ export class RaspiTempMonitor extends LifeforcePlugin {
     }
   }
 
-  private async upsertCheckinRecord(clientid: string, temp: number) {
-    const mongo = await this.mongo.connect();
-
-    const database = mongo.db("tempmon");
-    await database.collection("temphistory").insertOne({
-      clientid,
-      temp,
-      threshold: TEMP_THRESHOLD,
-      checkinTime: new Date(),
-    });
-
-    await mongo.close();
+  private async setClientDeleted(clientId: string) {
+    try {
+      await this.prisma.tempreatureClient.update({
+        where: { clientId },
+        data: { deleted: true },
+      });
+    } catch {
+      Logger.error(`Error deleting client: ${clientId}`);
+    }
   }
 
-  private async fetchCheckinRecords(clientid: string): Promise<any[]> {
-    const mongo = await this.mongo.connect();
+  private async upsertCheckinRecord(clientId: string, temp: number) {
+    const client = await this.prisma.tempreatureClient.upsert({
+      where: { clientId },
+      update: { updatedAt: new Date() },
+      create: {
+        clientId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      select: {
+        clientId: true,
+      },
+    });
 
-    const database = mongo.db("tempmon");
-    const result = await database
-      .collection("temphistory")
-      .find({ clientid })
-      .sort({ $natural: -1 })
-      .limit(48)
-      .toArray();
+    await this.prisma.tempreatureCheckin.create({
+      data: {
+        tempreature: temp,
+        threshold: TEMP_THRESHOLD,
+        clientId: client.clientId,
+        createdAt: new Date(),
+      },
+    });
+  }
 
-    await mongo.close();
+  private async fetchCheckinRecords(
+    clientId: string
+  ): Promise<TempResponseEntry[]> {
+    const records = await this.prisma.tempreatureCheckin.findMany({
+      where: { clientId },
+      orderBy: { createdAt: "desc" },
+      take: 48,
+    });
 
-    return result;
+    return records.map((record) => {
+      return {
+        _id: record.id,
+        checkinTime: record.createdAt.toISOString(),
+        clientid: record.clientId,
+        threshold: record.threshold,
+        temp: record.tempreature,
+      };
+    });
+  }
+
+  private async fetchClientList(): Promise<string[]> {
+    const clients = await this.prisma.tempreatureClient.findMany({
+      select: {
+        clientId: true,
+      },
+      where: {
+        deleted: false,
+      },
+    });
+
+    return clients.map((client) => client.clientId);
   }
 
   private async alertColdTempError(clientid: string, temp: number) {

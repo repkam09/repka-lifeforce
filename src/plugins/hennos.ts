@@ -19,12 +19,14 @@ export class Hennos extends LifeforcePlugin {
 
   public async init(): Promise<void> {
     Logger.info("Hennos initialized");
-    this.reconnect();
-    setInterval(() => {
-      if (!this.connected) {
-        this.reconnect();
-      }
-    }, 5000);
+    if (Config.WS_SERVER_ENABLED) {
+      this.reconnect();
+      setInterval(() => {
+        if (!this.connected) {
+          this.reconnect();
+        }
+      }, 5000);
+    }
   }
 
   private reconnect() {

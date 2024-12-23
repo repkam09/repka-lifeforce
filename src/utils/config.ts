@@ -40,12 +40,12 @@ export class Config {
     return process.env.LIFEFORCE_DEBUG_MODE === "true";
   }
 
-  static get REDIS_ENABLED(): boolean {
-    if (!process.env.REDIS_ENABLED) {
+  static get WS_SERVER_ENABLED(): boolean {
+    if (!process.env.WS_SERVER_ENABLED) {
       return false;
     }
 
-    return process.env.REDIS_ENABLED === "true";
+    return process.env.WS_SERVER_ENABLED === "true";
   }
 
   static get WEATHER_API_KEY(): string {
@@ -154,35 +154,6 @@ export class Config {
     }
 
     return process.env.LIFEFORCE_EMAIL_PASS;
-  }
-
-  static get MONGO_DB_URL(): string {
-    if (!process.env.MONGO_DB_URL) {
-      throw new Error("MONGO_DB_URL is not set");
-    }
-
-    return process.env.MONGO_DB_URL;
-  }
-
-  static get MONGO_DB_HOST(): string {
-    if (!process.env.MONGO_DB_HOST) {
-      throw new Error("MONGO_DB_HOST is not set");
-    }
-
-    return process.env.MONGO_DB_HOST;
-  }
-
-  static get MONGO_DB_PORT(): number {
-    if (!process.env.MONGO_DB_PORT) {
-      throw new Error("MONGO_DB_PORT is not set");
-    }
-
-    const int = parseInt(process.env.MONGO_DB_PORT, 10);
-    if (isNaN(int)) {
-      throw new Error("MONGO_DB_PORT is not a number");
-    }
-
-    return int;
   }
 
   static get WS_SERVER_HOST(): string {

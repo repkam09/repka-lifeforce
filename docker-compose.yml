@@ -3,28 +3,12 @@ services:
     container_name: lifeforce
     restart: unless-stopped
     image: repka-lifeforce:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
       - "16001:16001"
     volumes:
       - ".env:/app/lifeforce/.env:ro"
       - "./data/media/:/app/lifeforce/data/media:ro"
-    networks:
-      - lifeforce_network
-  mongodb:
-    container_name: lifeforce-mongodb
-    restart: unless-stopped
-    image: mongo:latest
-    volumes:
-      - "./data/mongodb:/data/db"
-    networks:
-      - lifeforce_network
-  redis:
-    container_name: lifeforce-redis
-    restart: unless-stopped
-    image: redis:latest
+      - "./data/lifeforce.sqlite:/app/lifeforce/data/lifeforce.sqlite"
     networks:
       - lifeforce_network
 networks:
