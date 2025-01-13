@@ -39,20 +39,30 @@ export function traceLogMiddleware(ctx: Context, next: Next) {
 }
 
 export function whitelistMiddleware(ctx: Context, next: Next) {
-  const whitelist = ["US", "NL", "NO", "Local"];
+  const whitelist = ["US", "Local"];
 
   const clientip = getClientIP(ctx.req);
-
   const country = lookup(clientip);
-  if (whitelist.indexOf(country) === -1) {
+
+  if (hasValidAuth(ctx)) {
     Logger.debug(
-      `clientip ${clientip} would have been blocked from ${country} country`
+      `clientip ${clientip} allowed from ${country} country, valid auth`
     );
-    // ctx.status = 401;
-    // ctx.body = "Unauthorized";
-    // return;
+    return next();
   }
 
+  if (whitelist.indexOf(country) === -1) {
+    Logger.debug(
+      `clientip ${clientip} blocked from ${country} country, not whitelisted`
+    );
+    ctx.status = 401;
+    ctx.body = "Unauthorized";
+    return;
+  }
+
+  Logger.debug(
+    `clientip ${clientip} allowed from ${country} country, whitelisted`
+  );
   return next();
 }
 
