@@ -1,0 +1,35 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    email     String   @unique
+    password  String
+    name      String
+    role      String   @default("USER")
+}
+
+model TempreatureCheckin {
+    id          String            @id @default(cuid())
+    createdAt   DateTime          @default(now())
+    clientId    String
+    tempreature Float
+    threshold   Float
+    client      TempreatureClient @relation(fields: [clientId], references: [clientId])
+}
+
+model TempreatureClient {
+    clientId  String               @id @default(cuid())
+    createdAt DateTime             @default(now())
+    updatedAt DateTime             @updatedAt
+    checkins  TempreatureCheckin[]
+    deleted   Boolean              @default(false)
+}
