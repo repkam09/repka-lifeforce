@@ -115,6 +115,7 @@ export class RepCastNAS extends LifeforcePlugin {
 
       return next();
     } catch (err) {
+      const error = err as Error;
       ctx.status = 500;
       ctx.body = {
         error: true,
@@ -123,6 +124,9 @@ export class RepCastNAS extends LifeforcePlugin {
         info: [],
       };
 
+      Logger.error(
+        "Error reading directory: " + filepath + ", " + error.message
+      );
       return next();
     }
   }
