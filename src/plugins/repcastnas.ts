@@ -179,7 +179,7 @@ export class RepCastNAS extends LifeforcePlugin {
         key: "",
       };
 
-      const stats = await fspromise.stat(filepath + file);
+      const stats = await fspromise.stat(filepath + "/" + file);
       // If something is a directory do some extra operations, and include it
       if (stats.isDirectory()) {
         jsonstruct.type = "dir";
