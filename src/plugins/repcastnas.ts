@@ -102,8 +102,14 @@ export class RepCastNAS extends LifeforcePlugin {
     const cleared = temp.replace(Config.LIFEFORCE_MEDIA_MOUNT, "");
     const filepath = `${Config.LIFEFORCE_MEDIA_MOUNT}${cleared}`;
 
+    const limitString = Array.isArray(ctx.query.limit)
+      ? ctx.query.limit[0]
+      : ctx.query.limit;
+
+    const limit = limitString ? parseInt(limitString) : undefined;
+
     try {
-      const result = await this.dirlist(filepath);
+      const result = await this.dirlist(filepath, limit);
 
       ctx.status = 200;
       ctx.body = {
@@ -137,7 +143,7 @@ export class RepCastNAS extends LifeforcePlugin {
     return next();
   };
 
-  private async dirlist(filepath: string) {
+  private async dirlist(filepath: string, limit: number | undefined) {
     Logger.debug("Reading directory: " + filepath);
 
     // get the list of files in this directory:
@@ -167,6 +173,11 @@ export class RepCastNAS extends LifeforcePlugin {
     });
 
     Logger.debug("Stripped bad files, now have " + files.length + " files");
+
+    if (limit) {
+      Logger.debug("Limiting files to first " + limit);
+      files = files.slice(0, limit);
+    }
 
     files.sort((a, b) => {
       return a.localeCompare(b, undefined, {
