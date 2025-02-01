@@ -195,7 +195,16 @@ export class RepCastNAS extends LifeforcePlugin {
       const statPath = filepath + "/" + file;
       Logger.debug("Getting stats for : " + statPath);
 
-      const stats = await fspromise.stat(statPath);
+      let stats: any;
+      try {
+        stats = await fspromise.stat(statPath);
+      } catch (err) {
+        const error = err as Error;
+        Logger.error(
+          "Error getting stats for: " + statPath + ", " + error.message
+        );
+        return null;
+      }
 
       // If something is a directory do some extra operations, and include it
       if (stats.isDirectory()) {
@@ -227,7 +236,9 @@ export class RepCastNAS extends LifeforcePlugin {
       return jsonstruct;
     });
 
-    return Promise.all(filePromises);
+    const results = await Promise.all(filePromises);
+    const filtered = results.filter((result) => result !== null);
+    return filtered;
   }
 }
 
