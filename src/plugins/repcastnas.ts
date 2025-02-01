@@ -200,7 +200,7 @@ export class RepCastNAS extends LifeforcePlugin {
       // If something is a directory do some extra operations, and include it
       if (stats.isDirectory()) {
         jsonstruct.type = "dir";
-        const dirPath = fixpath + file + "/";
+        const dirPath = fixpath + "/" + file + "/";
         Logger.debug("Found directory: " + dirPath);
         jsonstruct.key = Buffer.from(dirPath).toString("base64");
       } else {
