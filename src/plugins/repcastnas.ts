@@ -102,8 +102,14 @@ export class RepCastNAS extends LifeforcePlugin {
     const cleared = temp.replace(Config.LIFEFORCE_MEDIA_MOUNT, "");
     const filepath = `${Config.LIFEFORCE_MEDIA_MOUNT}${cleared}`;
 
+    const limitString = Array.isArray(ctx.query.limit)
+      ? ctx.query.limit[0]
+      : ctx.query.limit;
+
+    const limit = limitString ? parseInt(limitString) : undefined;
+
     try {
-      const result = await this.dirlist(filepath);
+      const result = await this.dirlist(filepath, limit);
 
       ctx.status = 200;
       ctx.body = {
@@ -115,6 +121,7 @@ export class RepCastNAS extends LifeforcePlugin {
 
       return next();
     } catch (err) {
+      const error = err as Error;
       ctx.status = 500;
       ctx.body = {
         error: true,
@@ -123,6 +130,9 @@ export class RepCastNAS extends LifeforcePlugin {
         info: [],
       };
 
+      Logger.error(
+        "Error reading directory: " + filepath + ", " + error.message
+      );
       return next();
     }
   }
@@ -133,9 +143,13 @@ export class RepCastNAS extends LifeforcePlugin {
     return next();
   };
 
-  private async dirlist(filepath: string) {
+  private async dirlist(filepath: string, limit: number | undefined) {
+    Logger.debug("Reading directory: " + filepath);
+
     // get the list of files in this directory:
     let files = await fspromise.readdir(filepath);
+
+    Logger.debug("Found " + files.length + " files in " + filepath);
 
     // Strip bad files from the list before even processing them
     files = files.filter((file) => {
@@ -158,6 +172,13 @@ export class RepCastNAS extends LifeforcePlugin {
       return true;
     });
 
+    Logger.debug("Stripped bad files, now have " + files.length + " files");
+
+    if (limit) {
+      Logger.debug("Limiting files to first " + limit);
+      files = files.slice(0, limit);
+    }
+
     files.sort((a, b) => {
       return a.localeCompare(b, undefined, {
         numeric: true,
@@ -168,6 +189,8 @@ export class RepCastNAS extends LifeforcePlugin {
     const filePromises = files.map(async (file) => {
       const fixpath = filepath.replace(Config.LIFEFORCE_MEDIA_MOUNT, "");
 
+      Logger.debug("Processing file: " + file + " in " + fixpath);
+
       const jsonstruct: any = {
         date: "",
         name: file,
@@ -175,15 +198,37 @@ export class RepCastNAS extends LifeforcePlugin {
         key: "",
       };
 
-      const stats = await fspromise.stat(filepath + file);
+      if (filepath.endsWith("/")) {
+        Logger.debug("Stripping trailing slash from filepath" + filepath);
+        filepath = filepath.slice(0, -1);
+      }
+
+      const statPath = filepath + "/" + file;
+      Logger.debug("Getting stats for : " + statPath);
+
+      let stats: any;
+      try {
+        stats = await fspromise.stat(statPath);
+      } catch (err) {
+        const error = err as Error;
+        Logger.error(
+          "Error getting stats for: " + statPath + ", " + error.message
+        );
+        return null;
+      }
+
       // If something is a directory do some extra operations, and include it
       if (stats.isDirectory()) {
         jsonstruct.type = "dir";
-        jsonstruct.key = Buffer.from(fixpath + file + "/").toString("base64");
+        const dirPath = fixpath + "/" + file + "/";
+        Logger.debug("Found directory: " + dirPath);
+        jsonstruct.key = Buffer.from(dirPath).toString("base64");
       } else {
-        const ext = path.extname(fixpath + file).replace(".", "");
+        const filePath = fixpath + file;
+        Logger.debug("Found file: " + filePath);
+        const ext = path.extname(filePath).replace(".", "");
         const fullpath = `${Config.LIFEFORCE_MEDIA_PREFIX}${querystring.escape(
-          fixpath + file
+          filePath
         )}?token=${this.temp_token}`;
         jsonstruct.path = fullpath;
         jsonstruct.size = stats.size;
@@ -191,7 +236,7 @@ export class RepCastNAS extends LifeforcePlugin {
         jsonstruct.mimetype =
           mimetype.lookup(ext) || "application/octet-stream";
         jsonstruct.filetype = ext;
-        jsonstruct.key = Buffer.from(fixpath + file).toString("base64");
+        jsonstruct.key = Buffer.from(filePath).toString("base64");
         try {
           jsonstruct.date = timeSince(new Date(stats.mtime));
         } catch (err) {
@@ -202,7 +247,9 @@ export class RepCastNAS extends LifeforcePlugin {
       return jsonstruct;
     });
 
-    return Promise.all(filePromises);
+    const results = await Promise.all(filePromises);
+    const filtered = results.filter((result) => result !== null);
+    return filtered;
   }
 }
 
