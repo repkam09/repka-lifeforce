@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
+import Transmission from "transmission";
 import { LifeforcePlugin } from "../utils/LifeforcePlugin";
 import fspromise from "fs/promises";
 import path from "path";
@@ -32,6 +33,11 @@ export class RepCastNAS extends LifeforcePlugin {
   constructor(router: KoaRouter) {
     super(router);
     this.addHandlers([
+      {
+        path: "/repcast/toradd/:magnet",
+        type: "GET",
+        handler: this.handleRepcastTorAdd.bind(this),
+      },
       {
         path: "/repcast/nas/getfiles/:filepath",
         type: "GET",
@@ -67,6 +73,38 @@ export class RepCastNAS extends LifeforcePlugin {
         handler: this.handleRepcastFileSrv.bind(this),
       },
     ]);
+  }
+
+  private async handleRepcastTorAdd(ctx: Context, next: Next) {
+    try {
+      const magnet = Buffer.from(ctx.params.magnet, "base64").toString();
+
+      const instance = new Transmission({
+        port: Config.TRANSMISION_PORT,
+        host: Config.TRANSMISSION_HOST,
+        username: Config.TRANSMISSION_USER,
+        password: Config.TRANSMISION_PASS,
+      });
+      instance.addUrl(magnet, {}, (err, result) => {
+        if (err) {
+          ctx.status = 500;
+          ctx.body = {
+            error: err.message,
+          };
+        } else {
+          ctx.status = 200;
+          ctx.body = result;
+        }
+      });
+    } catch (err) {
+      const error = err as Error;
+      ctx.status = 500;
+      ctx.body = {
+        error: error.message,
+      };
+    }
+
+    return next();
   }
 
   private async handleRepcastFileSrv(ctx: Context, next: Next) {
