@@ -29,7 +29,7 @@
     "clean": "rimraf ./build",
     "lint": "eslint --fix .",
     "geoupdate": "node ./node_modules/geoip-country/scripts/updatedb.js",
-    "start": "node build/lifeforce.js",
+    "start": "npm run migrate:deploy && node build/lifeforce.js",
     "dev": "docker compose up --build",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:reset": "prisma migrate reset",
@@ -39,7 +39,6 @@
   "devDependencies": {
     "@types/geoip-country": "^4.0.2",
     "@types/http-status-codes": "^1.2.0",
-    "@types/ioredis": "^5.0.0",
     "@types/jest": "^29.5.7",
     "@types/koa": "^2.15.0",
     "@types/koa__cors": "^5.0.0",
