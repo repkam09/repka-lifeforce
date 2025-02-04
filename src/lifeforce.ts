@@ -13,7 +13,6 @@ import {
   traceLogMiddleware,
 } from "./utils/common";
 import { RepCast } from "./plugins/repcast";
-import { RepCastNAS } from "./plugins/repcastnas";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
 import { Hennos } from "./plugins/hennos/endpoints";
@@ -45,7 +44,6 @@ async function init() {
     MetaEndpoints,
     Music,
     RepCast,
-    RepCastNAS,
     RaspiTempMonitor,
     Weather,
     Hennos,

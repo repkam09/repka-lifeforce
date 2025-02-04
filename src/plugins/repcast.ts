@@ -14,7 +14,7 @@ import { v4 } from "uuid";
 
 const TOKEN_ROTATION = 1000 * 60 * 60 * 10; // 10 hour
 
-export class RepCastNAS extends LifeforcePlugin {
+export class RepCast extends LifeforcePlugin {
   private sample: object = {};
   private temp_token: string = v4();
 
