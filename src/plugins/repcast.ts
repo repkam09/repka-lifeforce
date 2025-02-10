@@ -12,11 +12,16 @@ import mimetype from "mime-types";
 import * as KoaSend from "@koa/send";
 import { v4 } from "uuid";
 
-const TOKEN_ROTATION = 1000 * 60 * 60 * 10; // 10 hour
+// Swap file tokens every 10 hours
+const TOKEN_ROTATION = 1000 * 60 * 60 * 10;
+
+// Clear cache every 1 hour
+const CACHE_TTL = 1000 * 60 * 60;
 
 export class RepCast extends LifeforcePlugin {
   private sample: object = {};
   private temp_token: string = v4();
+  private cache: Map<string, any> = new Map();
 
   public async init(): Promise<void> {
     // load in the sample response file
@@ -29,6 +34,11 @@ export class RepCast extends LifeforcePlugin {
       this.temp_token = v4();
       Logger.debug("Rotated RepCast Token: " + this.temp_token);
     }, TOKEN_ROTATION);
+
+    setInterval(() => {
+      Logger.debug("Clearing RepCast Cache");
+      this.cache.clear();
+    }, CACHE_TTL);
   }
   constructor(router: KoaRouter) {
     super(router);
@@ -147,7 +157,20 @@ export class RepCast extends LifeforcePlugin {
     const limit = limitString ? parseInt(limitString) : undefined;
 
     try {
+      const cached = this.cache.get(`${filepath}|${limit}`) as any[];
+      if (cached) {
+        ctx.status = 200;
+        ctx.body = {
+          error: false,
+          status: "cache",
+          count: cached.length,
+          info: cached,
+        };
+        return next();
+      }
+
       const result = await this.dirlist(filepath, limit);
+      this.cache.set(`${filepath}|${limit}`, result);
 
       ctx.status = 200;
       ctx.body = {
@@ -176,6 +199,7 @@ export class RepCast extends LifeforcePlugin {
   }
 
   private handleResetCache = async (ctx: Context, next: Next) => {
+    this.cache.clear();
     ctx.status = 200;
     ctx.body = "Cache cleared";
     return next();

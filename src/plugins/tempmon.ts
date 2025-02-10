@@ -27,8 +27,9 @@ export class RaspiTempMonitor extends LifeforcePlugin {
     Logger.info("Initializing TempMon Plugin");
   }
 
-  constructor(router: KoaRouter) {
+  constructor(router: KoaRouter, prisma: PrismaClient) {
     super(router);
+    this.prisma = prisma;
     this.addHandlers([
       {
         path: "/api/temp/checkin",
@@ -59,8 +60,6 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         pass: Config.LIFEFORCE_EMAIL_PASS,
       },
     });
-
-    this.prisma = new PrismaClient();
   }
 
   private async handleGetClients(ctx: Context, next: Next) {

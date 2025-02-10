@@ -2,6 +2,7 @@ import Koa from "koa";
 import KoaRouter from "koa-router";
 import KoaBodyParser from "koa-bodyparser";
 import KoaCors from "@koa/cors";
+import KoaWebsocket from "koa-easy-ws";
 
 import { Logger } from "./utils/logger";
 import { Config } from "./utils/config";
@@ -16,6 +17,7 @@ import { RepCast } from "./plugins/repcast";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
 import { Hennos } from "./plugins/hennos/endpoints";
+import { PrismaClient } from "@prisma/client";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -24,6 +26,8 @@ async function init() {
     proxy: true,
     proxyIpHeader: "X-Forwarded-For",
   });
+
+  const prisma = new PrismaClient();
 
   app.use(
     KoaCors({
@@ -36,6 +40,7 @@ async function init() {
   app.use(traceLogMiddleware);
   app.use(whitelistMiddleware);
   app.use(rateLimitMiddleware);
+  app.use(KoaWebsocket());
   app.use(KoaBodyParser());
 
   const router = new KoaRouter();
@@ -50,7 +55,7 @@ async function init() {
   ];
 
   const setup = plugins.map((Plugin) => {
-    const temp = new Plugin(router);
+    const temp = new Plugin(router, prisma);
     return temp.init();
   });
 

@@ -15,6 +15,7 @@
     "http-status-codes": "^2.3.0",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
+    "koa-easy-ws": "^2.1.0",
     "koa-router": "^13.0.1",
     "mime-types": "^2.1.35",
     "nodemailer": "^6.9.16",
