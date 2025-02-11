@@ -4,6 +4,7 @@ import { LifeforcePlugin } from "../../utils/LifeforcePlugin";
 import { Logger } from "../../utils/logger";
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
+import { Config } from "../../utils/config";
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
@@ -31,6 +32,10 @@ export class Hennos extends LifeforcePlugin {
     ctx: Context
   ): Promise<{ userId: string } | false> {
     if (!ctx.params.userId || !ctx.query.token) {
+      return false;
+    }
+
+    if (ctx.query.token !== Config.LIFEFORCE_AUTH_TOKEN) {
       return false;
     }
 
@@ -73,7 +78,7 @@ export class Hennos extends LifeforcePlugin {
             from: "user",
             data: data.value as string,
           });
-          
+
           history.push({
             from: "assistant",
             data: "response",
