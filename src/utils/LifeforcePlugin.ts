@@ -40,6 +40,7 @@ export abstract class LifeforcePlugin {
             }
 
             const ws = await ctx.ws();
+            ctx.req.socket.ignoreTimeout = true;
             return endpoint.handler(ctx, ws);
           },
           {

@@ -66,6 +66,15 @@ async function init() {
   Logger.info("Starting Koa Server...");
   app.listen(Config.LIFEFORCE_PORT, () => {
     Logger.info(`Listening at ${Config.LIFEFORCE_PUBLIC_URL}`);
+  }).on("clientError", (error: any, socket: any) => {
+    // This seems insane, but sure, why not.
+    // https://github.com/b3nsn0w/koa-easy-ws/issues/36
+    if (error.code === "ERR_HTTP_REQUEST_TIMEOUT" && socket.ignoreTimeout) {
+      return;
+    }
+
+    Logger.error(`Client error: ${error.message}`);
+    socket.destroy();
   });
 }
 
