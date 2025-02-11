@@ -20,7 +20,7 @@
     "mime-types": "^2.1.35",
     "nodemailer": "^6.9.16",
     "transmission": "^0.4.10",
-    "uuid": "^11.0.2",
+    "uuid": "^11.0.5",
     "ws": "^8.18.0"
   },
   "scripts": {
@@ -31,6 +31,8 @@
     "lint": "eslint --fix .",
     "geoupdate": "node ./node_modules/geoip-country/scripts/updatedb.js",
     "start": "npm run migrate:deploy && node build/lifeforce.js",
+    "start:watch": "nodemon --watch src --ext 'ts,json' --exec npm run start:dev",
+    "start:dev": "npm-run-all build start",
     "dev": "docker compose up --build",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:reset": "prisma migrate reset",
@@ -52,6 +54,7 @@
     "@typescript-eslint/parser": "^5.59.1",
     "eslint": "^8.39.0",
     "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
     "npm-run-all": "^4.1.5",
     "prisma": "^6.1.0",
     "rimraf": "^5.0.5",

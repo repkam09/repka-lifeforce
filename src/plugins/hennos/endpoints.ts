@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
+  private chat: Map<string, [{ from: string; data: string }]>;
 
   public async init(): Promise<void> {
     Logger.info("Hennos initialized");
@@ -15,6 +16,7 @@ export class Hennos extends LifeforcePlugin {
   constructor(router: KoaRouter, prisma: PrismaClient) {
     super(router);
     this.prisma = prisma;
+    this.chat = new Map();
 
     this.addHandlers([
       {
@@ -28,7 +30,7 @@ export class Hennos extends LifeforcePlugin {
   private async validateHennosUserConnection(
     ctx: Context
   ): Promise<{ userId: string } | false> {
-    if (!ctx.params.userId || !ctx.headers.authorization) {
+    if (!ctx.params.userId || !ctx.query.token) {
       return false;
     }
 
@@ -61,7 +63,33 @@ export class Hennos extends LifeforcePlugin {
 
         if (data.__type === "message") {
           Logger.info(`HennosUser ${valid.userId} Message: ${data.value}`);
-          ws.send(JSON.stringify({ __type: "message", value: "Response" }));
+          if (!this.chat.has(valid.userId)) {
+            this.chat.set(valid.userId, [] as any);
+          }
+
+          const history = this.chat.get(valid.userId)!;
+
+          history.push({
+            from: "user",
+            data: data.value as string,
+          });
+          
+          history.push({
+            from: "assistant",
+            data: "response",
+          });
+          this.chat.set(valid.userId, history);
+          ws.send(JSON.stringify({ __type: "message", value: "Response" + data.value }));
+        }
+
+        if (data.__type === "history") {
+          Logger.info(`HennosUser ${valid.userId} History Request`);
+          ws.send(
+            JSON.stringify({
+              __type: "history",
+              value: this.chat.get(valid.userId) ?? [],
+            })
+          );
         }
       } catch (err) {
         Logger.error(`HennosUser ${valid.userId} Error: ${err}`);
