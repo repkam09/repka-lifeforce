@@ -32,8 +32,20 @@ async function init() {
   app.use(
     KoaCors({
       origin: "*",
-      allowHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
-      exposeHeaders: ["cache-control", "repka-repcast-token", "repka-verify"],
+      allowHeaders: [
+        "cache-control",
+        "content-type",
+        "authorization",
+        "repka-repcast-token",
+        "repka-verify",
+      ],
+      exposeHeaders: [
+        "cache-control",
+        "content-type",
+        "authorization",
+        "repka-repcast-token",
+        "repka-verify",
+      ],
     })
   );
 
@@ -64,18 +76,21 @@ async function init() {
   app.use(router.routes());
 
   Logger.info("Starting Koa Server...");
-  app.listen(Config.LIFEFORCE_PORT, () => {
-    Logger.info(`Listening at ${Config.LIFEFORCE_PUBLIC_URL}`);
-  }).on("clientError", (error: any, socket: any) => {
-    // This seems insane, but sure, why not.
-    // https://github.com/b3nsn0w/koa-easy-ws/issues/36
-    if (error.code === "ERR_HTTP_REQUEST_TIMEOUT" && socket.ignoreTimeout) {
-      return;
-    }
+  app
+    .listen(Config.LIFEFORCE_PORT, () => {
+      Logger.info(`Listening at ${Config.LIFEFORCE_PUBLIC_URL}`);
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .on("clientError", (error: any, socket: any) => {
+      // This seems insane, but sure, why not.
+      // https://github.com/b3nsn0w/koa-easy-ws/issues/36
+      if (error.code === "ERR_HTTP_REQUEST_TIMEOUT" && socket.ignoreTimeout) {
+        return;
+      }
 
-    Logger.error(`Client error: ${error.message}`);
-    socket.destroy();
-  });
+      Logger.error(`Client error: ${error.message}`);
+      socket.destroy();
+    });
 }
 
 init();

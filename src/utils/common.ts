@@ -27,7 +27,12 @@ export function traceLogMiddleware(ctx: Context, next: Next) {
     endpoint = endpoint.substr(0, 500) + "...";
   }
 
+  if (endpoint.indexOf("/api/health") !== -1) {
+    return next();
+  }
+
   const session = {
+    date: new Date().toISOString(),
     method: ctx.req.method,
     ip: clientip,
     country: lookup(clientip),

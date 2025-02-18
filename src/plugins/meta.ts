@@ -20,18 +20,7 @@ export class MetaEndpoints extends LifeforcePlugin {
       {
         path: "/",
         type: "GET",
-        handler: this.handleAboutApi.bind(this),
-        cacheTTL: 86400,
-      },
-      {
-        path: "/api/gettest",
-        type: "GET",
-        handler: handleGetTest,
-      },
-      {
-        path: "/api/posttest",
-        type: "POST",
-        handler: handlePostTest,
+        handler: getHealthCheck,
       },
       {
         path: "/api/getip",
@@ -42,6 +31,11 @@ export class MetaEndpoints extends LifeforcePlugin {
         path: "/api/geoip",
         type: "GET",
         handler: getGeoIpCountry,
+      },
+      {
+        path: "/api/health",
+        type: "GET",
+        handler: getHealthCheck,
       },
     ]);
   }
@@ -80,12 +74,7 @@ function getGeoIpCountry(ctx: Context, next: Next) {
   return next();
 }
 
-function handleGetTest(ctx: Context, next: Next) {
-  ctx.body = { test: "passed" };
-  return next();
-}
-
-function handlePostTest(ctx: Context, next: Next) {
-  ctx.body = { test: "passed" };
+function getHealthCheck(ctx: Context, next: Next) {
+  ctx.body = { health: "ok" };
   return next();
 }
