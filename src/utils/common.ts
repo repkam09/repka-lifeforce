@@ -20,15 +20,15 @@ export function rateLimitMiddleware(ctx: Context, next: Next) {
 }
 
 export function traceLogMiddleware(ctx: Context, next: Next) {
+  if (ctx.req.url && ctx.req.url.indexOf("/api/health") !== -1) {
+    return next();
+  }
+
   const clientip = getClientIP(ctx.req);
 
   let endpoint = ctx.req.url as string;
   if (endpoint.length > 500) {
     endpoint = endpoint.substr(0, 500) + "...";
-  }
-
-  if (endpoint.indexOf("/api/health") !== -1) {
-    return next();
   }
 
   const session = {
@@ -50,9 +50,6 @@ export function whitelistMiddleware(ctx: Context, next: Next) {
   const country = lookup(clientip);
 
   if (hasValidAuth(ctx)) {
-    Logger.debug(
-      `clientip ${clientip} allowed from ${country} country, valid auth`
-    );
     return next();
   }
 
@@ -64,10 +61,6 @@ export function whitelistMiddleware(ctx: Context, next: Next) {
     ctx.body = "Unauthorized";
     return;
   }
-
-  Logger.debug(
-    `clientip ${clientip} allowed from ${country} country, whitelisted`
-  );
   return next();
 }
 
@@ -90,22 +83,18 @@ function lookup(ipaddr: string) {
 export function hasValidAuth(ctx: Context): boolean {
   const verify = ctx.headers["repka-verify"];
   if (verify && verify === Config.LIFEFORCE_AUTH_TOKEN) {
-    Logger.debug("hasValidAuth: verify header match");
     return true;
   }
 
   const auth = ctx.headers["authorization"];
   if (auth && auth === Config.LIFEFORCE_AUTH_TOKEN) {
-    Logger.debug("hasValidAuth: auth header match");
     return true;
   }
 
   const query = ctx.query.token;
   if (query && query === Config.LIFEFORCE_AUTH_TOKEN) {
-    Logger.debug("hasValidAuth: query match");
     return true;
   }
 
-  Logger.debug("hasValidAuth: no match");
   return false;
 }
