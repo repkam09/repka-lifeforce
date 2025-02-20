@@ -102,15 +102,20 @@ export class RepCast extends LifeforcePlugin {
 
           ctx.status = 500;
           ctx.body = {
-            error: err.message,
+            error: true,
+            data: err.message
           };
         } else {
+          console.log(`Torrent added: ${JSON.stringify(result)}`);
+
           ctx.status = 200;
-          ctx.body = result;
+          ctx.body = {
+            error: false,
+            data: result
+          };
         }
 
         return next();
-
       });
     } catch (err: unknown) {
       const error = err as Error;
@@ -118,7 +123,8 @@ export class RepCast extends LifeforcePlugin {
 
       ctx.status = 500;
       ctx.body = {
-        error: error.message,
+        error: true,
+        data: error.message
       };
 
       return next();
