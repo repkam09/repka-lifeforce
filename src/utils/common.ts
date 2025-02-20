@@ -27,8 +27,8 @@ export function traceLogMiddleware(ctx: Context, next: Next) {
   const clientip = getClientIP(ctx.req);
 
   let endpoint = ctx.req.url as string;
-  if (endpoint.length > 500) {
-    endpoint = endpoint.substr(0, 500) + "...";
+  if (endpoint.length > 250) {
+    endpoint = endpoint.substr(0, 250) + "...";
   }
 
   const session = {

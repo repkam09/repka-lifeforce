@@ -95,26 +95,40 @@ export class RepCast extends LifeforcePlugin {
         username: Config.TRANSMISSION_USER,
         password: Config.TRANSMISION_PASS,
       });
-      instance.addUrl(magnet, {}, (err, result) => {
+
+      instance.addUrl(magnet, (err, result) => {
         if (err) {
+          console.error(`Error returned while adding torrent: ${err.message}`);
+
           ctx.status = 500;
           ctx.body = {
-            error: err.message,
+            error: true,
+            data: err.message
           };
         } else {
+          console.log(`Torrent added: ${JSON.stringify(result)}`);
+
           ctx.status = 200;
-          ctx.body = result;
+          ctx.body = {
+            error: false,
+            data: result
+          };
         }
+
+        return next();
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const error = err as Error;
+      console.error(`Error thrown while adding torrent: ${error.message}`);
+
       ctx.status = 500;
       ctx.body = {
-        error: error.message,
+        error: true,
+        data: error.message
       };
-    }
 
-    return next();
+      return next();
+    }
   }
 
   private async handleRepcastFileSrv(ctx: Context, next: Next) {
