@@ -95,8 +95,11 @@ export class RepCast extends LifeforcePlugin {
         username: Config.TRANSMISSION_USER,
         password: Config.TRANSMISION_PASS,
       });
+
       instance.addUrl(magnet, {}, (err, result) => {
         if (err) {
+          console.error(`Error returned while adding torrent: ${err.message}`);
+
           ctx.status = 500;
           ctx.body = {
             error: err.message,
@@ -105,16 +108,21 @@ export class RepCast extends LifeforcePlugin {
           ctx.status = 200;
           ctx.body = result;
         }
+
+        return next();
+
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const error = err as Error;
+      console.error(`Error thrown while adding torrent: ${error.message}`);
+
       ctx.status = 500;
       ctx.body = {
         error: error.message,
       };
-    }
 
-    return next();
+      return next();
+    }
   }
 
   private async handleRepcastFileSrv(ctx: Context, next: Next) {
