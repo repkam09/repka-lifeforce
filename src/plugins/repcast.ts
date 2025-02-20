@@ -96,7 +96,7 @@ export class RepCast extends LifeforcePlugin {
         password: Config.TRANSMISION_PASS,
       });
 
-      instance.addUrl(magnet, {}, (err, result) => {
+      instance.addUrl(magnet, (err, result) => {
         if (err) {
           console.error(`Error returned while adding torrent: ${err.message}`);
 
