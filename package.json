@@ -19,6 +19,7 @@
     "koa-router": "^13.0.1",
     "mime-types": "^2.1.35",
     "nodemailer": "^6.9.16",
+    "openai": "^4.85.3",
     "transmission": "^0.4.10",
     "uuid": "^11.0.5",
     "ws": "^8.18.0"

@@ -5,10 +5,11 @@ import { Logger } from "../../utils/logger";
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { Config } from "../../utils/config";
+import { handleHennosMessage } from "./completion";
+import { HennosMessage, buildErrorMessage } from "./types";
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
-  private chat: Map<string, [{ from: string; data: string }]>;
 
   public async init(): Promise<void> {
     Logger.info("Hennos initialized");
@@ -17,7 +18,6 @@ export class Hennos extends LifeforcePlugin {
   constructor(router: KoaRouter, prisma: PrismaClient) {
     super(router);
     this.prisma = prisma;
-    this.chat = new Map();
 
     this.addHandlers([
       {
@@ -61,44 +61,27 @@ export class Hennos extends LifeforcePlugin {
 
     ws.on("message", (msg) => {
       try {
-        const data = JSON.parse(msg.toString()) as {
-          __type: string;
-          value: unknown;
-        };
+        const data = JSON.parse(msg.toString()) as object;
+        if (!Object.prototype.hasOwnProperty.call(data, "__type")) {
+          throw new Error("Invalid, missing __type");
+        }
 
-        if (data.__type === "message") {
-          Logger.info(`HennosUser ${valid.userId} Message: ${data.value}`);
-          if (!this.chat.has(valid.userId)) {
-            this.chat.set(valid.userId, [] as any);
+        if (!Object.prototype.hasOwnProperty.call(data, "value")) {
+          throw new Error("Invalid, missing value");
+        }
+
+        Logger.debug(`HennosUser ${valid.userId} Message: ${msg}`);
+        handleHennosMessage(
+          valid.userId,
+          data as HennosMessage,
+          (res: HennosMessage) => {
+            ws.send(JSON.stringify(res));
           }
-
-          const history = this.chat.get(valid.userId)!;
-
-          history.push({
-            from: "user",
-            data: data.value as string,
-          });
-
-          history.push({
-            from: "assistant",
-            data: "response",
-          });
-          this.chat.set(valid.userId, history);
-          ws.send(JSON.stringify({ __type: "message", value: "Response" + data.value }));
-        }
-
-        if (data.__type === "history") {
-          Logger.info(`HennosUser ${valid.userId} History Request`);
-          ws.send(
-            JSON.stringify({
-              __type: "history",
-              value: this.chat.get(valid.userId) ?? [],
-            })
-          );
-        }
-      } catch (err) {
+        );
+      } catch (err: unknown) {
         Logger.error(`HennosUser ${valid.userId} Error: ${err}`);
-        ws.send(JSON.stringify({ __type: "error", value: "Invalid Message" }));
+        const error = err as Error;
+        ws.send(JSON.stringify(buildErrorMessage(error.message)));
       }
     });
 

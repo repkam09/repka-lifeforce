@@ -16,7 +16,7 @@ import {
 import { RepCast } from "./plugins/repcast";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
-import { Hennos } from "./plugins/hennos/endpoints";
+import { Hennos } from "./plugins/hennos";
 import { PrismaClient } from "@prisma/client";
 
 async function init() {

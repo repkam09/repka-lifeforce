@@ -1,6 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import dotenv from "dotenv";
 
 dotenv.config();
+
+export type HennosModelConfig = {
+  MODEL: any;
+  CTX: number;
+};
+
+export type HennosEmbeddingModelConfig = {
+  MODEL: any;
+  CTX: number;
+};
 
 export class Config {
   static get LIFEFORCE_PORT(): number {
@@ -184,4 +196,63 @@ export class Config {
 
     return process.env.WS_SERVER_TOKEN;
   }
+
+  static get OPENAI_API_KEY(): string {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("Missing OPENAI_API_KEY");
+    }
+
+    return process.env.OPENAI_API_KEY;
+  }
+
+  static get OPENAI_LLM(): HennosModelConfig {
+    if (!process.env.OPENAI_LLM) {
+      return {
+        MODEL: "gpt-4o-mini",
+        CTX: 32000,
+      };
+    }
+
+    return parseHennosModelString(process.env.OPENAI_LLM, "OPENAI_LLM");
+  }
+
+  static get OPENAI_LLM_EMBED(): HennosEmbeddingModelConfig {
+    if (!process.env.OPENAI_LLM_EMBED) {
+      return {
+        MODEL: "text-embedding-3-small",
+        CTX: 8191,
+      };
+    }
+
+    const parts = process.env.OPENAI_LLM_EMBED.split(",");
+    const ctx = parseInt(parts[1]);
+
+    if (Number.isNaN(ctx)) {
+      throw new Error("Invalid context length value for OPENAI_LLM_EMBED");
+    }
+
+    return {
+      MODEL: parts[0],
+      CTX: ctx,
+    };
+  }
+}
+
+function parseHennosModelString(value: string, env: string): HennosModelConfig {
+  const parts = value.split(",");
+
+  if (parts.length !== 2) {
+    throw new Error(`Invalid value for ${env}`);
+  }
+
+  const ctxInLength = parseInt(parts[1]);
+
+  if (Number.isNaN(ctxInLength)) {
+    throw new Error("Invalid context length value for " + env);
+  }
+
+  return {
+    MODEL: parts[0],
+    CTX: ctxInLength,
+  };
 }
