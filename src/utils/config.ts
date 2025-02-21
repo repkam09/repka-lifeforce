@@ -15,6 +15,22 @@ export type HennosEmbeddingModelConfig = {
 };
 
 export class Config {
+  static get SUPABASE_API_KEY(): string {
+    if (!process.env.SUPABASE_API_KEY) {
+      throw new Error("SUPABASE_API_KEY is not set");
+    }
+
+    return process.env.SUPABASE_API_KEY;
+  }
+
+  static get SUPABASE_URL(): string {
+    if (!process.env.SUPABASE_URL) {
+      throw new Error("SUPABASE_URL is not set");
+    }
+
+    return process.env.SUPABASE_URL;
+  }
+
   static get LIFEFORCE_PORT(): number {
     if (!process.env.LIFEFORCE_PORT) {
       throw new Error("LIFEFORCE_PORT is not set");

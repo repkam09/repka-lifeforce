@@ -4,20 +4,27 @@ import { LifeforcePlugin } from "../../utils/LifeforcePlugin";
 import { Logger } from "../../utils/logger";
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
-import { Config } from "../../utils/config";
 import { handleHennosMessage } from "./completion";
 import { HennosMessage, buildErrorMessage } from "./types";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
+
+  public supabase: SupabaseClient;
 
   public async init(): Promise<void> {
     Logger.info("Hennos initialized");
   }
 
-  constructor(router: KoaRouter, prisma: PrismaClient) {
+  constructor(
+    router: KoaRouter,
+    prisma: PrismaClient,
+    supabase: SupabaseClient
+  ) {
     super(router);
     this.prisma = prisma;
+    this.supabase = supabase;
 
     this.addHandlers([
       {
@@ -32,15 +39,29 @@ export class Hennos extends LifeforcePlugin {
     ctx: Context
   ): Promise<{ userId: string } | false> {
     if (!ctx.params.userId || !ctx.query.token) {
+      console.warn("Missing userId or token");
       return false;
     }
 
-    if (ctx.query.token !== Config.LIFEFORCE_AUTH_TOKEN) {
+    const user = await this.supabase.auth.getUser(ctx.query.token as string);
+    if (user.error) {
+      console.error(`Supabase error: ${user.error.message}`);
       return false;
     }
 
+    if (!user.data.user) {
+      console.warn("Supabase returned no user data.");
+      return false;
+    }
+
+    if (user.data.user.id !== ctx.params.userId) {
+      console.warn(`Supabase user ID ${user.data.user.id} does not match.`);
+      return false;
+    }
+
+    console.log(`User ${user.data.user.id} validated via Supabase`);
     return {
-      userId: ctx.params.userId,
+      userId: user.data.user.id,
     };
   }
 
@@ -70,7 +91,6 @@ export class Hennos extends LifeforcePlugin {
           throw new Error("Invalid, missing value");
         }
 
-        Logger.debug(`HennosUser ${valid.userId} Message: ${msg}`);
         handleHennosMessage(
           valid.userId,
           data as HennosMessage,

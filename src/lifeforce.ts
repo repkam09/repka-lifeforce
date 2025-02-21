@@ -3,6 +3,7 @@ import KoaRouter from "koa-router";
 import KoaBodyParser from "koa-bodyparser";
 import KoaCors from "@koa/cors";
 import KoaWebsocket from "koa-easy-ws";
+import { createClient } from "@supabase/supabase-js";
 
 import { Logger } from "./utils/logger";
 import { Config } from "./utils/config";
@@ -26,6 +27,8 @@ async function init() {
     proxy: true,
     proxyIpHeader: "X-Forwarded-For",
   });
+
+  const supabase = createClient(Config.SUPABASE_URL, Config.SUPABASE_API_KEY);
 
   const prisma = new PrismaClient();
 
@@ -67,7 +70,7 @@ async function init() {
   ];
 
   const setup = plugins.map((Plugin) => {
-    const temp = new Plugin(router, prisma);
+    const temp = new Plugin(router, prisma, supabase);
     return temp.init();
   });
 
