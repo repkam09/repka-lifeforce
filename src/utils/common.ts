@@ -3,6 +3,7 @@ import { Config } from "./config";
 import { Logger } from "./logger";
 import { Context, Next } from "koa";
 import geoip from "geoip-country";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export function getClientIP(req: IncomingMessage): string {
   let ip = "0.0.0.0";
@@ -13,10 +14,6 @@ export function getClientIP(req: IncomingMessage): string {
   }
 
   return ip;
-}
-
-export function rateLimitMiddleware(ctx: Context, next: Next) {
-  return next();
 }
 
 export function traceLogMiddleware(ctx: Context, next: Next) {
@@ -43,27 +40,6 @@ export function traceLogMiddleware(ctx: Context, next: Next) {
   return next();
 }
 
-export function whitelistMiddleware(ctx: Context, next: Next) {
-  const whitelist = ["US", "Local"];
-
-  const clientip = getClientIP(ctx.req);
-  const country = lookup(clientip);
-
-  if (hasValidAuth(ctx)) {
-    return next();
-  }
-
-  if (whitelist.indexOf(country) === -1) {
-    Logger.debug(
-      `clientip ${clientip} blocked from ${country} country, not whitelisted`
-    );
-    ctx.status = 401;
-    ctx.body = "Unauthorized";
-    return;
-  }
-  return next();
-}
-
 function lookup(ipaddr: string) {
   try {
     if (Config.LIFEFORCE_LOCAL_IPS.some((addr) => ipaddr.includes(addr))) {
@@ -83,11 +59,6 @@ function lookup(ipaddr: string) {
 export function hasValidAuth(ctx: Context): boolean {
   const verify = ctx.headers["repka-verify"];
   if (verify && verify === Config.LIFEFORCE_AUTH_TOKEN) {
-    return true;
-  }
-
-  const auth = ctx.headers["authorization"];
-  if (auth && auth === Config.LIFEFORCE_AUTH_TOKEN) {
     return true;
   }
 

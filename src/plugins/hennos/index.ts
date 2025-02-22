@@ -1,4 +1,4 @@
-import { Context } from "koa";
+import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../../utils/LifeforcePlugin";
 import { Logger } from "../../utils/logger";
@@ -6,7 +6,7 @@ import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { handleHennosMessage } from "./completion";
 import { HennosMessage, buildErrorMessage } from "./types";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
@@ -32,7 +32,66 @@ export class Hennos extends LifeforcePlugin {
         type: "SOCKET",
         handler: this.handleHennosWebsocket.bind(this),
       },
+      {
+        path: "/api/hennos/user",
+        type: "GET",
+        handler: this.handleHennosUserFetch.bind(this),
+      },
     ]);
+  }
+
+  private async validateAuth(ctx: Context): Promise<{ token: string, user: User } | false> {
+    if (ctx.query.token) {
+      const user = await this.supabase.auth.getUser(ctx.query.token as string);
+      if (user.error) {
+        console.error(`Supabase error: ${user.error.message}`);
+        return false;
+      }
+
+      if (user.data.user) {
+        return {
+          token: ctx.query.token as string,
+          user: user.data.user
+        };
+      }
+    }
+
+    if (ctx.headers.authorization) {
+      const user = await this.supabase.auth.getUser(ctx.headers.authorization as string);
+      if (user.error) {
+        console.error(`Supabase error: ${user.error.message}`);
+        return false;
+      }
+
+      if (user.data.user) {
+        return {
+          token: ctx.headers.authorization as string,
+          user: user.data.user
+        };
+      }
+    }
+
+    return false;
+  }
+
+  private async handleHennosUserFetch(ctx: Context, next: Next) {
+    const user = await this.validateAuth(ctx);
+    if (!user) {
+      ctx.status = 401;
+      ctx.body = {
+        error: "Unauthorized",
+      };
+      return next();
+    }
+
+
+    ctx.status = 200;
+    ctx.body = {
+      error: false,
+      data: user,
+    };
+
+    return;
   }
 
   private async validateHennosUserConnection(

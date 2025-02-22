@@ -5,10 +5,20 @@ import geoip from "geoip-country";
 import { getClientIP } from "../utils/common";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
+import { PrismaClient } from "@prisma/client";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export class MetaEndpoints extends LifeforcePlugin {
-  constructor(router: KoaRouter) {
+
+  private prisma: PrismaClient;
+
+  private supabase: SupabaseClient;
+
+  constructor(router: KoaRouter, prisma: PrismaClient, supabase: SupabaseClient) {
     super(router);
+
+    this.prisma = prisma;
+    this.supabase = supabase;
 
     this.addHandlers([
       {
@@ -37,11 +47,46 @@ export class MetaEndpoints extends LifeforcePlugin {
         type: "GET",
         handler: getHealthCheck,
       },
+      {
+        path: "/api/login",
+        type: "POST",
+        handler: this.handleLifeforceLogin.bind(this),
+      },
     ]);
   }
 
   public async init(): Promise<void> {
     Logger.info("MetaEndpoints initialized");
+  }
+
+  private async handleLifeforceLogin(ctx: Context, next: Next) {
+    const { email, password } = ctx.request.body as { email: string; password: string };
+    if (!email || !password) {
+      ctx.status = 400;
+      ctx.body = { error: "Missing username or password" };
+      return next();
+    }
+
+    const response = await this.supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (response.error) {
+      ctx.status = 401;
+      ctx.body = { error: "Invalid Login" };
+      return next();
+    }
+
+    if (!response.data.user) {
+      ctx.status = 401;
+      ctx.body = { error: "Invalid Login" };
+      return next();
+    }
+
+    ctx.status = 200;
+    ctx.body = { session: response.data.session };
+    return next();
   }
 
   private handleAboutApi(ctx: Context, next: Next) {

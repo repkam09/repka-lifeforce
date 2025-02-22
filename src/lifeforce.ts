@@ -10,8 +10,6 @@ import { Config } from "./utils/config";
 import { MetaEndpoints } from "./plugins/meta";
 import { Music } from "./plugins/music";
 import {
-  whitelistMiddleware,
-  rateLimitMiddleware,
   traceLogMiddleware,
 } from "./utils/common";
 import { RepCast } from "./plugins/repcast";
@@ -53,8 +51,6 @@ async function init() {
   );
 
   app.use(traceLogMiddleware);
-  app.use(whitelistMiddleware);
-  app.use(rateLimitMiddleware);
   app.use(KoaWebsocket());
   app.use(KoaBodyParser());
 

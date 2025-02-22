@@ -359,13 +359,11 @@ function timeSince(date: Date) {
 function hasRepCastAuth(ctx: Context, temp: string): boolean {
   const repcast = ctx.headers["repka-repcast-token"];
   if (repcast && repcast === temp) {
-    Logger.debug("hasRepCastAuth: repcast header match");
     return true;
   }
 
   const query = ctx.query.token;
   if (query && query === temp) {
-    Logger.debug("hasValidAuth: query match");
     return true;
   }
 
