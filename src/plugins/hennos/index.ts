@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
 import { LifeforcePlugin } from "../../utils/LifeforcePlugin";
@@ -6,15 +7,30 @@ import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { handleHennosMessage } from "./completion";
 import { HennosMessage, buildErrorMessage } from "./types";
-import { SupabaseClient, User } from "@supabase/supabase-js";
+import {
+  createClient,
+  AdminUserAttributes,
+  SupabaseClient,
+  User,
+} from "@supabase/supabase-js";
+import { Config } from "../../utils/config";
+
+// Clear cache every minute
+const CACHE_TTL = 1000 * 60;
 
 export class Hennos extends LifeforcePlugin {
   public prisma: PrismaClient;
-
   public supabase: SupabaseClient;
+  public supabaseAdmin: SupabaseClient;
+  private cache: Map<string, any> = new Map();
 
   public async init(): Promise<void> {
     Logger.info("Hennos initialized");
+
+    setInterval(() => {
+      Logger.debug("Clearing Hennos Data Cache");
+      this.cache.clear();
+    }, CACHE_TTL);
   }
 
   constructor(
@@ -25,6 +41,11 @@ export class Hennos extends LifeforcePlugin {
     super(router);
     this.prisma = prisma;
     this.supabase = supabase;
+
+    this.supabaseAdmin = createClient(
+      Config.SUPABASE_URL,
+      Config.SUPABASE_SERVICE_KEY
+    );
 
     this.addHandlers([
       {
@@ -37,11 +58,50 @@ export class Hennos extends LifeforcePlugin {
         type: "GET",
         handler: this.handleHennosUserFetch.bind(this),
       },
+      {
+        path: "/api/hennos/users",
+        type: "GET",
+        handler: this.handleHennosUsersFetch.bind(this),
+      },
+      {
+        path: "/api/hennos/user/:userId",
+        type: "GET",
+        handler: this.handleHennosUserFetchById.bind(this),
+      },
+      {
+        path: "/api/hennos/user/:userId",
+        type: "POST",
+        handler: this.handleHennosUserUpdateById.bind(this),
+      },
     ]);
   }
 
-  private async validateAuth(ctx: Context): Promise<{ token: string, user: User } | false> {
+  private async validateAdminAuth(
+    ctx: Context
+  ): Promise<{ token: string; user: User } | false> {
+    const user = await this.validateAuth(ctx);
+    if (!user) {
+      return false;
+    }
+
+    if (!Config.LIFEFORCE_ADMIN_UUIDS.includes(user.user.id)) {
+      return false;
+    }
+
+    return { token: user.token, user: user.user };
+  }
+
+  private async validateAuth(
+    ctx: Context
+  ): Promise<{ token: string; user: User } | false> {
     if (ctx.query.token) {
+      // check if we have a cached result for this token
+      const cachedUser = this.cache.get(ctx.query.token as string);
+      if (cachedUser) {
+        console.log("Returning cached user from token");
+        return cachedUser;
+      }
+
       const user = await this.supabase.auth.getUser(ctx.query.token as string);
       if (user.error) {
         console.error(`Supabase error: ${user.error.message}`);
@@ -49,25 +109,40 @@ export class Hennos extends LifeforcePlugin {
       }
 
       if (user.data.user) {
-        return {
+        const result = {
           token: ctx.query.token as string,
-          user: user.data.user
+          user: user.data.user,
         };
+
+        this.cache.set(ctx.query.token as string, result);
+        return result;
       }
     }
 
     if (ctx.headers.authorization) {
-      const user = await this.supabase.auth.getUser(ctx.headers.authorization as string);
+      // check if we have a cached result for this token
+      const cachedUser = this.cache.get(ctx.headers.authorization as string);
+      if (cachedUser) {
+        console.log("Returning cached user from header");
+        return cachedUser;
+      }
+
+      const user = await this.supabase.auth.getUser(
+        ctx.headers.authorization as string
+      );
       if (user.error) {
         console.error(`Supabase error: ${user.error.message}`);
         return false;
       }
 
       if (user.data.user) {
-        return {
+        const result = {
           token: ctx.headers.authorization as string,
-          user: user.data.user
+          user: user.data.user,
         };
+
+        this.cache.set(ctx.headers.authorization as string, result);
+        return result;
       }
     }
 
@@ -84,14 +159,117 @@ export class Hennos extends LifeforcePlugin {
       return next();
     }
 
-
     ctx.status = 200;
     ctx.body = {
       error: false,
       data: user,
     };
 
-    return;
+    return next();
+  }
+
+  private async handleHennosUsersFetch(ctx: Context, next: Next) {
+    const user = await this.validateAdminAuth(ctx);
+    if (!user) {
+      ctx.status = 401;
+      ctx.body = {
+        error: "Unauthorized",
+      };
+      return next();
+    }
+
+    const cachedUsers = this.cache.get("users");
+    if (cachedUsers) {
+      ctx.status = 200;
+      ctx.body = {
+        cached: true,
+        error: false,
+        data: cachedUsers,
+      };
+    }
+
+    const users = await this.supabaseAdmin.auth.admin.listUsers();
+    if (users.error) {
+      ctx.status = 500;
+      ctx.body = {
+        error: "Internal Error",
+      };
+
+      return next();
+    }
+
+    ctx.status = 200;
+    const result = {
+      cached: false,
+      error: false,
+      data: users.data.users,
+    };
+    this.cache.set("users", result);
+    ctx.body = result;
+    return next();
+  }
+
+  private async handleHennosUserFetchById(ctx: Context, next: Next) {
+    const user = await this.validateAdminAuth(ctx);
+    if (!user) {
+      ctx.status = 401;
+      ctx.body = {
+        error: "Unauthorized",
+      };
+      return next();
+    }
+
+    const userById = await this.supabaseAdmin.auth.admin.getUserById(
+      ctx.params.userId as string
+    );
+
+    if (userById.error) {
+      ctx.status = 400;
+      ctx.body = {
+        error: "Invalid UserId",
+      };
+      return next();
+    }
+
+    ctx.status = 200;
+    ctx.body = {
+      error: false,
+      data: userById.data.user,
+    };
+
+    return next();
+  }
+
+  private async handleHennosUserUpdateById(ctx: Context, next: Next) {
+    const user = await this.validateAdminAuth(ctx);
+    if (!user) {
+      ctx.status = 401;
+      ctx.body = {
+        error: "Unauthorized",
+      };
+      return next();
+    }
+
+    const userById = await this.supabaseAdmin.auth.admin.updateUserById(
+      ctx.params.userId as string,
+      ctx.request.body as AdminUserAttributes
+    );
+
+    if (userById.error) {
+      ctx.status = 400;
+      ctx.body = {
+        error: "Bad Request",
+      };
+      return next();
+    }
+
+    ctx.status = 200;
+    ctx.body = {
+      error: false,
+      data: userById.data.user,
+    };
+
+    return next();
   }
 
   private async validateHennosUserConnection(

@@ -23,12 +23,30 @@ export class Config {
     return process.env.SUPABASE_API_KEY;
   }
 
+  static get SUPABASE_SERVICE_KEY(): string {
+    if (!process.env.SUPABASE_SERVICE_KEY) {
+      throw new Error("SUPABASE_SERVICE_KEY is not set");
+    }
+
+    return process.env.SUPABASE_SERVICE_KEY;
+  }
+
   static get SUPABASE_URL(): string {
     if (!process.env.SUPABASE_URL) {
       throw new Error("SUPABASE_URL is not set");
     }
 
     return process.env.SUPABASE_URL;
+  }
+
+  static get LIFEFORCE_ADMIN_UUIDS(): string[] {
+    if (!process.env.LIFEFORCE_ADMIN_UUIDS) {
+      throw new Error("LIFEFORCE_ADMIN_UUIDS is not set");
+    }
+
+    return process.env.LIFEFORCE_ADMIN_UUIDS.split(",").map((uuid) =>
+      uuid.trim()
+    );
   }
 
   static get LIFEFORCE_PORT(): number {
