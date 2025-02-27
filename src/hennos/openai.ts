@@ -1,6 +1,6 @@
 import OpenAI, { OpenAIError } from "openai";
-import { Config } from "../../utils/config";
-import { Logger } from "../../utils/logger";
+import { Config } from "../utils/config";
+import { Logger } from "../utils/logger";
 
 type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 

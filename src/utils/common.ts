@@ -3,7 +3,6 @@ import { Config } from "./config";
 import { Logger } from "./logger";
 import { Context, Next } from "koa";
 import geoip from "geoip-country";
-import { SupabaseClient } from "@supabase/supabase-js";
 
 export function getClientIP(req: IncomingMessage): string {
   let ip = "0.0.0.0";

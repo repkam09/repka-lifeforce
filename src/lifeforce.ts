@@ -9,9 +9,7 @@ import { Logger } from "./utils/logger";
 import { Config } from "./utils/config";
 import { MetaEndpoints } from "./plugins/meta";
 import { Music } from "./plugins/music";
-import {
-  traceLogMiddleware,
-} from "./utils/common";
+import { traceLogMiddleware } from "./utils/common";
 import { RepCast } from "./plugins/repcast";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
