@@ -166,7 +166,7 @@ export class Hennos extends LifeforcePlugin {
       return ws.close();
     }
 
-    ctx.req.setTimeout(Number.MAX_VALUE);
+    ctx.req.setTimeout(2147483646);
 
     const socketId = randomUUID();
     const userId = valid.user.id;
