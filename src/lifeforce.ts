@@ -14,6 +14,8 @@ import { RepCast } from "./plugins/repcast";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
 import { Hennos } from "./plugins/hennos";
+import { HomeAssistant } from "./plugins/home";
+import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
 
 async function init() {
@@ -61,6 +63,8 @@ async function init() {
     RaspiTempMonitor,
     Weather,
     Hennos,
+    HomeAssistant,
+    TRMNL,
   ];
 
   const setup = plugins.map((Plugin) => {

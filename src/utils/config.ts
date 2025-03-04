@@ -15,6 +15,14 @@ export type HennosEmbeddingModelConfig = {
 };
 
 export class Config {
+  static get HOME_ASSISTANT_TOKEN(): string | false {
+    if (!process.env.HOME_ASSISTANT_TOKEN) {
+      return false;
+    }
+
+    return process.env.HOME_ASSISTANT_TOKEN;
+  }
+
   static get SUPABASE_API_KEY(): string {
     if (!process.env.SUPABASE_API_KEY) {
       throw new Error("SUPABASE_API_KEY is not set");
