@@ -23,6 +23,14 @@ export class Config {
     return process.env.HOME_ASSISTANT_TOKEN;
   }
 
+  static get HOME_ASSISTANT_URL(): string | false {
+    if (!process.env.HOME_ASSISTANT_URL) {
+      return false;
+    }
+
+    return process.env.HOME_ASSISTANT_URL;
+  }
+
   static get SUPABASE_API_KEY(): string {
     if (!process.env.SUPABASE_API_KEY) {
       throw new Error("SUPABASE_API_KEY is not set");

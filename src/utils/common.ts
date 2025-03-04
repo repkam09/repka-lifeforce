@@ -54,17 +54,3 @@ function lookup(ipaddr: string) {
     return "unknown";
   }
 }
-
-export function hasValidAuth(ctx: Context): boolean {
-  const verify = ctx.headers["repka-verify"];
-  if (verify && verify === Config.LIFEFORCE_AUTH_TOKEN) {
-    return true;
-  }
-
-  const query = ctx.query.token;
-  if (query && query === Config.LIFEFORCE_AUTH_TOKEN) {
-    return true;
-  }
-
-  return false;
-}

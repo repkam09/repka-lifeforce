@@ -12,7 +12,7 @@ export class HomeAssistant extends LifeforcePlugin {
   constructor(router: KoaRouter) {
     super(router);
 
-    if (!Config.HOME_ASSISTANT_TOKEN) {
+    if (!Config.HOME_ASSISTANT_TOKEN || !Config.HOME_ASSISTANT_URL) {
       Logger.error("Home Assistant token is not configured. Disabling plugin.");
       return;
     }
@@ -21,11 +21,13 @@ export class HomeAssistant extends LifeforcePlugin {
       {
         path: "/api/home/entities",
         type: "GET",
+        auth: true,
         handler: handleGetEntities,
       },
       {
         path: "/api/home/entity/:entity_id",
         type: "GET",
+        auth: true,
         handler: handleGetEntity,
       },
     ]);
@@ -33,7 +35,7 @@ export class HomeAssistant extends LifeforcePlugin {
 }
 
 async function handleGetEntities(ctx: Context, next: Next) {
-  const result = await fetch("https://home.repkam09.com/api/states", {
+  const result = await fetch(`${Config.HOME_ASSISTANT_URL}/api/states`, {
     headers: {
       Authorization: "Bearer " + Config.HOME_ASSISTANT_TOKEN,
       "Content-Type": "application/json",
@@ -49,7 +51,7 @@ async function handleGetEntities(ctx: Context, next: Next) {
 
 async function handleGetEntity(ctx: Context, next: Next) {
   const result = await fetch(
-    `https://home.repkam09.com/api/states/${ctx.params.entity_id}`,
+    `${Config.HOME_ASSISTANT_URL}/api/states/${ctx.params.entity_id}`,
     {
       headers: {
         Authorization: "Bearer " + Config.HOME_ASSISTANT_TOKEN,

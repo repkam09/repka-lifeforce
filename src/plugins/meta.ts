@@ -9,12 +9,15 @@ import { PrismaClient } from "@prisma/client";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export class MetaEndpoints extends LifeforcePlugin {
-
   private prisma: PrismaClient;
 
   private supabase: SupabaseClient;
 
-  constructor(router: KoaRouter, prisma: PrismaClient, supabase: SupabaseClient) {
+  constructor(
+    router: KoaRouter,
+    prisma: PrismaClient,
+    supabase: SupabaseClient
+  ) {
     super(router);
 
     this.prisma = prisma;
@@ -52,6 +55,12 @@ export class MetaEndpoints extends LifeforcePlugin {
         type: "POST",
         handler: this.handleLifeforceLogin.bind(this),
       },
+      {
+        path: "/api/authtest",
+        type: "GET",
+        handler: this.handleAuthTest.bind(this),
+        auth: true,
+      },
     ]);
   }
 
@@ -59,8 +68,17 @@ export class MetaEndpoints extends LifeforcePlugin {
     Logger.info("MetaEndpoints initialized");
   }
 
+  private async handleAuthTest(ctx: Context, next: Next) {
+    ctx.status = 200;
+    ctx.body = "Authorized";
+    return next();
+  }
+
   private async handleLifeforceLogin(ctx: Context, next: Next) {
-    const { email, password } = ctx.request.body as { email: string; password: string };
+    const { email, password } = ctx.request.body as {
+      email: string;
+      password: string;
+    };
     if (!email || !password) {
       ctx.status = 400;
       ctx.body = { error: "Missing username or password" };
@@ -69,7 +87,7 @@ export class MetaEndpoints extends LifeforcePlugin {
 
     const response = await this.supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (response.error) {
