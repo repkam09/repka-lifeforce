@@ -24,6 +24,14 @@ export function returnInternalError(ctx: Context, next: Next) {
   return next();
 }
 
+export function returnNotImplemented(ctx: Context, next: Next) {
+  ctx.status = 500;
+  ctx.body = {
+    error: "Endpoint Not Implemented",
+  };
+  return next();
+}
+
 export function returnSuccess(
   cache: boolean,
   data: any,
