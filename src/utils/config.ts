@@ -23,6 +23,14 @@ export class Config {
     return process.env.HOME_ASSISTANT_TOKEN;
   }
 
+  static get GAME_ROM_LOCATION(): string {
+    if (!process.env.GAME_ROM_LOCATION) {
+      throw new Error("GAME_ROM_LOCATION is not set");
+    }
+
+    return process.env.GAME_ROM_LOCATION;
+  }
+
   static get HOME_ASSISTANT_URL(): string | false {
     if (!process.env.HOME_ASSISTANT_URL) {
       return false;

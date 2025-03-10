@@ -9,3 +9,4 @@ proxy.json
 .env
 .yarn/*
 data/*
+src/gameboy/roms/*

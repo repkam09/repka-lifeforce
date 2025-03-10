@@ -17,6 +17,7 @@ import { Hennos } from "./plugins/hennos";
 import { HomeAssistant } from "./plugins/home";
 import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
+import { GameBoyPlugin } from "./plugins/gameboy";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -65,6 +66,7 @@ async function init() {
     Hennos,
     HomeAssistant,
     TRMNL,
+    GameBoyPlugin
   ];
 
   const setup = plugins.map((Plugin) => {
