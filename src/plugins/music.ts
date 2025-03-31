@@ -1,7 +1,9 @@
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
 import axios from "axios";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
 
@@ -10,8 +12,8 @@ export class Music extends LifeforcePlugin {
     Logger.info("Music initialized");
   }
 
-  constructor(router: KoaRouter) {
-    super(router);
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
     this.addHandlers([
       {
         path: "/api/music/now/:name",

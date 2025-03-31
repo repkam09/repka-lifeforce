@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import { Logger } from "../utils/logger";
 import { RawData, WebSocket } from "ws";
-import { PrismaClient } from "@prisma/client";
 import { HennosSessionHandler } from "../hennos/sessions";
 import {
   createClient,
@@ -25,8 +26,6 @@ import {
 } from "../utils/response";
 
 export class Hennos extends LifeforcePlugin {
-  public prisma: PrismaClient;
-  public supabase: SupabaseClient;
   public supabaseAdmin: SupabaseClient;
 
   // Clear cache every minute
@@ -40,14 +39,8 @@ export class Hennos extends LifeforcePlugin {
     }, this.CACHE_TTL);
   }
 
-  constructor(
-    router: KoaRouter,
-    prisma: PrismaClient,
-    supabase: SupabaseClient
-  ) {
-    super(router);
-    this.prisma = prisma;
-    this.supabase = supabase;
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
 
     this.supabaseAdmin = createClient(
       Config.SUPABASE_URL,

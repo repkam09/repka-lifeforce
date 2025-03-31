@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { PrismaClient } from "@prisma/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+
 import KoaRouter from "koa-router";
 import { Context, Next } from "koa";
 import { WebSocket } from "ws";
@@ -22,11 +26,24 @@ export type LifeforceWebsocketPluginEndpoint = {
   handler: (ctx: Context, ws: WebSocket) => void;
 };
 
+export type LifeforePluginConfiguration = {
+  router: KoaRouter;
+  prisma: PrismaClient;
+  supabase: SupabaseClient;
+  mcp: McpServer;
+};
+
 export abstract class LifeforcePlugin {
   public router: KoaRouter;
+  public prisma: PrismaClient;
+  public supabase: SupabaseClient;
+  public mcp: McpServer;
 
-  constructor(router: KoaRouter) {
-    this.router = router;
+  constructor(input: LifeforePluginConfiguration) {
+    this.router = input.router;
+    this.prisma = input.prisma;
+    this.supabase = input.supabase;
+    this.mcp = input.mcp;
   }
 
   public addHandlers(endpoints: LifeforcePluginEndpoint[]): void {

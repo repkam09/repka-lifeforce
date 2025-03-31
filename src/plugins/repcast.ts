@@ -2,7 +2,10 @@
 import { Context, Next } from "koa";
 import KoaRouter from "koa-router";
 import Transmission from "transmission";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import fspromise from "fs/promises";
 import path from "path";
 import querystring from "node:querystring";
@@ -40,8 +43,9 @@ export class RepCast extends LifeforcePlugin {
       this.cache.clear();
     }, CACHE_TTL);
   }
-  constructor(router: KoaRouter) {
-    super(router);
+
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
     this.addHandlers([
       {
         path: "/repcast/toradd/:magnet",
@@ -103,7 +107,7 @@ export class RepCast extends LifeforcePlugin {
           ctx.status = 500;
           ctx.body = {
             error: true,
-            data: err.message
+            data: err.message,
           };
         } else {
           console.log(`Torrent added: ${JSON.stringify(result)}`);
@@ -111,7 +115,7 @@ export class RepCast extends LifeforcePlugin {
           ctx.status = 200;
           ctx.body = {
             error: false,
-            data: result
+            data: result,
           };
         }
 
@@ -124,7 +128,7 @@ export class RepCast extends LifeforcePlugin {
       ctx.status = 500;
       ctx.body = {
         error: true,
-        data: error.message
+        data: error.message,
       };
 
       return next();

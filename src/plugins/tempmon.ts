@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import nodemailer, { Transporter } from "nodemailer";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
-import { PrismaClient } from "@prisma/client";
 
 const TEMP_THRESHOLD = 45;
 const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
@@ -20,16 +21,15 @@ type TempResponseEntry = {
 
 export class RaspiTempMonitor extends LifeforcePlugin {
   private transport: Transporter;
-  private prisma: PrismaClient;
   private tempCheckinTimers: Record<string, NodeJS.Timeout> = {};
 
   public async init(): Promise<void> {
     Logger.info("Initializing TempMon Plugin");
   }
 
-  constructor(router: KoaRouter, prisma: PrismaClient) {
-    super(router);
-    this.prisma = prisma;
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
+
     this.addHandlers([
       {
         path: "/api/temp/checkin",

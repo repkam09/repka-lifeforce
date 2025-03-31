@@ -8,6 +8,7 @@
   "dependencies": {
     "@koa/cors": "^5.0.0",
     "@koa/send": "^6.0.0",
+    "@modelcontextprotocol/sdk": "^1.8.0",
     "@prisma/client": "^6.1.0",
     "@supabase/supabase-js": "^2.48.1",
     "axios": "^1.7.7",
@@ -23,7 +24,8 @@
     "openai": "^4.85.3",
     "transmission": "^0.4.10",
     "uuid": "^11.0.5",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
   },
   "scripts": {
     "build": "npm-run-all clean prisma:generate tsc:emit",
@@ -39,7 +41,8 @@
     "migrate:deploy": "prisma migrate deploy",
     "migrate:reset": "prisma migrate reset",
     "migrate:new": "prisma migrate dev --create-only",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector"
   },
   "devDependencies": {
     "@types/geoip-country": "^4.0.2",

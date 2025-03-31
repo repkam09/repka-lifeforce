@@ -51,35 +51,30 @@ export async function validateAuth(
   }
 
   if (ctx.headers.authorization) {
+    const cleanedToken = ctx.headers.authorization.replace("Bearer ", "");
+
     // check if we have a cached result for this token
-    const cachedUser = HennosCacheHandler.get<User>(
-      ctx.headers.authorization as string
-    );
+    const cachedUser = HennosCacheHandler.get<User>(cleanedToken);
     if (cachedUser) {
       console.log("Returning cached user from header");
       return {
         cached: true,
-        token: ctx.headers.authorization as string,
+        token: cleanedToken,
         user: cachedUser,
       };
     }
 
-    const user = await supabase.auth.getUser(
-      ctx.headers.authorization as string
-    );
+    const user = await supabase.auth.getUser(cleanedToken);
     if (user.error) {
       console.error(`Supabase error: ${user.error.message}`);
       return false;
     }
 
     if (user.data.user) {
-      HennosCacheHandler.set(
-        ctx.headers.authorization as string,
-        user.data.user
-      );
+      HennosCacheHandler.set(cleanedToken, user.data.user);
       return {
         cached: false,
-        token: ctx.headers.authorization as string,
+        token: cleanedToken,
         user: user.data.user,
       };
     }

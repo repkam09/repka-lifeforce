@@ -1,6 +1,8 @@
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import { Logger } from "../utils/logger";
 import { Config } from "../utils/config";
 
@@ -9,8 +11,8 @@ export class HomeAssistant extends LifeforcePlugin {
     Logger.info("HomeAssistant initialized");
   }
 
-  constructor(router: KoaRouter) {
-    super(router);
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
 
     if (!Config.HOME_ASSISTANT_TOKEN || !Config.HOME_ASSISTANT_URL) {
       Logger.error("Home Assistant token is not configured. Disabling plugin.");

@@ -1,17 +1,20 @@
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import axios from "axios";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
+import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export class Weather extends LifeforcePlugin {
   public async init(): Promise<void> {
     Logger.info("Weather initialized");
   }
 
-  constructor(router: KoaRouter) {
-    super(router);
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
     this.addHandlers([
       {
         path: "/api/weather/current/zip/:zip",
@@ -24,6 +27,42 @@ export class Weather extends LifeforcePlugin {
         handler: this.handleWeatherForecastZipCode.bind(this),
       },
     ]);
+
+    this.mcp.resource(
+      "weather-current",
+      new ResourceTemplate("lifeforce://weather-current/{zipCode}", {
+        list: undefined,
+      }),
+      async (uri, params) => {
+        const result = await weatherCurrentZipCode(params.zipCode as string);
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              text: JSON.stringify(result.data),
+            },
+          ],
+        };
+      }
+    );
+
+    this.mcp.resource(
+      "weather-forecast",
+      new ResourceTemplate("lifeforce://weather-forecast/{zipCode}", {
+        list: undefined,
+      }),
+      async (uri, params) => {
+        const result = await weatherForecastZipCode(params.zipCode as string);
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              text: JSON.stringify(result.data),
+            },
+          ],
+        };
+      }
+    );
   }
 
   private async handleWeatherZipCode(ctx: Context, next: Next) {
@@ -31,8 +70,7 @@ export class Weather extends LifeforcePlugin {
     if (zip) {
       Logger.debug(`Looking up weather for ${zip}`);
       try {
-        const url = `http://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${Config.WEATHER_API_KEY}`;
-        const response = await axios.get(url);
+        const response = await weatherCurrentZipCode(zip);
         ctx.status = 200;
         ctx.body = response.data;
       } catch (err: unknown) {
@@ -54,8 +92,7 @@ export class Weather extends LifeforcePlugin {
     if (zip) {
       Logger.debug(`Looking up weather forecast for ${zip}`);
       try {
-        const url = `http://api.openweathermap.org/data/2.5/forecast?zip=${zip}&appid=${Config.WEATHER_API_KEY}`;
-        const response = await axios.get(url);
+        const response = await weatherForecastZipCode(zip);
         ctx.status = 200;
         ctx.body = response.data;
       } catch (err: unknown) {
@@ -71,4 +108,16 @@ export class Weather extends LifeforcePlugin {
     }
     return next();
   }
+}
+
+export async function weatherForecastZipCode(zip: string) {
+  return axios.get(
+    `http://api.openweathermap.org/data/2.5/forecast?zip=${zip}&appid=${Config.WEATHER_API_KEY}`
+  );
+}
+
+export async function weatherCurrentZipCode(zip: string) {
+  return axios.get(
+    `http://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${Config.WEATHER_API_KEY}`
+  );
 }

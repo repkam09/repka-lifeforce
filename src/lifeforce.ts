@@ -17,6 +17,7 @@ import { Hennos } from "./plugins/hennos";
 import { HomeAssistant } from "./plugins/home";
 import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
+import { createMCPServer } from "./mcp";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -55,6 +56,7 @@ async function init() {
   app.use(KoaBodyParser());
 
   const router = new KoaRouter();
+  const mcp = await createMCPServer(supabase, router);
 
   const plugins = [
     MetaEndpoints,
@@ -68,13 +70,19 @@ async function init() {
   ];
 
   const setup = plugins.map((Plugin) => {
-    const temp = new Plugin(router, prisma, supabase);
+    const temp = new Plugin({
+      router,
+      prisma,
+      supabase,
+      mcp,
+    });
     return temp.init();
   });
 
   await Promise.all(setup);
 
   app.use(router.routes());
+  app.use(router.allowedMethods());
 
   Logger.info("Starting Koa Server...");
   app

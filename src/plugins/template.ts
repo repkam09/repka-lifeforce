@@ -1,6 +1,8 @@
 import { Context, Next } from "koa";
-import KoaRouter from "koa-router";
-import { LifeforcePlugin } from "../utils/LifeforcePlugin";
+import {
+  LifeforcePlugin,
+  LifeforePluginConfiguration,
+} from "../utils/LifeforcePlugin";
 import { Logger } from "../utils/logger";
 
 export class Template extends LifeforcePlugin {
@@ -8,8 +10,8 @@ export class Template extends LifeforcePlugin {
     Logger.info("Template initialized");
   }
 
-  constructor(router: KoaRouter) {
-    super(router);
+  constructor(input: LifeforePluginConfiguration) {
+    super(input);
     this.addHandlers([
       {
         path: "/api/example/example",
