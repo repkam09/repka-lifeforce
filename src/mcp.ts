@@ -45,11 +45,6 @@ export async function createMCPServer(
   });
 
   router.post("/mcp", async (ctx: Context, next: Next) => {
-    const auth = await validateAuth(supabase, ctx);
-    if (!auth) {
-      return returnUnauthorized(ctx, next);
-    }
-
     const { req, res } = ctx;
 
     const sessionId = ctx.query.sessionId as string;

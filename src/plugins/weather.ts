@@ -1,4 +1,5 @@
 import { Context, Next } from "koa";
+import { z } from "zod";
 import {
   LifeforcePlugin,
   LifeforePluginConfiguration,
@@ -42,6 +43,30 @@ export class Weather extends LifeforcePlugin {
               text: JSON.stringify(result.data),
             },
           ],
+        };
+      }
+    );
+
+    this.mcp.tool(
+      "weather-current",
+      "Get current weather for a zip code",
+      { zipCode: z.string() },
+      async ({ zipCode }) => {
+        const result = await weatherCurrentZipCode(zipCode);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result.data) }],
+        };
+      }
+    );
+
+    this.mcp.tool(
+      "weather-forecast",
+      "Get weather forecast for a zip code",
+      { zipCode: z.string() },
+      async ({ zipCode }) => {
+        const result = await weatherForecastZipCode(zipCode);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result.data) }],
         };
       }
     );
