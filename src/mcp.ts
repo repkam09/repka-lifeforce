@@ -16,13 +16,13 @@ export async function createMCPServer(
     version: "1.0.0",
   });
 
-  router.get("/mcp", async (ctx: Context, next: Next) => {
+  router.get("/api/mcp", async (ctx: Context, next: Next) => {
     const auth = await validateAuth(supabase, ctx);
     if (!auth) {
       return returnUnauthorized(ctx, next);
     }
 
-    const transport = new SSEServerTransport("/mcp", ctx.res);
+    const transport = new SSEServerTransport("/api/mcp", ctx.res);
     ServerTransports.register(transport.sessionId, {
       transport,
       sessionId: transport.sessionId,
@@ -44,7 +44,7 @@ export async function createMCPServer(
     return server.connect(transport);
   });
 
-  router.post("/mcp", async (ctx: Context, next: Next) => {
+  router.post("/api/mcp", async (ctx: Context, next: Next) => {
     const { req, res } = ctx;
 
     const sessionId = ctx.query.sessionId as string;
