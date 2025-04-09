@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PassThrough } from "node:stream";
+import { randomUUID } from "node:crypto";
 import { Context, Next } from "koa";
 import {
   LifeforcePlugin,
@@ -14,7 +16,6 @@ import {
   User,
 } from "@supabase/supabase-js";
 import { Config } from "../utils/config";
-import { randomUUID } from "crypto";
 import { handleUserMessage } from "../hennos/completion";
 import { HennosCacheHandler, HennosStorageHandler } from "../hennos/storage";
 import { validateAdminAuth, validateAuth } from "../utils/validation";
@@ -48,6 +49,16 @@ export class Hennos extends LifeforcePlugin {
     );
 
     this.addHandlers([
+      {
+        path: "/api/hennos/events",
+        type: "GET",
+        handler: this.handleHennosEvents.bind(this),
+      },
+      {
+        path: "/api/hennos/event",
+        type: "POST",
+        handler: this.handleHennosEvent.bind(this),
+      },
       {
         path: "/api/hennos/socket",
         type: "SOCKET",
@@ -160,6 +171,9 @@ export class Hennos extends LifeforcePlugin {
     }
 
     ctx.req.setTimeout(2147483646);
+    ctx.request.socket.setTimeout(0);
+    ctx.req.socket.setNoDelay(true);
+    ctx.req.socket.setKeepAlive(true);
 
     const socketId = randomUUID();
     const userId = valid.user.id;
@@ -184,5 +198,62 @@ export class Hennos extends LifeforcePlugin {
       Logger.info(`HennosUser ${userId} Disconnected`);
       HennosSessionHandler.unregister(userId, socketId);
     });
+  }
+
+  private async handleHennosEvents(ctx: Context, next: Next) {
+    const valid = await validateAuth(this.supabase, ctx);
+    if (!valid) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    ctx.request.socket.setTimeout(0);
+    ctx.req.socket.setNoDelay(true);
+    ctx.req.socket.setKeepAlive(true);
+
+    ctx.set({
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    const stream = new PassThrough();
+
+    const socketId = randomUUID();
+    const userId = valid.user.id;
+
+    Logger.info(`HennosUser ${userId} Connected (socket: ${socketId})`);
+    HennosSessionHandler.register(userId, socketId, stream);
+
+    stream.on("error", (err) => {
+      Logger.error(`HennosUser ${userId} Error: ${err}`);
+      HennosSessionHandler.unregister(userId, socketId);
+    });
+
+    stream.on("close", () => {
+      Logger.info(`HennosUser ${userId} Disconnected`);
+      HennosSessionHandler.unregister(userId, socketId);
+    });
+
+    ctx.status = 200;
+    ctx.body = stream;
+  }
+
+  private async handleHennosEvent(ctx: Context, next: Next) {
+    const valid = await validateAuth(this.supabase, ctx);
+    if (!valid) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    const userId = valid.user.id;
+
+    try {
+      handleUserMessage(userId, ctx.request.body as object);
+    } catch (err: unknown) {
+      Logger.debug(
+        `HennosUser ${userId} Invalid Message: ${ctx.request.body as object}`
+      );
+    }
+
+    return returnSuccess(false, null, ctx, next);
   }
 }

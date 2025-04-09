@@ -1,11 +1,12 @@
 import { WebSocket } from "ws";
 import { Logger } from "../utils/logger";
 import { HennosMessage } from "./types";
+import { PassThrough } from "node:stream";
 
 type HennosSession = {
   userId: string;
   socketId: string;
-  socket: WebSocket;
+  socket: WebSocket | PassThrough;
 };
 
 type HennosUserId = string;
@@ -16,7 +17,7 @@ export class HennosSessionHandler {
   public static register(
     userId: string,
     socketId: string,
-    socket: WebSocket
+    socket: WebSocket | PassThrough
   ): void {
     if (!HennosSessionHandler.sessions.has(userId)) {
       HennosSessionHandler.sessions.set(userId, []);
@@ -47,7 +48,13 @@ export class HennosSessionHandler {
 
     const session = sessions[index];
     try {
-      session.socket.close();
+      if (session.socket instanceof WebSocket) {
+        session.socket.close();
+      }
+
+      if (session.socket instanceof PassThrough) {
+        session.socket.end();
+      }
     } catch (e) {
       Logger.error(
         `Failed to close socket ${session.socketId} for user ${session.userId}, error: ${e}`
@@ -69,7 +76,13 @@ export class HennosSessionHandler {
 
     for (const session of sessions) {
       try {
-        session.socket.send(JSON.stringify(message));
+        if (session.socket instanceof WebSocket) {
+          session.socket.send(JSON.stringify(message));
+        }
+
+        if (session.socket instanceof PassThrough) {
+          session.socket.write(`data: ${JSON.stringify(message)}\n\n`);
+        }
       } catch (e) {
         Logger.error(
           `Failed to send message to socket ${session.socketId} for user ${session.userId}, error: ${e}`
