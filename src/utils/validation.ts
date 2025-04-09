@@ -82,3 +82,20 @@ export async function validateAuth(
 
   return false;
 }
+
+export async function validateStaticAuth(ctx: Context): Promise<boolean> {
+  if (ctx.query.token) {
+    if (Config.LIFEFORCE_AUTH_TOKEN === ctx.query.token) {
+      return true;
+    }
+  }
+
+  if (ctx.headers.authorization) {
+    const cleanedToken = ctx.headers.authorization.replace("Bearer ", "");
+    if (Config.LIFEFORCE_AUTH_TOKEN === cleanedToken) {
+      return true;
+    }
+  }
+
+  return false;
+}

@@ -4,7 +4,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { validateAuth } from "./utils/validation";
+import { validateStaticAuth } from "./utils/validation";
 import { returnBadRequest, returnUnauthorized } from "./utils/response";
 
 export async function createMCPServer(
@@ -17,7 +17,7 @@ export async function createMCPServer(
   });
 
   router.get("/api/mcp", async (ctx: Context, next: Next) => {
-    const auth = await validateAuth(supabase, ctx);
+    const auth = await validateStaticAuth(ctx);
     if (!auth) {
       return returnUnauthorized(ctx, next);
     }
