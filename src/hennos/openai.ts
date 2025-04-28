@@ -7,6 +7,10 @@ type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 export class HennosOpenAIProvider {
   public client: OpenAI;
   private history: Map<string, Message[]> = new Map();
+  private static tokens: Map<
+    string,
+    OpenAI.Beta.Realtime.Sessions.SessionCreateResponse.ClientSecret
+  > = new Map();
 
   constructor() {
     this.client = new OpenAI({
@@ -58,6 +62,50 @@ export class HennosOpenAIProvider {
   public async completion(chatId: string, next: Message): Promise<string> {
     Logger.info(`OpenAI Completion Start (${Config.OPENAI_LLM.MODEL})`);
     return this._completion(chatId, this.prompt(chatId, next), 0);
+  }
+
+  public clearExpiredTokens(): void {
+    const now = Date.now() / 1000;
+    const tokens = Array.from(HennosOpenAIProvider.tokens.entries());
+
+    const expiredTokens: string[] = [];
+    for (const [chatId, token] of tokens) {
+      if (token.expires_at < now) {
+        Logger.info(
+          `Token for chatId: ${chatId} has expired, expires_at: ${token.expires_at}, now: ${now}`
+        );
+        expiredTokens.push(chatId);
+      } else {
+        Logger.info(
+          `Token for chatId: ${chatId} is still valid, expires_at: ${token.expires_at}, now: ${now}`
+        );
+      }
+    }
+
+    expiredTokens.forEach((chatId) =>
+      HennosOpenAIProvider.tokens.delete(chatId)
+    );
+  }
+
+  public async createClientToken(
+    chatId: string
+  ): Promise<OpenAI.Beta.Realtime.Sessions.SessionCreateResponse.ClientSecret> {
+    Logger.info(`OpenAI Realtime Token Request (${chatId})`);
+
+    this.clearExpiredTokens();
+
+    if (HennosOpenAIProvider.tokens.has(chatId)) {
+      const token = HennosOpenAIProvider.tokens.get(chatId)!;
+      return token;
+    }
+
+    const session = await this.client.beta.realtime.sessions.create({
+      model: Config.OPENAI_LLM_REALTIME.MODEL,
+    });
+    const token = session.client_secret;
+
+    HennosOpenAIProvider.tokens.set(chatId, token);
+    return token;
   }
 
   private async _completion(

@@ -7,8 +7,10 @@ import {
   LifeforePluginConfiguration,
 } from "../utils/LifeforcePlugin";
 import { Logger } from "../utils/logger";
-import { RawData, WebSocket } from "ws";
-import { HennosSessionHandler } from "../hennos/sessions";
+import {
+  HennosRealtimeSessionHandler,
+  HennosSessionHandler,
+} from "../hennos/sessions";
 import {
   createClient,
   AdminUserAttributes,
@@ -25,6 +27,7 @@ import {
   returnSuccess,
   returnUnauthorized,
 } from "../utils/response";
+import { HennosOpenAIProvider } from "../hennos/openai";
 
 export class Hennos extends LifeforcePlugin {
   public supabaseAdmin: SupabaseClient;
@@ -60,11 +63,6 @@ export class Hennos extends LifeforcePlugin {
         handler: this.handleHennosEvent.bind(this),
       },
       {
-        path: "/api/hennos/socket",
-        type: "SOCKET",
-        handler: this.handleHennosWebsocket.bind(this),
-      },
-      {
         path: "/api/hennos/user",
         type: "GET",
         handler: this.handleHennosUserFetch.bind(this),
@@ -88,6 +86,21 @@ export class Hennos extends LifeforcePlugin {
         path: "/api/hennos/history",
         type: "GET",
         handler: this.handleHennosHistoryFetch.bind(this),
+      },
+      {
+        path: "/api/hennos/realtime/events",
+        type: "GET",
+        handler: this.handleHennosRealtimeEvents.bind(this),
+      },
+      {
+        path: "/api/hennos/realtime/token",
+        type: "GET",
+        handler: this.handleHennosRealtimeToken.bind(this),
+      },
+      {
+        path: "/api/hennos/realtime/event",
+        type: "POST",
+        handler: this.handleHennosRealtimeEvent.bind(this),
       },
     ]);
   }
@@ -164,42 +177,6 @@ export class Hennos extends LifeforcePlugin {
     return returnSuccess(false, userById.data.user, ctx, next);
   }
 
-  private async handleHennosWebsocket(ctx: Context, ws: WebSocket) {
-    const valid = await validateAuth(this.supabase, ctx);
-    if (!valid) {
-      return ws.close();
-    }
-
-    ctx.req.setTimeout(2147483646);
-    ctx.request.socket.setTimeout(0);
-    ctx.req.socket.setNoDelay(true);
-    ctx.req.socket.setKeepAlive(true);
-
-    const socketId = randomUUID();
-    const userId = valid.user.id;
-
-    Logger.info(`HennosUser ${userId} Connected (socket: ${socketId})`);
-    HennosSessionHandler.register(userId, socketId, ws);
-
-    ws.on("error", (err) => {
-      Logger.error(`HennosUser ${userId} Error: ${err}`);
-      HennosSessionHandler.unregister(userId, socketId);
-    });
-
-    ws.on("message", (raw: RawData) => {
-      try {
-        handleUserMessage(userId, JSON.parse(raw.toString()));
-      } catch (err: unknown) {
-        Logger.debug(`HennosUser ${userId} Invalid Message: ${raw.toString()}`);
-      }
-    });
-
-    ws.on("close", () => {
-      Logger.info(`HennosUser ${userId} Disconnected`);
-      HennosSessionHandler.unregister(userId, socketId);
-    });
-  }
-
   private async handleHennosEvents(ctx: Context, next: Next) {
     const valid = await validateAuth(this.supabase, ctx);
     if (!valid) {
@@ -238,6 +215,44 @@ export class Hennos extends LifeforcePlugin {
     ctx.body = stream;
   }
 
+  private async handleHennosRealtimeEvents(ctx: Context, next: Next) {
+    const valid = await validateAuth(this.supabase, ctx);
+    if (!valid) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    ctx.request.socket.setTimeout(0);
+    ctx.req.socket.setNoDelay(true);
+    ctx.req.socket.setKeepAlive(true);
+
+    ctx.set({
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    const stream = new PassThrough();
+
+    const socketId = randomUUID();
+    const userId = valid.user.id;
+
+    Logger.info(`HennosUser ${userId} Connected (socket: ${socketId})`);
+    HennosRealtimeSessionHandler.register(userId, socketId, stream);
+
+    stream.on("error", (err) => {
+      Logger.error(`HennosUser ${userId} Error: ${err}`);
+      HennosRealtimeSessionHandler.unregister(userId, socketId);
+    });
+
+    stream.on("close", () => {
+      Logger.info(`HennosUser ${userId} Disconnected`);
+      HennosRealtimeSessionHandler.unregister(userId, socketId);
+    });
+
+    ctx.status = 200;
+    ctx.body = stream;
+  }
+
   private async handleHennosEvent(ctx: Context, next: Next) {
     const valid = await validateAuth(this.supabase, ctx);
     if (!valid) {
@@ -255,5 +270,45 @@ export class Hennos extends LifeforcePlugin {
     }
 
     return returnSuccess(false, null, ctx, next);
+  }
+
+  private async handleHennosRealtimeEvent(ctx: Context, next: Next) {
+    const valid = await validateAuth(this.supabase, ctx);
+    if (!valid) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    const userId = valid.user.id;
+
+    try {
+      Logger.debug(
+        `HennosUser ${userId} Realtime Event: ${ctx.request.body as object}`
+      );
+      HennosRealtimeSessionHandler.event(userId, ctx.request.body as object);
+    } catch (err: unknown) {
+      Logger.debug(
+        `HennosUser ${userId} Invalid Message: ${ctx.request.body as object}`
+      );
+    }
+
+    return returnSuccess(false, null, ctx, next);
+  }
+
+  private async handleHennosRealtimeToken(ctx: Context, next: Next) {
+    const valid = await validateAuth(this.supabase, ctx);
+    if (!valid) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    const userId = valid.user.id;
+
+    const openai = new HennosOpenAIProvider();
+    const token = await openai.createClientToken(userId);
+
+    if (!token) {
+      return returnInternalError(ctx, next);
+    }
+
+    return returnSuccess(false, token, ctx, next);
   }
 }

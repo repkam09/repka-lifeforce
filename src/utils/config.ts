@@ -266,6 +266,20 @@ export class Config {
     return parseHennosModelString(process.env.OPENAI_LLM, "OPENAI_LLM");
   }
 
+  static get OPENAI_LLM_REALTIME(): HennosModelConfig {
+    if (!process.env.OPENAI_LLM_REALTIME) {
+      return {
+        MODEL: "gpt-4o-mini-realtime-preview",
+        CTX: 16000,
+      };
+    }
+
+    return parseHennosModelString(
+      process.env.OPENAI_LLM_REALTIME,
+      "OPENAI_LLM_REALTIME"
+    );
+  }
+
   static get OPENAI_LLM_EMBED(): HennosEmbeddingModelConfig {
     if (!process.env.OPENAI_LLM_EMBED) {
       return {
