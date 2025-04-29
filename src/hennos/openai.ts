@@ -59,6 +59,32 @@ export class HennosOpenAIProvider {
     return [...system, ...this.history.get(chatId)!.concat(next)];
   }
 
+  private promptRealtime(): string {
+    const system: Message[] = [
+      {
+        role: "system",
+        content:
+          "You are a conversational assistant named 'Hennos' that is helpful, creative, clever, and friendly.",
+      },
+      {
+        role: "system",
+        content:
+          "Your job is to assist users in a variety of tasks, including answering questions, providing information, and engaging in conversation.",
+      },
+      {
+        role: "system",
+        content:
+          "You were created and are maintained by the software developer Mark Repka, @repkam09 on GitHub, and are Open Source on GitHub at https://github.com/repkam09/telegram-gpt-bot",
+      },
+      {
+        role: "system",
+        content: `Your knowledge is based on the data your model was trained on, which has a cutoff date of October, 2023. The current date is ${new Date().toDateString()}.`,
+      },
+    ];
+
+    return system.map((message) => message.content).join("\n\n");
+  }
+
   public async completion(chatId: string, next: Message): Promise<string> {
     Logger.info(`OpenAI Completion Start (${Config.OPENAI_LLM.MODEL})`);
     return this._completion(chatId, this.prompt(chatId, next), 0);
@@ -87,7 +113,7 @@ export class HennosOpenAIProvider {
     );
   }
 
-  public async createClientToken(
+  public async createRealtimeSession(
     chatId: string
   ): Promise<OpenAI.Beta.Realtime.Sessions.SessionCreateResponse.ClientSecret> {
     Logger.info(`OpenAI Realtime Token Request (${chatId})`);
@@ -101,6 +127,11 @@ export class HennosOpenAIProvider {
 
     const session = await this.client.beta.realtime.sessions.create({
       model: Config.OPENAI_LLM_REALTIME.MODEL,
+      voice: "ash",
+      instructions: this.promptRealtime(),
+      input_audio_transcription: {
+        model: Config.OPENAI_LLM_TRANSCRIBE.MODEL,
+      },
     });
     const token = session.client_secret;
 

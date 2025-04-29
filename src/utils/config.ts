@@ -280,6 +280,13 @@ export class Config {
     );
   }
 
+  static get OPENAI_LLM_TRANSCRIBE(): HennosModelConfig {
+    return {
+      MODEL: "gpt-4o-mini-transcribe",
+      CTX: 16000,
+    };
+  }
+
   static get OPENAI_LLM_EMBED(): HennosEmbeddingModelConfig {
     if (!process.env.OPENAI_LLM_EMBED) {
       return {

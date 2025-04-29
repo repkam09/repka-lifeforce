@@ -303,7 +303,7 @@ export class Hennos extends LifeforcePlugin {
     const userId = valid.user.id;
 
     const openai = new HennosOpenAIProvider();
-    const token = await openai.createClientToken(userId);
+    const token = await openai.createRealtimeSession(userId);
 
     if (!token) {
       return returnInternalError(ctx, next);
