@@ -80,6 +80,18 @@ export class MetaEndpoints extends LifeforcePlugin {
         handler: this.handleAuthTest.bind(this),
         auth: true,
       },
+      {
+        path: "/api/webhook/log",
+        type: "GET",
+        handler: this.handleLogGetEvent.bind(this),
+        auth: false,
+      },
+      {
+        path: "/api/webhook/log",
+        type: "POST",
+        handler: this.handleLogPostEvent.bind(this),
+        auth: false,
+      },
     ]);
   }
 
@@ -90,6 +102,22 @@ export class MetaEndpoints extends LifeforcePlugin {
   private async handleAuthTest(ctx: Context, next: Next) {
     ctx.status = 200;
     ctx.body = "Authorized";
+    return next();
+  }
+
+  private handleLogGetEvent(ctx: Context, next: Next) {
+    Logger.info(`Webhook Log GET: Params: ${JSON.stringify(ctx.query)}`);
+    ctx.body = { event: "ok" };
+    return next();
+  }
+
+  private handleLogPostEvent(ctx: Context, next: Next) {
+    Logger.info(
+      `Webhook Log POST: Body: ${JSON.stringify(
+        ctx.request.body
+      )}, Params: ${JSON.stringify(ctx.query)}`
+    );
+    ctx.body = { event: "ok" };
     return next();
   }
 
