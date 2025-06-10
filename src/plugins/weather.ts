@@ -52,6 +52,7 @@ export class Weather extends LifeforcePlugin {
       "Get current weather for a zip code",
       { zipCode: z.string() },
       async ({ zipCode }) => {
+        Logger.info(`MCP Current Weather: ${zipCode}`);
         const result = await weatherCurrentZipCode(zipCode);
         return {
           content: [{ type: "text", text: JSON.stringify(result.data) }],
@@ -64,6 +65,7 @@ export class Weather extends LifeforcePlugin {
       "Get weather forecast for a zip code",
       { zipCode: z.string() },
       async ({ zipCode }) => {
+        Logger.info(`MCP Forecast Weather: ${zipCode}`);
         const result = await weatherForecastZipCode(zipCode);
         return {
           content: [{ type: "text", text: JSON.stringify(result.data) }],

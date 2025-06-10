@@ -19,6 +19,7 @@ export class SearXNG extends LifeforcePlugin {
       "Fetch a list of search reqults for a provided search query",
       { query: z.string() },
       async ({ query }) => {
+        Logger.info(`MCP Search: ${query}`);
         const result = await searxng(query);
         return {
           content: [{ type: "text", text: JSON.stringify(result.data) }],
