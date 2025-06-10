@@ -6,6 +6,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { validateStaticAuth } from "./utils/validation";
 import { returnBadRequest, returnUnauthorized } from "./utils/response";
+import { Logger } from "./utils/logger";
 
 export async function createMCPServer(
   supabase: SupabaseClient,
@@ -29,14 +30,12 @@ export async function createMCPServer(
     });
 
     transport.onclose = () => {
-      console.log(`Transport closed for sessionId: ${transport.sessionId}`);
       ServerTransports.unregister(transport.sessionId);
     };
 
     transport.onerror = (error) => {
-      console.error(
-        `Transport error for sessionId: ${transport.sessionId}`,
-        error
+      Logger.error(
+        `Transport error for sessionId: ${transport.sessionId}: ${error.message}`
       );
     };
 
@@ -57,6 +56,9 @@ export async function createMCPServer(
       return returnBadRequest(ctx, next);
     }
 
+    Logger.info(`Handling POST message for sessionId: ${sessionId}`);
+    Logger.info(`Request body: ${JSON.stringify(ctx.request.body)}`);
+
     ctx.respond = false; // Prevent Koa from automatically responding
     return connection.transport.handlePostMessage(req, res, ctx.request.body);
   });
@@ -73,12 +75,12 @@ class ServerTransports {
   private static _transports = new Map<string, SSEConnection>();
 
   public static register(sessionId: string, transport: SSEConnection): void {
-    console.log(`Registering transport for sessionId: ${sessionId}`);
+    Logger.info(`Registering transport for sessionId: ${sessionId}`);
     this._transports.set(sessionId, transport);
   }
 
   public static unregister(sessionId: string): void {
-    console.log(`Unregistering transport for sessionId: ${sessionId}`);
+    Logger.info(`Unregistering transport for sessionId: ${sessionId}`);
     this._transports.delete(sessionId);
   }
 
