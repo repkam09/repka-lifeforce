@@ -19,6 +19,7 @@ import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
 import { createMCPServer } from "./mcp";
 import { SearXNG } from "./plugins/search";
+import { HennosLite } from "./plugins/hennos-lite";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -69,6 +70,7 @@ async function init() {
     HomeAssistant,
     TRMNL,
     SearXNG,
+    HennosLite,
   ];
 
   const setup = plugins.map((Plugin) => {
