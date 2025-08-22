@@ -31,6 +31,14 @@ export class Config {
     return process.env.HOME_ASSISTANT_URL;
   }
 
+  static get BRAVE_SEARCH_API_KEY(): string {
+    if (!process.env.BRAVE_SEARCH_API_KEY) {
+      throw new Error("BRAVE_SEARCH_API_KEY is not set");
+    }
+
+    return process.env.BRAVE_SEARCH_API_KEY;
+  }
+
   static get SUPABASE_API_KEY(): string {
     if (!process.env.SUPABASE_API_KEY) {
       throw new Error("SUPABASE_API_KEY is not set");
