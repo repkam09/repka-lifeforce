@@ -19,7 +19,7 @@ import {
 } from "@supabase/supabase-js";
 import { Config } from "../utils/config";
 import { handleUserMessage } from "../hennos/completion";
-import { HennosCacheHandler, HennosStorageHandler } from "../hennos/storage";
+import { HennosCacheHandler } from "../hennos/storage";
 import { validateAdminAuth, validateAuth } from "../utils/validation";
 import {
   returnBadRequest,
@@ -28,6 +28,10 @@ import {
   returnUnauthorized,
 } from "../utils/response";
 import { HennosOpenAIProvider } from "../hennos/openai";
+import { createTemporalClient } from "../utils/temporal";
+import OpenAI from "openai";
+
+type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
 export class Hennos extends LifeforcePlugin {
   public supabaseAdmin: SupabaseClient;
@@ -111,7 +115,15 @@ export class Hennos extends LifeforcePlugin {
       return returnUnauthorized(ctx, next);
     }
 
-    const history = HennosStorageHandler.get(user.user.id);
+    const client = await createTemporalClient();
+    const handle = await client.workflow.start("hennos-fetch-history", {
+      taskQueue: Config.TEMPORAL_TASK_QUEUE,
+      args: [user.user.id],
+      workflowId: `hennos-fetch-history-${user.user.id}-${Date.now()}`,
+    });
+
+    const history: Message[] = await handle.result();
+
     return returnSuccess(false, history, ctx, next);
   }
 

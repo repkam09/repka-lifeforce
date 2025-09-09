@@ -1,10 +1,13 @@
 import { Logger } from "../utils/logger";
-import { HennosOpenAIProvider } from "./openai";
 import { HennosSessionHandler } from "./sessions";
-import { HennosStorageHandler } from "./storage";
-import { HennosUserMessage, isHennosMessage } from "./types";
+import { isHennosMessage } from "./types";
+import { Config } from "../utils/config";
+import { createTemporalClient } from "../utils/temporal";
 
-export function handleUserMessage(userId: string, message: object): void {
+export async function handleUserMessage(
+  userId: string,
+  message: object
+): Promise<void> {
   if (!isHennosMessage(message)) {
     Logger.debug(`HennosUser ${userId} sent invalid object message`);
     return;
@@ -12,55 +15,33 @@ export function handleUserMessage(userId: string, message: object): void {
 
   switch (message.__type) {
     case "user-msg": {
-      handleUserChatMessage(userId, message as HennosUserMessage);
-      break;
-    }
+      const client = await createTemporalClient();
+      Logger.debug(
+        `Starting hennos-chat workflow for user ${userId} with message: ${message.value}`
+      );
+      const handle = await client.workflow.start("hennos-chat", {
+        taskQueue: Config.TEMPORAL_TASK_QUEUE,
+        args: [
+          {
+            userId,
+            message: message.value,
+          },
+        ],
+        workflowId: `hennos-chat-${userId}-${Date.now()}`,
+      });
 
-    case "keep-alive": {
-      break;
-    }
-
-    case "metadata-msg": {
-      Logger.debug(`HennosUser ${userId} sent metadata message`);
-      break;
-    }
-
-    case "error": {
-      Logger.debug(`HennosUser ${userId} sent error message`);
+      const result: string = await handle.result();
+      HennosSessionHandler.broadcast(userId, {
+        __type: "assistant-msg",
+        value: result,
+      });
       break;
     }
 
     default: {
       Logger.debug(
-        `HennosUser ${userId} sent unknown message type: ${message.__type}`
+        `HennosUser ${userId} sent message: ${JSON.stringify(message)}`
       );
     }
   }
-}
-
-async function handleUserChatMessage(
-  userId: string,
-  message: HennosUserMessage
-): Promise<void> {
-  Logger.debug(`HennosUser ${userId} sent chat message: ${message.value}`);
-  const openai = new HennosOpenAIProvider();
-  const result = await openai.completion(userId, {
-    role: "user",
-    content: message.value,
-  });
-
-  HennosStorageHandler.append(userId, {
-    role: "user",
-    content: message.value,
-  });
-
-  HennosStorageHandler.append(userId, {
-    role: "assistant",
-    content: result,
-  });
-
-  HennosSessionHandler.broadcast(userId, {
-    __type: "assistant-msg",
-    value: result,
-  });
 }

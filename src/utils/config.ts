@@ -23,6 +23,43 @@ export class Config {
     return process.env.HOME_ASSISTANT_TOKEN;
   }
 
+  static get TEMPORAL_HOST(): string {
+    if (!process.env.TEMPORAL_HOST) {
+      return "localhost";
+    }
+
+    return process.env.TEMPORAL_HOST;
+  }
+
+  static get TEMPORAL_PORT(): number {
+    if (!process.env.TEMPORAL_PORT) {
+      return 7233;
+    }
+
+    const int = parseInt(process.env.TEMPORAL_PORT, 10);
+    if (isNaN(int)) {
+      throw new Error("TEMPORAL_PORT is not a number");
+    }
+
+    return int;
+  }
+
+  static get TEMPORAL_NAMESPACE(): string {
+    if (!process.env.TEMPORAL_NAMESPACE) {
+      return "default";
+    }
+
+    return process.env.TEMPORAL_NAMESPACE;
+  }
+
+  static get TEMPORAL_TASK_QUEUE(): string {
+    if (!process.env.TEMPORAL_TASK_QUEUE) {
+      return "development";
+    }
+
+    return process.env.TEMPORAL_TASK_QUEUE;
+  }
+
   static get HOME_ASSISTANT_URL(): string | false {
     if (!process.env.HOME_ASSISTANT_URL) {
       return false;

@@ -8,7 +8,7 @@ import { Config } from "../utils/config";
 
 export class SearXNG extends LifeforcePlugin {
   public async init(): Promise<void> {
-    Logger.info("SearXNG initialized");
+    Logger.info("Search initialized");
   }
 
   constructor(input: LifeforePluginConfiguration) {
