@@ -1,4 +1,4 @@
-FROM node:24-buster
+FROM node:24-bookworm
 
 # Set the working directory
 WORKDIR /app/lifeforce
