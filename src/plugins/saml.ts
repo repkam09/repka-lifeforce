@@ -25,6 +25,12 @@ export class SSODebug extends LifeforcePlugin {
         handler: this.handlePostSAMLConfigure.bind(this),
         auth: false,
       },
+      {
+        path: "/api/sso/saml/login",
+        type: "GET",
+        handler: this.handlePostSAMLLogin.bind(this),
+        auth: false,
+      },
     ]);
   }
 
@@ -119,5 +125,9 @@ export class SSODebug extends LifeforcePlugin {
     ctx.status = 200;
     ctx.body = { message: "SAML Configuration Updated", config: body };
     return next();
+  }
+
+  private handlePostSAMLLogin(ctx: Context, next: Next) {
+    return passport.authenticate("saml")(ctx, next);
   }
 }
