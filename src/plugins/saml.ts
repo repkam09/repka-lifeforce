@@ -115,5 +115,9 @@ export class SSODebug extends LifeforcePlugin {
         }
       )
     );
+
+    ctx.status = 200;
+    ctx.body = { message: "SAML Configuration Updated", config: body };
+    return next();
   }
 }
