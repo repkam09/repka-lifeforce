@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import { SamlConfig, Strategy as SamlStrategy } from "passport-saml";
-import passport from "passport";
+import passport from "koa-passport";
 
 import {
   LifeforcePlugin,
@@ -28,7 +28,7 @@ export class SSODebug extends LifeforcePlugin {
       {
         path: "/api/sso/saml/login",
         type: "GET",
-        handler: this.handlePostSAMLLogin.bind(this),
+        handler: this.handleGetSAMLLogin.bind(this),
         auth: false,
       },
     ]);
@@ -44,6 +44,7 @@ export class SSODebug extends LifeforcePlugin {
     passport.authenticate(
       "saml",
       (err: Error, user: unknown, info: unknown) => {
+        Logger.info("SAML Authentication Callback Invoked");
         if (err) {
           const response = {
             url: ctx.request.url,
@@ -117,6 +118,7 @@ export class SSODebug extends LifeforcePlugin {
       new SamlStrategy(
         body,
         (profile: any, callback: (error: Error | null, user?: any) => void) => {
+          Logger.info("SAML Strategy Callback Invoked");
           return callback(null, profile);
         }
       )
@@ -127,7 +129,8 @@ export class SSODebug extends LifeforcePlugin {
     return next();
   }
 
-  private handlePostSAMLLogin(ctx: Context, next: Next) {
-    return passport.authenticate("saml")(ctx.req, ctx.res, next);
+  private handleGetSAMLLogin(ctx: Context, next: Next) {
+    console.log("SAML Login Handler Invoked");
+    return passport.authenticate("saml")(ctx, next);
   }
 }
