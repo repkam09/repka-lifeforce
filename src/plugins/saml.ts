@@ -128,6 +128,6 @@ export class SSODebug extends LifeforcePlugin {
   }
 
   private handlePostSAMLLogin(ctx: Context, next: Next) {
-    return passport.authenticate("saml")(ctx, next);
+    return passport.authenticate("saml")(ctx.req, ctx.res, next);
   }
 }
