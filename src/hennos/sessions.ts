@@ -61,14 +61,19 @@ export class HennosSessionHandler {
 
   public static broadcast(userId: string, message: HennosMessage): void {
     if (!HennosSessionHandler.sessions.has(userId)) {
+      Logger.error(`No sessions found for user ${userId}`);
       return;
     }
 
     const sessions = HennosSessionHandler.sessions.get(userId);
     if (!sessions) {
+      Logger.error(`Session map is undefined for user ${userId}`);
       return;
     }
 
+    Logger.info(
+      `Broadcasting message to ${sessions.length} sessions for user ${userId}`
+    );
     for (const session of sessions) {
       try {
         session.socket.write(`data: ${JSON.stringify(message)}\n\n`);
@@ -111,11 +116,13 @@ export class HennosRealtimeSessionHandler {
       HennosRealtimeSessionHandler.websockets.set(userId, ws);
 
       ws.on("open", function open() {
-        console.log("Connected to OpenAI Realtime for userId:", userId);
+        Logger.info(`Connected to OpenAI Realtime for userId: ${userId}`);
       });
 
       ws.on("message", function incoming(message) {
-        console.log(JSON.parse(message.toString()));
+        Logger.debug(
+          `Received message from OpenAI Realtime for userId: ${userId}: ${message}`
+        );
       });
     }
 

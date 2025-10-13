@@ -20,6 +20,7 @@ import { PrismaClient } from "@prisma/client";
 import { createMCPServer } from "./mcp";
 import { SearXNG } from "./plugins/search";
 import { SSODebug } from "./plugins/saml";
+import { OllamaWrapper } from "./plugins/ollama";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -71,6 +72,7 @@ async function init() {
     TRMNL,
     SearXNG,
     SSODebug,
+    OllamaWrapper,
   ];
 
   const setup = plugins.map((Plugin) => {

@@ -1,3 +1,5 @@
+import { Logger } from "../utils/logger";
+
 export type HennosBaseMessage = {
   __type: string;
   value: unknown;
@@ -5,10 +7,12 @@ export type HennosBaseMessage = {
 
 export function isHennosMessage(message: object): message is HennosBaseMessage {
   if (!Object.prototype.hasOwnProperty.call(message, "__type")) {
+    Logger.error("Message is missing __type property");
     return false;
   }
 
   if (!Object.prototype.hasOwnProperty.call(message, "value")) {
+    Logger.error("Message is missing value property");
     return false;
   }
 
