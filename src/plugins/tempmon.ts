@@ -4,9 +4,8 @@ import {
   LifeforcePlugin,
   LifeforePluginConfiguration,
 } from "../utils/LifeforcePlugin";
-import nodemailer, { Transporter } from "nodemailer";
-import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
+import { sendNotification } from "../utils/notification";
 
 const TEMP_THRESHOLD = 45;
 const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
@@ -20,7 +19,6 @@ type TempResponseEntry = {
 };
 
 export class RaspiTempMonitor extends LifeforcePlugin {
-  private transport: Transporter;
   private tempCheckinTimers: Record<string, NodeJS.Timeout> = {};
 
   public async init(): Promise<void> {
@@ -52,14 +50,6 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         handler: this.handleGetClients.bind(this),
       },
     ]);
-
-    this.transport = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: Config.LIFEFORCE_EMAIL_USER,
-        pass: Config.LIFEFORCE_EMAIL_PASS,
-      },
-    });
   }
 
   private async handleGetClients(ctx: Context, next: Next) {
@@ -199,8 +189,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   }
 
   private async alertColdTempError(clientid: string, temp: number) {
-    const subject = `Cold Temp Alert - ${clientid} - ${new Date().toISOString()}`;
-    const message = `Tempreature Monitor Alert! 
+    return sendNotification(`Cold Temp Alert - ${clientid} - ${new Date().toISOString()} 
 
         Name: ${clientid}
         Time: ${new Date().toISOString()}
@@ -210,14 +199,11 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         Please try and verify that this reading is correct!
         
         This is an automated message.
-        `;
-
-    return this.sendMailMessage(subject, message);
+        `);
   }
 
   private async alertTimeoutError(clientid: string) {
-    const subject = `Missed Checkin Alert - ${clientid} - ${new Date().toISOString()}`;
-    const message = `Tempreature Monitor Alert! 
+    return sendNotification(`Missed Checkin Alert - ${clientid} - ${new Date().toISOString()}
 
         Name: ${clientid}
         Time: ${new Date().toISOString()}
@@ -226,27 +212,6 @@ export class RaspiTempMonitor extends LifeforcePlugin {
         Please try and verify this. 
         
         This is an automated message.
-        `;
-
-    return this.sendMailMessage(subject, message);
-  }
-
-  private async sendMailMessage(subject: string, message: string) {
-    if (Config.LIFEFORCE_DEBUG_MODE || Config.LIFEFORCE_SKIP_EMAIL) {
-      Logger.info(`Skipping email sending: \n${subject} \n\n ${message}`);
-      return;
-    }
-
-    try {
-      await this.transport.sendMail({
-        from: Config.LIFEFORCE_EMAIL_USER,
-        to: Config.LIFEFORCE_EMAIL_NOTIFY,
-        subject,
-        text: message,
-      });
-    } catch (err: unknown) {
-      const error = err as Error;
-      Logger.error(`Error sending email: ${error.message}`);
-    }
+        `);
   }
 }

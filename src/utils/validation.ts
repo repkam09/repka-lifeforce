@@ -24,61 +24,47 @@ export async function validateAuth(
   supabase: SupabaseClient,
   ctx: Context
 ): Promise<{ token: string; user: User; cached: boolean } | false> {
+  let sessionToken: string | false = false;
+
+  if (ctx.cookies.get("repka-lifeforce-session")) {
+    sessionToken = ctx.cookies.get("repka-lifeforce-session") as string;
+  }
+
   if (ctx.query.token) {
-    // check if we have a cached result for this token
-    const cachedUser = HennosCacheHandler.get<User>(ctx.query.token as string);
-    if (cachedUser) {
-      return {
-        cached: true,
-        token: ctx.query.token as string,
-        user: cachedUser,
-      };
-    }
-
-    const user = await supabase.auth.getUser(ctx.query.token as string);
-    if (user.error) {
-      console.error(`Supabase error: ${user.error.message}`);
-      return false;
-    }
-
-    if (user.data.user) {
-      HennosCacheHandler.set(ctx.query.token as string, user.data.user);
-      return {
-        cached: false,
-        token: ctx.query.token as string,
-        user: user.data.user,
-      };
-    }
+    sessionToken = ctx.query.token as string;
   }
 
   if (ctx.headers.authorization) {
-    const cleanedToken = ctx.headers.authorization.replace("Bearer ", "");
+    sessionToken = ctx.headers.authorization.replace("Bearer ", "");
+  }
 
-    // check if we have a cached result for this token
-    const cachedUser = HennosCacheHandler.get<User>(cleanedToken);
-    if (cachedUser) {
-      console.log("Returning cached user from header");
-      return {
-        cached: true,
-        token: cleanedToken,
-        user: cachedUser,
-      };
-    }
+  if (!sessionToken) {
+    return false;
+  }
 
-    const user = await supabase.auth.getUser(cleanedToken);
-    if (user.error) {
-      console.error(`Supabase error: ${user.error.message}`);
-      return false;
-    }
+  // check if we have a cached result for this token
+  const cachedUser = HennosCacheHandler.get<User>(sessionToken);
+  if (cachedUser) {
+    return {
+      cached: true,
+      token: sessionToken,
+      user: cachedUser,
+    };
+  }
 
-    if (user.data.user) {
-      HennosCacheHandler.set(cleanedToken, user.data.user);
-      return {
-        cached: false,
-        token: cleanedToken,
-        user: user.data.user,
-      };
-    }
+  const user = await supabase.auth.getUser(sessionToken);
+  if (user.error) {
+    console.error(`Supabase error: ${user.error.message}`);
+    return false;
+  }
+
+  if (user.data.user) {
+    HennosCacheHandler.set(sessionToken, user.data.user);
+    return {
+      cached: false,
+      token: sessionToken,
+      user: user.data.user,
+    };
   }
 
   return false;
