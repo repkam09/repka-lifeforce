@@ -16,7 +16,7 @@ RUN npm ci
 
 # Copy the rest of the application code
 COPY src src
-COPY static static
+# COPY static static
 
 # Run the typescript build
 RUN npm run build
