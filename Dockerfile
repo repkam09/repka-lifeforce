@@ -12,7 +12,7 @@ COPY prisma/schema.prisma prisma/schema.prisma
 COPY prisma/migrations prisma/migrations
 
 # Install dependencies
-RUN npm ci
+RUN npm i
 
 # Copy the rest of the application code
 COPY src src
