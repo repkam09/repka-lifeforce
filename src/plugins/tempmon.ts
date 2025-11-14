@@ -191,27 +191,25 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   private async alertColdTempError(clientid: string, temp: number) {
     return sendNotification(`Cold Temp Alert - ${clientid} - ${new Date().toISOString()} 
 
-        Name: ${clientid}
-        Time: ${new Date().toISOString()}
-        Temp: ${temp}
+Name: ${clientid}
+Time: ${new Date().toISOString()}
+Temp: ${temp}
 
-        This is an alert that the checkin for ${clientid} was ${temp}. This is below the warning threshold of ${TEMP_THRESHOLD}! 
-        Please try and verify that this reading is correct!
+This is an alert that the checkin for ${clientid} was ${temp}. This is below the warning threshold of ${TEMP_THRESHOLD}! 
+Please try and verify that this reading is correct!
         
-        This is an automated message.
-        `);
+This is an automated message.`);
   }
 
   private async alertTimeoutError(clientid: string) {
     return sendNotification(`Missed Checkin Alert - ${clientid} - ${new Date().toISOString()}
 
-        Name: ${clientid}
-        Time: ${new Date().toISOString()}
+Name: ${clientid}
+Time: ${new Date().toISOString()}
 
-        This is an alert that the client ${clientid} missed a scheduled checkin. This might mean that the system cannot access the internet or has powered off unexpectedly!
-        Please try and verify this. 
+This is an alert that the client ${clientid} missed a scheduled checkin. This might mean that the system cannot access the internet or has powered off unexpectedly!
+Please try and verify this. 
         
-        This is an automated message.
-        `);
+This is an automated message.`);
   }
 }

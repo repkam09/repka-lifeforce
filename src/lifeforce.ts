@@ -21,6 +21,7 @@ import { createMCPServer } from "./mcp";
 import { SearXNG } from "./plugins/search";
 import { SSODebug } from "./plugins/saml";
 import { OllamaWrapper } from "./plugins/ollama";
+import { sendAdminNotification } from "./utils/notification";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -91,6 +92,9 @@ async function init() {
   app.use(router.allowedMethods());
 
   Logger.info("Starting Koa Server...");
+  sendAdminNotification(
+    `Lifeforce Server Started - ${new Date().toISOString()}`
+  );
   app
     .listen(Config.LIFEFORCE_PORT, () => {
       Logger.info(`Listening at ${Config.LIFEFORCE_PUBLIC_URL}`);
