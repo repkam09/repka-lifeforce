@@ -122,6 +122,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
 
   private async setClientDeleted(clientId: string) {
     try {
+      Logger.info(`Marking client as deleted: ${clientId}`);
       await this.prisma.tempreatureClient.update({
         where: { clientId },
         data: { deleted: true },
@@ -158,6 +159,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   private async fetchCheckinRecords(
     clientId: string
   ): Promise<TempResponseEntry[]> {
+    Logger.info(`Fetching checkin records for client: ${clientId}`);
     const records = await this.prisma.tempreatureCheckin.findMany({
       where: { clientId },
       orderBy: { createdAt: "desc" },
@@ -176,6 +178,7 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   }
 
   private async fetchClientList(): Promise<string[]> {
+    Logger.info("Fetching client list");
     const clients = await this.prisma.tempreatureClient.findMany({
       select: {
         clientId: true,
@@ -189,6 +192,8 @@ export class RaspiTempMonitor extends LifeforcePlugin {
   }
 
   private async alertColdTempError(clientid: string, temp: number) {
+    Logger.warn(`Cold temperature alert for ${clientid}: ${temp}C`);
+
     return sendNotification(`Cold Temp Alert - ${clientid} - ${new Date().toISOString()} 
 
 Name: ${clientid}
@@ -202,6 +207,7 @@ This is an automated message.`);
   }
 
   private async alertTimeoutError(clientid: string) {
+    Logger.warn(`Missed checkin alert for ${clientid}`);
     return sendNotification(`Missed Checkin Alert - ${clientid} - ${new Date().toISOString()}
 
 Name: ${clientid}

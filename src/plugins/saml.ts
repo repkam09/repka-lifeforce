@@ -121,7 +121,7 @@ export class SSODebug extends LifeforcePlugin {
   }
 
   private handleGetSAMLLogin(ctx: Context, next: Next) {
-    console.log("SAML Login Handler Invoked");
+    Logger.info("SAML Login Handler Invoked");
     return passport.authenticate("saml", {
       additionalParams: {
         RelayState: ctx.query.RelayState || "",

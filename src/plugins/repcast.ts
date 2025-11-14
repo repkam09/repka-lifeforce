@@ -75,7 +75,7 @@ export class RepCast extends LifeforcePlugin {
 
       instance.addUrl(magnet, (err, result) => {
         if (err) {
-          console.error(`Error returned while adding torrent: ${err.message}`);
+          Logger.error(`Error returned while adding torrent: ${err.message}`);
 
           ctx.status = 500;
           ctx.body = {
@@ -83,7 +83,7 @@ export class RepCast extends LifeforcePlugin {
             data: err.message,
           };
         } else {
-          console.log(`Torrent added: ${JSON.stringify(result)}`);
+          Logger.info(`Torrent added: ${JSON.stringify(result)}`);
 
           ctx.status = 200;
           ctx.body = {
@@ -96,7 +96,7 @@ export class RepCast extends LifeforcePlugin {
       });
     } catch (err: unknown) {
       const error = err as Error;
-      console.error(`Error thrown while adding torrent: ${error.message}`);
+      Logger.error(`Error thrown while adding torrent: ${error.message}`);
 
       ctx.status = 500;
       ctx.body = {

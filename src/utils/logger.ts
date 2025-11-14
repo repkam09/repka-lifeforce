@@ -2,24 +2,24 @@ import { Config } from "./config";
 
 export class Logger {
   static info(message: string) {
-    console.log(`INFO: ${message}`);
+    console.log(`INFO: ${new Date().toISOString()} : ${message}`);
   }
 
   static debug(message: string) {
-    console.log(`DEBUG: ${message}`);
+    console.log(`DEBUG: ${new Date().toISOString()} : ${message}`);
   }
 
   static warn(message: string) {
-    console.warn(`WARN: ${message}`);
+    console.warn(`WARN: ${new Date().toISOString()} : ${message}`);
   }
 
   static error(message: string) {
-    console.error(`ERROR: ${message}`);
+    console.error(`ERROR: ${new Date().toISOString()} : ${message}`);
   }
 
   static verbose(message: string) {
     if (Config.LIFEFORCE_DEBUG_MODE) {
-      console.log(`VERBOSE: ${message}`);
+      console.log(`VERBOSE: ${new Date().toISOString()} : ${message}`);
     }
   }
 }
