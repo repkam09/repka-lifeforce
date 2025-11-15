@@ -8,7 +8,7 @@ import { Logger } from "../utils/logger";
 import { sendNotification } from "../utils/notification";
 
 const TEMP_THRESHOLD = 45;
-const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 30; // 30 minutes
+const TEMP_CHECKIN_INTERVAL = 1000 * 60 * 35; // 35 minutes
 
 type TempResponseEntry = {
   _id: string;
