@@ -11,6 +11,10 @@ import { createTemporalClient } from "../utils/temporal";
 import { randomUUID } from "node:crypto";
 
 export class Search extends LifeforcePlugin {
+  private static cacheTTL = 1000 * 60 * 15; // 15 minutes
+  private static cache: Map<string, { results: unknown; timestamp: number }> =
+    new Map();
+
   public async init(): Promise<void> {
     Logger.info("Search Initialized");
   }
@@ -45,6 +49,10 @@ export class Search extends LifeforcePlugin {
     );
   }
 
+  private expired(timestamp: number): boolean {
+    return Date.now() - timestamp > Search.cacheTTL;
+  }
+
   private async handleSearchPost(ctx: Context, next: Next) {
     if (!ctx.request.body) {
       return returnBadRequest(ctx, next);
@@ -53,6 +61,11 @@ export class Search extends LifeforcePlugin {
     const body = ctx.request.body as { query?: string };
     if (!body.query) {
       return returnBadRequest(ctx, next);
+    }
+
+    const cached = Search.cache.get(body.query);
+    if (cached && !this.expired(cached.timestamp)) {
+      return returnSuccess(true, cached.results, ctx, next);
     }
 
     const client = await createTemporalClient();
@@ -67,6 +80,12 @@ export class Search extends LifeforcePlugin {
     });
 
     const results = await handle.result();
+
+    Search.cache.set(body.query, {
+      results: results,
+      timestamp: Date.now(),
+    });
+
     return returnSuccess(false, results, ctx, next);
   }
 
@@ -74,6 +93,11 @@ export class Search extends LifeforcePlugin {
     const query = ctx.request.query.q as string;
     if (!query) {
       return returnBadRequest(ctx, next);
+    }
+
+    const cached = Search.cache.get(query);
+    if (cached && !this.expired(cached.timestamp)) {
+      return returnSuccess(true, cached.results, ctx, next);
     }
 
     const client = await createTemporalClient();
@@ -88,6 +112,12 @@ export class Search extends LifeforcePlugin {
     });
 
     const results = await handle.result();
+
+    Search.cache.set(query, {
+      results: results,
+      timestamp: Date.now(),
+    });
+
     return returnSuccess(false, results, ctx, next);
   }
 }
