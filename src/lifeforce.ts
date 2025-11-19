@@ -18,7 +18,7 @@ import { HomeAssistant } from "./plugins/home";
 import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
 import { createMCPServer } from "./mcp";
-import { SearXNG } from "./plugins/search";
+import { Search } from "./plugins/search";
 import { SSODebug } from "./plugins/saml";
 import { OllamaWrapper } from "./plugins/ollama";
 import { sendAdminNotification } from "./utils/notification";
@@ -71,7 +71,7 @@ async function init() {
     Hennos,
     HomeAssistant,
     TRMNL,
-    SearXNG,
+    Search,
     SSODebug,
     OllamaWrapper,
   ];
