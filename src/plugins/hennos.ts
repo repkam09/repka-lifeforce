@@ -116,7 +116,7 @@ export class Hennos extends LifeforcePlugin {
     }
 
     const client = await createTemporalClient();
-    const handle = await client.workflow.start("hennos-fetch-history", {
+    const handle = await client.workflow.start("messageHistory", {
       taskQueue: Config.TEMPORAL_TASK_QUEUE,
       args: [user.user.id],
       workflowId: `hennos-fetch-history-${user.user.id}-${Date.now()}`,
@@ -271,13 +271,11 @@ export class Hennos extends LifeforcePlugin {
       return returnUnauthorized(ctx, next);
     }
 
-    const userId = valid.user.id;
-
     try {
-      handleUserMessage(userId, ctx.request.body as object);
+      handleUserMessage(valid.user, ctx.request.body as object);
     } catch (err: unknown) {
       Logger.debug(
-        `HennosUser ${userId} Invalid Message: ${ctx.request.body as object}`
+        `HennosUser ${valid.user.id} Invalid Message: ${ctx.request.body as object}`
       );
     }
 

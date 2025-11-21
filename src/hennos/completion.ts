@@ -3,13 +3,14 @@ import { HennosSessionHandler } from "./sessions";
 import { isHennosMessage } from "./types";
 import { Config } from "../utils/config";
 import { createTemporalClient } from "../utils/temporal";
+import { User } from "@supabase/supabase-js";
 
 export async function handleUserMessage(
-  userId: string,
+  user: User,
   message: object
 ): Promise<void> {
   if (!isHennosMessage(message)) {
-    Logger.debug(`HennosUser ${userId} sent invalid object message`);
+    Logger.debug(`HennosUser ${user.id} sent invalid object message`);
     return;
   }
 
@@ -17,31 +18,54 @@ export async function handleUserMessage(
     case "user-msg": {
       const client = await createTemporalClient();
       Logger.debug(
-        `Starting hennos-chat workflow for user ${userId} with message: ${message.value}`
+        `Signaling chat workflow for user ${user.id} with message: ${message.value}`
       );
-      const handle = await client.workflow.start("hennos-chat", {
+      await client.workflow.signalWithStart("agentWorkflow", {
         taskQueue: Config.TEMPORAL_TASK_QUEUE,
         args: [
           {
-            userId,
-            message: message.value,
-          },
+            user: {
+              displayName: 'User',
+              isAdmin: false,
+              isExperimental: false,
+              isWhitelisted: true,
+              provider: "openai",
+              userId: {
+                __typename: "HennosWorkflowUserId",
+                value: user.id,
+              }
+            },
+            aggressiveContinueAsNew: false,
+          } satisfies AgentWorkflowInput,
         ],
-        workflowId: `hennos-chat-${userId}-${Date.now()}`,
-      });
-
-      const result: string = await handle.result();
-      HennosSessionHandler.broadcast(userId, {
-        __type: "assistant-msg",
-        value: result,
+        workflowId: `hennos-chat-${user.id}}`,
+        signal: 'agentWorkflowMessage',
+        signalArgs: [message.value, new Date().toISOString()]
       });
       break;
     }
 
     default: {
       Logger.debug(
-        `HennosUser ${userId} sent message: ${JSON.stringify(message)}`
+        `HennosUser ${user.id} sent message: ${JSON.stringify(message)}`
       );
     }
   }
+}
+
+export type AgentWorkflowInput = {
+  user: HennosWorkflowUser;
+  aggressiveContinueAsNew: boolean;
+};
+
+export type HennosWorkflowUser = {
+  userId: {
+    __typename: "HennosWorkflowUserId";
+    value: string;
+  },
+  displayName: string;
+  isAdmin: boolean;
+  isExperimental: boolean;
+  isWhitelisted: boolean;
+  provider: "openai";
 }
