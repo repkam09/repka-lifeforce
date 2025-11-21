@@ -108,17 +108,17 @@ export class Config {
     return process.env.TELEGRAM_BOT_KEY;
   }
 
-  static get TELEGRAM_BOT_NOTIFY(): string[] {
+  static get TELEGRAM_BOT_NOTIFY(): string[] | false{
     if (!process.env.TELEGRAM_BOT_NOTIFY) {
-      throw new Error("TELEGRAM_BOT_NOTIFY is not set");
+      return false;
     }
 
     return process.env.TELEGRAM_BOT_NOTIFY.split(",").map((id) => id.trim());
   }
 
-  static get TELEGRAM_BOT_ADMIN_NOTIFY(): string[] {
+  static get TELEGRAM_BOT_ADMIN_NOTIFY(): string[] | false {
     if (!process.env.TELEGRAM_BOT_ADMIN_NOTIFY) {
-      throw new Error("TELEGRAM_BOT_ADMIN_NOTIFY is not set");
+      return false;
     }
 
     return process.env.TELEGRAM_BOT_ADMIN_NOTIFY.split(",").map((id) =>

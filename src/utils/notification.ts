@@ -2,10 +2,20 @@ import { Config } from "./config";
 import { Logger } from "./logger";
 
 export async function sendNotification(message: string) {
+  if (!Config.TELEGRAM_BOT_NOTIFY) {
+    Logger.info(`Notification Skipped (no chat IDs): ${message}`);
+    return;
+  }
+
   return _sendNotification(message, Config.TELEGRAM_BOT_NOTIFY);
 }
 
 export async function sendAdminNotification(message: string) {
+  if (!Config.TELEGRAM_BOT_ADMIN_NOTIFY) {
+    Logger.info(`Admin Notification Skipped (no admin chat IDs): ${message}`);
+    return;
+  }
+  
   return _sendNotification(message, Config.TELEGRAM_BOT_ADMIN_NOTIFY);
 }
 
