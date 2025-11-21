@@ -45,7 +45,7 @@ export function returnInternalError(ctx: Context, next: Next) {
 
 export function returnSuccess(
   cache: boolean,
-  data: any,
+  data: unknown,
   ctx: Context,
   next: Next
 ) {

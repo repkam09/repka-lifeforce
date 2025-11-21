@@ -20,7 +20,11 @@ import {
 import { Config } from "../utils/config";
 import { handleUserMessage } from "../hennos/completion";
 import { HennosCacheHandler } from "../hennos/storage";
-import { validateAdminAuth, validateAuth } from "../utils/validation";
+import {
+  validateAdminAuth,
+  validateAuth,
+  validateStaticAuth,
+} from "../utils/validation";
 import {
   returnBadRequest,
   returnInternalError,
@@ -30,6 +34,7 @@ import {
 import { HennosOpenAIProvider } from "../hennos/openai";
 import { createTemporalClient } from "../utils/temporal";
 import OpenAI from "openai";
+import { HennosMessage, isHennosMessage } from "../hennos/types";
 
 type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -92,6 +97,11 @@ export class Hennos extends LifeforcePlugin {
         handler: this.handleHennosHistoryFetch.bind(this),
       },
       {
+        path: "/api/internal/hennos/callback",
+        type: "POST",
+        handler: this.handleInternalHennosCallback.bind(this),
+      },
+      {
         path: "/api/hennos/realtime/events",
         type: "GET",
         handler: this.handleHennosRealtimeEvents.bind(this),
@@ -107,6 +117,44 @@ export class Hennos extends LifeforcePlugin {
         handler: this.handleHennosRealtimeEvent.bind(this),
       },
     ]);
+  }
+
+  private async handleInternalHennosCallback(ctx: Context, next: Next) {
+    const staticAuth = await validateStaticAuth(ctx);
+    if (!staticAuth) {
+      return returnUnauthorized(ctx, next);
+    }
+
+    if (!ctx.request.body) {
+      return returnBadRequest(ctx, next);
+    }
+
+    const unvalidatedBody = ctx.request.body as any;
+    if (!unvalidatedBody.workflowId) {
+      return returnBadRequest(ctx, next);
+    }
+
+    if (!unvalidatedBody.userId) {
+      return returnBadRequest(ctx, next);
+    }
+
+    if (!unvalidatedBody.message) {
+      return returnBadRequest(ctx, next);
+    }
+
+    if (!isHennosMessage(unvalidatedBody.message)) {
+      return returnBadRequest(ctx, next);
+    }
+
+    const body = ctx.request.body as {
+      workflowId: string;
+      userId: string;
+      message: HennosMessage;
+    };
+
+    // Gets an event from the Temporal Cluster about a workflow event
+    HennosSessionHandler.broadcast(body.userId, body.message);
+    return returnSuccess(false, { workflowId: body.workflowId }, ctx, next);
   }
 
   private async handleHennosHistoryFetch(ctx: Context, next: Next) {
@@ -275,7 +323,9 @@ export class Hennos extends LifeforcePlugin {
       handleUserMessage(valid.user, ctx.request.body as object);
     } catch (err: unknown) {
       Logger.debug(
-        `HennosUser ${valid.user.id} Invalid Message: ${ctx.request.body as object}`
+        `HennosUser ${valid.user.id} Invalid Message: ${
+          ctx.request.body as object
+        }`
       );
     }
 
