@@ -37,7 +37,7 @@ export async function handleUserMessage(
             aggressiveContinueAsNew: false,
           } satisfies AgentWorkflowInput,
         ],
-        workflowId: `hennos-chat-${user.id}}`,
+        workflowId: `hennos-chat-${user.id}`,
         signal: "agentWorkflowMessage",
         signalArgs: [message.value, new Date().toISOString()],
       });
