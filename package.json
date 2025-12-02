@@ -8,7 +8,7 @@
   "dependencies": {
     "@koa/cors": "^5.0.0",
     "@koa/send": "^6.0.0",
-    "@modelcontextprotocol/sdk": "^1.20.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "@prisma/client": "^6.15.0",
     "@supabase/supabase-js": "^2.48.1",
     "@temporalio/client": "^1.13.0",
