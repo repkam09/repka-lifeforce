@@ -108,7 +108,7 @@ export class Config {
     return process.env.TELEGRAM_BOT_KEY;
   }
 
-  static get TELEGRAM_BOT_NOTIFY(): string[] | false{
+  static get TELEGRAM_BOT_NOTIFY(): string[] | false {
     if (!process.env.TELEGRAM_BOT_NOTIFY) {
       return false;
     }
@@ -253,7 +253,7 @@ export class Config {
   static get OPENAI_LLM(): HennosModelConfig {
     if (!process.env.OPENAI_LLM) {
       return {
-        MODEL: "gpt-4o-mini",
+        MODEL: "gpt-5-mini",
         CTX: 32000,
       };
     }
@@ -264,7 +264,7 @@ export class Config {
   static get OPENAI_LLM_REALTIME(): HennosModelConfig {
     if (!process.env.OPENAI_LLM_REALTIME) {
       return {
-        MODEL: "gpt-4o-mini-realtime-preview",
+        MODEL: "gpt-realtime-mini",
         CTX: 16000,
       };
     }

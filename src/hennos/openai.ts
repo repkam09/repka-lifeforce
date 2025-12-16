@@ -98,7 +98,7 @@ export class HennosOpenAIProvider {
     call_id: string;
     sip_headers: { name: string; value: string }[];
   }) {
-    Logger.info(`OpenAI Realtime SIP Token Request (${data.call_id})`);
+    Logger.info(`OpenAI Realtime SIP Request (${data.call_id})`);
     this.clearExpiredTokens();
 
     // Log the sip_headers for debugging
@@ -119,7 +119,7 @@ export class HennosOpenAIProvider {
 
     await this.client.realtime.calls.accept(data.call_id, {
       type: "realtime",
-      model: "gpt-realtime-mini",
+      model: Config.OPENAI_LLM_REALTIME.MODEL,
       instructions: this.promptRealtime(),
     });
 
@@ -144,14 +144,10 @@ export class HennosOpenAIProvider {
               const payload = JSON.parse(rawPayload.toString());
               const ignore = ["response.output_audio_transcript.delta"];
               if (!ignore.includes(payload.type)) {
-                Logger.info(
-                  `SIP Realtime Message for call_id ${data.call_id}: ${rawPayload}`
-                );
+                Logger.info(`SIP ${data.call_id}: ${rawPayload}`);
               }
             } catch (err) {
-              Logger.info(
-                `SIP Realtime Message for call_id ${data.call_id}: ${rawPayload}`
-              );
+              Logger.info(`SIP ${data.call_id}: ${rawPayload}`);
             }
           });
 
@@ -166,18 +162,16 @@ export class HennosOpenAIProvider {
           );
         });
       } catch (err) {
-        Logger.error(
-          `Error setting up SIP Realtime WebSocket for call_id ${data.call_id}: ${err}`
-        );
+        Logger.error(`SIP Error call_id ${data.call_id}: ${err}`);
 
         this.client.realtime.calls
           .hangup(data.call_id)
           .then(() => {
-            Logger.info(`Call hung up for call_id: ${data.call_id}`);
+            Logger.info(`SIP Hangup call_id: ${data.call_id}`);
           })
           .catch((hangupErr) => {
             Logger.error(
-              `Error hanging up call for call_id ${data.call_id}: ${hangupErr}`
+              `SIP Error hanging up call_id ${data.call_id}: ${hangupErr}`
             );
           });
       }
