@@ -121,6 +121,11 @@ export class HennosOpenAIProvider {
       type: "realtime",
       model: Config.OPENAI_LLM_REALTIME.MODEL,
       instructions: this.promptRealtime(),
+      audio: {
+        output: {
+          voice: "ash",
+        },
+      },
     });
 
     setTimeout(() => {
