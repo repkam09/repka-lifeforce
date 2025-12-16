@@ -116,6 +116,11 @@ export class Hennos extends LifeforcePlugin {
         type: "POST",
         handler: this.handleHennosRealtimeEvent.bind(this),
       },
+      {
+        path: "/api/hennos/realtime/webhook",
+        type: "POST",
+        handler: this.handleHennosRealtimeWebhook.bind(this),
+      },
     ]);
   }
 
@@ -370,5 +375,39 @@ export class Hennos extends LifeforcePlugin {
     }
 
     return returnSuccess(false, token, ctx, next);
+  }
+
+  private async handleHennosRealtimeWebhook(ctx: Context, next: Next) {
+    if (!ctx.request.body) {
+      Logger.debug("Hennos Realtime Webhook: Missing body");
+      return returnBadRequest(ctx, next);
+    }
+
+    const unvalidatedBody = ctx.request.body as any;
+    if (!unvalidatedBody.type) {
+      Logger.debug("Hennos Realtime Webhook: Missing type");
+      return returnBadRequest(ctx, next);
+    }
+
+    if (unvalidatedBody.type !== "realtime.call.incoming") {
+      Logger.debug(
+        `Hennos Realtime Webhook: Invalid type ${unvalidatedBody.type}`
+      );
+      return returnBadRequest(ctx, next);
+    }
+
+    const callId = unvalidatedBody.data?.call_id;
+    if (!callId) {
+      Logger.debug("Hennos Realtime Webhook: Missing call_id");
+      return returnBadRequest(ctx, next);
+    }
+
+    const openai = new HennosOpenAIProvider();
+    await openai.createRealtimeSIPSession(unvalidatedBody.data);
+
+    ctx.status = 200;
+    ctx.body = { status_code: 200 };
+
+    return next();
   }
 }

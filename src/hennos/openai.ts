@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
+import { WebSocket } from "ws";
 
 type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -91,5 +92,95 @@ export class HennosOpenAIProvider {
 
     HennosOpenAIProvider.tokens.set(chatId, token);
     return token;
+  }
+
+  public async createRealtimeSIPSession(data: {
+    call_id: string;
+    sip_headers: { name: string; value: string }[];
+  }) {
+    Logger.info(`OpenAI Realtime SIP Token Request (${data.call_id})`);
+    this.clearExpiredTokens();
+
+    // Log the sip_headers for debugging
+    if (data.sip_headers) {
+      const important = [
+        "From",
+        "P-Asserted-Identity",
+        "User-Agent",
+        "X-Twilio-CallSid",
+      ];
+      for (const header of important) {
+        const value = data.sip_headers.find((h) => h.name === header)?.value;
+        if (value) {
+          Logger.info(` > ${header}: ${value}`);
+        }
+      }
+    }
+
+    await this.client.realtime.calls.accept(data.call_id, {
+      type: "realtime",
+      model: "gpt-realtime-mini",
+      instructions: this.promptRealtime(),
+    });
+
+    setTimeout(() => {
+      try {
+        const socket = new WebSocket(
+          "wss://api.openai.com/v1/realtime?call_id=" + data.call_id,
+          {
+            headers: {
+              Authorization: `Bearer ${Config.OPENAI_API_KEY}`,
+            },
+          }
+        );
+
+        socket.on("open", () => {
+          Logger.info(
+            `SIP Realtime WebSocket connected for call_id: ${data.call_id}`
+          );
+
+          socket.on("message", (rawPayload) => {
+            try {
+              const payload = JSON.parse(rawPayload.toString());
+              const ignore = ["response.output_audio_transcript.delta"];
+              if (!ignore.includes(payload.type)) {
+                Logger.info(
+                  `SIP Realtime Message for call_id ${data.call_id}: ${rawPayload}`
+                );
+              }
+            } catch (err) {
+              Logger.info(
+                `SIP Realtime Message for call_id ${data.call_id}: ${rawPayload}`
+              );
+            }
+          });
+
+          socket.send(
+            JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions:
+                  "Introduce yourself to the caller as 'Hennos' and ask how you can assist them today.",
+              },
+            })
+          );
+        });
+      } catch (err) {
+        Logger.error(
+          `Error setting up SIP Realtime WebSocket for call_id ${data.call_id}: ${err}`
+        );
+
+        this.client.realtime.calls
+          .hangup(data.call_id)
+          .then(() => {
+            Logger.info(`Call hung up for call_id: ${data.call_id}`);
+          })
+          .catch((hangupErr) => {
+            Logger.error(
+              `Error hanging up call for call_id ${data.call_id}: ${hangupErr}`
+            );
+          });
+      }
+    }, 1700);
   }
 }

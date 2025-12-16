@@ -20,7 +20,6 @@ import { PrismaClient } from "@prisma/client";
 import { createMCPServer } from "./mcp";
 import { Search } from "./plugins/search";
 import { SSODebug } from "./plugins/saml";
-import { OllamaWrapper } from "./plugins/ollama";
 import { sendAdminNotification } from "./utils/notification";
 
 async function init() {
@@ -73,7 +72,6 @@ async function init() {
     TRMNL,
     Search,
     SSODebug,
-    OllamaWrapper,
   ];
 
   const setup = plugins.map((Plugin) => {

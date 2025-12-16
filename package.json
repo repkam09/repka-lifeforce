@@ -22,7 +22,7 @@
     "koa-passport": "^6.0.0",
     "koa-router": "^13.0.1",
     "mime-types": "^2.1.35",
-    "openai": "^4.85.3",
+    "openai": "^6.14.0",
     "passport": "^0.7.0",
     "passport-saml": "^3.2.4",
     "transmission": "^0.4.10",
