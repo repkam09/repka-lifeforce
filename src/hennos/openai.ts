@@ -2,6 +2,8 @@ import OpenAI from "openai";
 import { Config } from "../utils/config";
 import { Logger } from "../utils/logger";
 import { WebSocket } from "ws";
+import { BraveSearch } from "./tools/brave";
+import { TerminateCall } from "./tools/terminate";
 
 type Message = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -121,6 +123,8 @@ export class HennosOpenAIProvider {
       type: "realtime",
       model: Config.OPENAI_LLM_REALTIME.MODEL,
       instructions: this.promptRealtime(),
+      tools: [BraveSearch.definition(), TerminateCall.definition()],
+      tool_choice: "auto",
       audio: {
         output: {
           voice: "ash",
@@ -150,6 +154,84 @@ export class HennosOpenAIProvider {
               const ignore = ["response.output_audio_transcript.delta"];
               if (!ignore.includes(payload.type)) {
                 Logger.info(`SIP ${data.call_id}: ${rawPayload}`);
+
+                if (payload.type === "response.done") {
+                  if (payload.response.object === "realtime.response") {
+                    const items = payload.response.output;
+
+                    for (const item of items) {
+                      if (
+                        item.type === "function_call" &&
+                        item.status === "completed"
+                      ) {
+                        let args: Record<string, string> = {};
+                        try {
+                          args = JSON.parse(item.arguments);
+                        } catch (err: unknown) {
+                          const error = err as Error;
+                          Logger.error(
+                            `SIP Error parsing function call arguments for call_id ${data.call_id}: ${error.message}`
+                          );
+                        }
+
+                        switch (item.name) {
+                          case "terminate_session": {
+                            TerminateCall.callback(
+                              socket,
+                              data.call_id,
+                              args
+                            ).finally(() => {
+                              // Hang up the call immediately
+                              this.client.realtime.calls
+                                .hangup(data.call_id)
+                                .then(() => {
+                                  Logger.info(
+                                    `SIP Hangup call_id: ${data.call_id}`
+                                  );
+                                })
+                                .catch((hangupErr: unknown) => {
+                                  const error = hangupErr as Error;
+                                  Logger.error(
+                                    `SIP Error hanging up call_id ${data.call_id}: ${error.message}`
+                                  );
+                                });
+                            });
+                            break;
+                          }
+
+                          case "brave_search": {
+                            BraveSearch.callback(socket, data.call_id, args);
+                            break;
+                          }
+
+                          default: {
+                            Logger.error(
+                              `SIP Unknown function call '${item.name}' for call_id: ${data.call_id}`
+                            );
+
+                            socket.send(
+                              JSON.stringify({
+                                type: "conversation.item.create",
+                                item: {
+                                  type: "function_call_output",
+                                  call_id: item.call_id,
+                                  output: "Error: Unknown function call",
+                                },
+                              })
+                            );
+
+                            socket.send(
+                              JSON.stringify({
+                                type: "response.create",
+                              })
+                            );
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             } catch (err) {
               Logger.info(`SIP ${data.call_id}: ${rawPayload}`);
