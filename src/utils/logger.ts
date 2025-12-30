@@ -1,25 +1,90 @@
+import pino from "pino";
 import { Config } from "./config";
+import { randomUUID } from "node:crypto";
 
 export class Logger {
+  private static instance: string = randomUUID();
+
+  public static get logger() {
+    if (Config.AXIOM_API_KEY && Config.AXIOM_DATASET) {
+      return pino({
+        level: "debug",
+        transport: {
+          target: "@axiomhq/pino",
+          options: {
+            dataset: Config.AXIOM_DATASET,
+            token: Config.AXIOM_API_KEY,
+          },
+        },
+      });
+    }
+
+    // Fallback to console logging
+    return pino({
+      level: "debug",
+      transport: {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+          singleLine: false,
+          ignore: "pid,hostname,instance,consumer",
+          errorLikeObjectKeys: ["err", "error", "cause", "reason"],
+          sync: true,
+        },
+      },
+    });
+  }
+
   static info(message: string) {
-    console.log(`INFO: ${new Date().toISOString()} : ${message}`);
+    Logger.logger.info(
+      {
+        consumer: "lifeforce",
+        instance: Logger.instance,
+      },
+      message
+    );
   }
 
   static debug(message: string) {
-    console.log(`DEBUG: ${new Date().toISOString()} : ${message}`);
+    Logger.logger.debug(
+      {
+        consumer: "lifeforce",
+        instance: Logger.instance,
+      },
+      message
+    );
   }
 
   static warn(message: string) {
-    console.warn(`WARN: ${new Date().toISOString()} : ${message}`);
+    Logger.logger.warn(
+      {
+        consumer: "lifeforce",
+        instance: Logger.instance,
+      },
+      message
+    );
   }
 
   static error(message: string) {
-    console.error(`ERROR: ${new Date().toISOString()} : ${message}`);
+    Logger.logger.error(
+      {
+        consumer: "lifeforce",
+        instance: Logger.instance,
+      },
+      message
+    );
   }
 
   static verbose(message: string) {
     if (Config.LIFEFORCE_DEBUG_MODE) {
-      console.log(`VERBOSE: ${new Date().toISOString()} : ${message}`);
+      Logger.logger.debug(
+        {
+          consumer: "lifeforce",
+          instance: Logger.instance,
+        },
+        message
+      );
     }
   }
 }

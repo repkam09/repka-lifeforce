@@ -302,6 +302,22 @@ export class Config {
       CTX: ctx,
     };
   }
+
+  static get AXIOM_DATASET(): string | false {
+    if (!process.env.AXIOM_DATASET) {
+      return false;
+    }
+
+    return process.env.AXIOM_DATASET;
+  }
+
+  static get AXIOM_API_KEY(): string | false {
+    if (!process.env.AXIOM_API_KEY) {
+      return false;
+    }
+
+    return process.env.AXIOM_API_KEY;
+  }
 }
 
 function parseHennosModelString(value: string, env: string): HennosModelConfig {
