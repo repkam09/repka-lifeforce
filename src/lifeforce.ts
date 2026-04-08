@@ -13,14 +13,11 @@ import { traceLogMiddleware } from "./utils/common";
 import { RepCast } from "./plugins/repcast";
 import { RaspiTempMonitor } from "./plugins/tempmon";
 import { Weather } from "./plugins/weather";
-import { Hennos } from "./plugins/hennos";
-import { HomeAssistant } from "./plugins/home";
-import { TRMNL } from "./plugins/trmnl";
 import { PrismaClient } from "@prisma/client";
 import { createMCPServer } from "./mcp";
-import { Search } from "./plugins/search";
 import { SSODebug } from "./plugins/saml";
 import { sendAdminNotification } from "./utils/notification";
+import { Logging } from "./plugins/logging";
 
 async function init() {
   Logger.info("Creating Koa Server...");
@@ -51,7 +48,7 @@ async function init() {
         "repka-repcast-token",
         "repka-verify",
       ],
-    })
+    }),
   );
 
   app.use(traceLogMiddleware);
@@ -67,11 +64,8 @@ async function init() {
     RepCast,
     RaspiTempMonitor,
     Weather,
-    Hennos,
-    HomeAssistant,
-    TRMNL,
-    Search,
     SSODebug,
+    Logging,
   ];
 
   const setup = plugins.map((Plugin) => {
@@ -91,7 +85,7 @@ async function init() {
 
   Logger.info("Starting Koa Server...");
   sendAdminNotification(
-    `Lifeforce Server Started - ${new Date().toISOString()}`
+    `Lifeforce Server Started - ${new Date().toISOString()}`,
   );
   app
     .listen(Config.LIFEFORCE_PORT, () => {

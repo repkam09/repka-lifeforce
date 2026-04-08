@@ -1,12 +1,11 @@
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { Config } from "./config";
 import { Context } from "koa";
-import { HennosCacheHandler } from "../hennos/storage";
 import { Logger } from "./logger";
 
 export async function validateAdminAuth(
   supabase: SupabaseClient,
-  ctx: Context
+  ctx: Context,
 ): Promise<{ token: string; user: User } | false> {
   const user = await validateAuth(supabase, ctx);
   if (!user) {
@@ -22,7 +21,7 @@ export async function validateAdminAuth(
 
 export async function validateAuth(
   supabase: SupabaseClient,
-  ctx: Context
+  ctx: Context,
 ): Promise<{ token: string; user: User; cached: boolean } | false> {
   let sessionToken: string | false = false;
 
@@ -42,16 +41,6 @@ export async function validateAuth(
     return false;
   }
 
-  // check if we have a cached result for this token
-  const cachedUser = HennosCacheHandler.get<User>(sessionToken);
-  if (cachedUser) {
-    return {
-      cached: true,
-      token: sessionToken,
-      user: cachedUser,
-    };
-  }
-
   const user = await supabase.auth.getUser(sessionToken);
   if (user.error) {
     console.error(`Supabase error: ${user.error.message}`);
@@ -59,7 +48,6 @@ export async function validateAuth(
   }
 
   if (user.data.user) {
-    HennosCacheHandler.set(sessionToken, user.data.user);
     return {
       cached: false,
       token: sessionToken,
@@ -85,7 +73,7 @@ export async function validateStaticAuth(ctx: Context): Promise<boolean> {
   }
 
   Logger.warn(
-    "Unauthorized access attempt to Lifeforce API with Static token."
+    "Unauthorized access attempt to Lifeforce API with Static token.",
   );
   return false;
 }
