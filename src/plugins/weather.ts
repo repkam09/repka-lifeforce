@@ -27,6 +27,16 @@ export class Weather extends LifeforcePlugin {
         type: "GET",
         handler: this.handleWeatherForecastZipCode.bind(this),
       },
+      {
+        path: "/api/weather/current/gps/:lat/:lon",
+        type: "GET",
+        handler: this.handleWeatherGps.bind(this),
+      },
+      {
+        path: "/api/weather/forecast/gps/:lat/:lon",
+        type: "GET",
+        handler: this.handleWeatherForecastGps.bind(this),
+      },
     ]);
 
     this.mcp.resource(
@@ -44,7 +54,7 @@ export class Weather extends LifeforcePlugin {
             },
           ],
         };
-      }
+      },
     );
 
     this.mcp.tool(
@@ -57,7 +67,7 @@ export class Weather extends LifeforcePlugin {
         return {
           content: [{ type: "text", text: JSON.stringify(result.data) }],
         };
-      }
+      },
     );
 
     this.mcp.tool(
@@ -70,7 +80,7 @@ export class Weather extends LifeforcePlugin {
         return {
           content: [{ type: "text", text: JSON.stringify(result.data) }],
         };
-      }
+      },
     );
 
     this.mcp.resource(
@@ -88,7 +98,7 @@ export class Weather extends LifeforcePlugin {
             },
           ],
         };
-      }
+      },
     );
   }
 
@@ -103,7 +113,7 @@ export class Weather extends LifeforcePlugin {
       } catch (err: unknown) {
         const error = err as Error;
         Logger.error(
-          `Unable to get current weather for ${zip}, err: ${error.message}`
+          `Unable to get current weather for ${zip}, err: ${error.message}`,
         );
         ctx.status = 500;
       }
@@ -125,7 +135,53 @@ export class Weather extends LifeforcePlugin {
       } catch (err: unknown) {
         const error = err as Error;
         Logger.error(
-          `Unable to get weather forecast for ${zip}, err: ${error.message}`
+          `Unable to get weather forecast for ${zip}, err: ${error.message}`,
+        );
+        ctx.status = 500;
+      }
+    } else {
+      Logger.debug("Bad request for weather forecast");
+      ctx.status = 400;
+    }
+    return next();
+  }
+
+  private async handleWeatherGps(ctx: Context, next: Next) {
+    const lat = ctx.params.lat;
+    const lon = ctx.params.lon;
+    if (lat && lon) {
+      Logger.debug(`Looking up weather for ${lat}, ${lon}`);
+      try {
+        const response = await weatherCurrentGps(lat, lon);
+        ctx.status = 200;
+        ctx.body = response.data;
+      } catch (err: unknown) {
+        const error = err as Error;
+        Logger.error(
+          `Unable to get current weather for ${lat}, ${lon}, err: ${error.message}`,
+        );
+        ctx.status = 500;
+      }
+    } else {
+      Logger.debug("Bad request for current weather");
+      ctx.status = 400;
+    }
+    return next();
+  }
+
+  private async handleWeatherForecastGps(ctx: Context, next: Next) {
+    const lat = ctx.params.lat;
+    const lon = ctx.params.lon;
+    if (lat && lon) {
+      Logger.debug(`Looking up weather forecast for ${lat}, ${lon}`);
+      try {
+        const response = await weatherForecastGps(lat, lon);
+        ctx.status = 200;
+        ctx.body = response.data;
+      } catch (err: unknown) {
+        const error = err as Error;
+        Logger.error(
+          `Unable to get weather forecast for ${lat}, ${lon}, err: ${error.message}`,
         );
         ctx.status = 500;
       }
@@ -139,12 +195,24 @@ export class Weather extends LifeforcePlugin {
 
 export async function weatherForecastZipCode(zip: string) {
   return axios.get(
-    `http://api.openweathermap.org/data/2.5/forecast?zip=${zip}&appid=${Config.WEATHER_API_KEY}`
+    `http://api.openweathermap.org/data/2.5/forecast?zip=${zip}&appid=${Config.WEATHER_API_KEY}`,
   );
 }
 
 export async function weatherCurrentZipCode(zip: string) {
   return axios.get(
-    `http://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${Config.WEATHER_API_KEY}`
+    `http://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${Config.WEATHER_API_KEY}`,
+  );
+}
+
+export async function weatherCurrentGps(lat: string, lon: string) {
+  return axios.get(
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${Config.WEATHER_API_KEY}`,
+  );
+}
+
+export async function weatherForecastGps(lat: string, lon: string) {
+  return axios.get(
+    `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${Config.WEATHER_API_KEY}`,
   );
 }
